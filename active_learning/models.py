@@ -21,7 +21,21 @@ class ActiveLearner:
 		pass
 
 	def fit_to_known(self):
+		"""
+		This method fits self.predictor to the training data and labels
+		provided to it so far.
+		"""
 		self.predictor.fit(self.training_data, self.training_labels)
+
+	def add_and_retrain(self, new_data, new_label):
+		"""
+		This function adds the given data to the training examples
+		and retrains the predictor with the augmented dataset
+		:param new_data: new training data
+		:param new_label: new training labels for the data
+		"""
+		self.add_training_data(new_data, new_label)
+		self.fit_to_known()
 
 	def add_training_data(self, new_data, new_label):
 		# TODO: get rid of the if clause
