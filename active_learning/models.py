@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.utils import check_array
 
+
 class ActiveLearner:
 	"""
 	This class is an abstract model of a general active learning algorithm.
@@ -20,8 +21,8 @@ class ActiveLearner:
 
 		self.predictor = predictor
 		self.utility_function = utility_function
-		self.training_data = training_data
-		self.training_labels = training_labels
+		self.training_data = check_array(training_data)
+		self.training_labels = check_array(training_labels, ensure_2d=False)
 
 		if (type(training_data) != type(None)) and (type(training_labels) != type(None)):
 			self.fit_to_known()
@@ -75,13 +76,13 @@ class ActiveLearner:
 		# TODO: get rid of the if clause
 		# TODO: test if this works with multiple shapes and types of data
 
-		new_data, new_label = check_array(new_data), check_array(new_label)
+		new_data, new_label = check_array(new_data), check_array(new_label, ensure_2d=False)
 		assert len(new_data) == len(new_label), 'the number of new data points and number of labels must match'
 
-		if type(training_data) != type(None):
+		if type(self.training_data) != type(None):
 			try:
 				self.training_data = np.vstack((self.training_data, new_data))
-				self.training_labels = np.vstack((self.training_labels, new_label))
+				self.training_labels = np.concatenate((self.training_labels, new_label))
 			except ValueError:
 				raise ValueError('the dimensions of the new training data and label must'
 								 'agree with the training data and labels provided so far')
