@@ -1,7 +1,10 @@
 import numpy as np
 
 
-def uncertainty(predictor, data):
-	uncertainties = predictor.score(data)
-	max_uncertainty_idx = np.argmax(uncertainties)
-	return max_uncertainty_idx, data[max_uncertainty_idx]
+def classifier_uncertainty(classifier, data):
+	# calculate uncertainty for each point provided
+	classwise_uncertainty = classifier.predict_proba(data)
+
+	# for each point, select the maximum uncertainty
+	return 1 - np.max(classwise_uncertainty, axis=1)
+
