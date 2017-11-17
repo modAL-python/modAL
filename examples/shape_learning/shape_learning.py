@@ -36,9 +36,8 @@ learner = ActiveLearner(
 	training_data=X_train, training_labels=y_train
 )
 
-for round_idx in range(100):
+for round_idx in range(20):
 	query_idx, query_inst = learner.query(X)
-	print(query_idx, query_inst)
 	learner.add_and_retrain(X[query_idx].reshape(1, -1), y[query_idx].reshape(-1, ))
 
-# misc.imshow(learner.predictor.predict())
+misc.imshow(learner.predictor.predict(X).reshape(100, 100))
