@@ -1,4 +1,4 @@
-# ModAL
+# modAL
 Modular Active Learning framework for Python3
 
 ## Introduction
