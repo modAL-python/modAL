@@ -41,7 +41,7 @@ learner = ActiveLearner(
     training_data=X_train, training_labels=y_train
 )
 
-for round_idx in range(20):
+for round_idx in range(50):
     query_idx, query_inst = learner.query(X)
     learner.add_and_retrain(X[query_idx].reshape(1, -1), y[query_idx].reshape(-1, ))
 
