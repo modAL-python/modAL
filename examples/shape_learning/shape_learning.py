@@ -8,8 +8,8 @@ the scikit-learn implementation of the Random Forest Classifier algorithm
 import numpy as np
 from scipy import misc
 from sklearn.ensemble import RandomForestClassifier
-from modAL.active_learning.models import ActiveLearner
-from modAL.active_learning.utilities import classifier_uncertainty
+from modAL.models import ActiveLearner
+from modAL.utilities import classifier_uncertainty
 
 # creating the image
 im_width = 200
