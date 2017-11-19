@@ -1,6 +1,7 @@
 import unittest
 import numpy as np
 import modAL.utilities
+from itertools import chain
 from collections import namedtuple
 
 
@@ -8,6 +9,10 @@ Test = namedtuple('Test', ['input', 'output'])
 
 
 class MockClassifier:
+    """
+    Mock classifier object for testing. The predict_proba method returns the
+    object given for argument predict_proba_return.
+    """
     def __init__(self, predict_proba_return):
         self.predict_proba_return = predict_proba_return
 
@@ -21,17 +26,20 @@ class TestUtilities(unittest.TestCase):
         test_cases = (Test(p * np.ones(shape=(k + 1, l + 1)), (1 - p) * np.ones(shape=(k + 1, )))
                       for k in range(100) for l in range(10) for p in np.linspace(0, 1, 10))
         for case in test_cases:
-            mock_classifier = MockClassifier(case.input)
+            mock_classifier = MockClassifier(predict_proba_return=case.input)
             np.testing.assert_almost_equal(
                 modAL.utilities.classifier_uncertainty(mock_classifier, np.random.rand(10)),
                 case.output
             )
 
     def test_margin(self):
-        test_cases = (Test(p * np.ones(shape=(k + 1, l + 1)), np.zeros(shape=(k + 1,)))
+        test_cases_1 = (Test(p * np.ones(shape=(k + 1, l + 1)), np.zeros(shape=(k + 1,)))
                       for k in range(100) for l in range(10) for p in np.linspace(0, 1, 10))
-        for case in test_cases:
-            mock_classifier = MockClassifier(case.input)
+        test_cases_2 = (Test(p * np.tile(np.asarray(range(k+1))+1.0, l+1).reshape(l+1, k+1),
+                             p * np.ones(shape=(l+1, ))*int(k!=0))
+                        for k in range(10) for l in range(100) for p in np.linspace(0, 1, 11))
+        for case in chain(test_cases_1, test_cases_2):
+            mock_classifier = MockClassifier(predict_proba_return=case.input)
             np.testing.assert_almost_equal(
                 modAL.utilities.classifier_margin(mock_classifier, np.random.rand(10)),
                 case.output
@@ -39,5 +47,4 @@ class TestUtilities(unittest.TestCase):
 
 
 if __name__ == '__main__':
-
     unittest.main()
