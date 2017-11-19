@@ -19,10 +19,9 @@ def classifier_margin(classifier, data):
         second_max = -np.inf
 
         for val in point_uncertainty_dist:
-            if val >= first_max:
+            if val > first_max:
+                second_max = first_max
                 first_max = val
-            elif val >= second_max:
-                second_max = val
 
         if second_max != -np.inf:
             margins[point_idx] = first_max - second_max
