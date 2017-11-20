@@ -108,8 +108,28 @@ class ActiveLearner:
 
 
 class Committee:
-    def __init__(self):
+    """
+    This class is an abstract model of a committee-based active learning algorithm.
+    """
+    def __init__(self, learner_list):
+        """
+        :param learner_list: list of ActiveLearners
+        """
+        assert type(learner_list) == list, 'learners must be supplied in a list'
+        for elem in list:
+            assert type(learner_list) == ActiveLearner, 'each object in learner_list must be an ActiveLearner'
+
+        self.learner_list = learner_list
+
+    def assess_utilities(self):
         pass
 
-    def vote(self):
+    def query(self, data):
+        """
+        Finds the most informative point in the data provided, then
+        returns the instance and its index
+        :param data: the pool from which the query is selected
+        :return: tuple(query_idx, data[query_idx]), where query_idx is the index of the instance
+                 to be queried
+        """
         pass
