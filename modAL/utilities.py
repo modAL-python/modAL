@@ -1,3 +1,7 @@
+"""
+Utility functions for the active learning model.
+"""
+
 import numpy as np
 from modAL.utils.np_utils import max_margin
 

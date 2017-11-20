@@ -1,3 +1,8 @@
+"""
+Core models for active learning algorithms.
+"""
+
+
 import numpy as np
 from sklearn.utils import check_array
 
