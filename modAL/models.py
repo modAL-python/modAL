@@ -32,9 +32,12 @@ class ActiveLearner:
         This method calls the utility function provided for ActiveLearner
         on the data passed to it. It is used to measure utilities for each
         data point.
-        :param data: data points for which the utilities should be measures
-        :return: utility values for each datapoint
+        :param data: numpy.ndarray, data points for which the utilities should be measured
+        :return: utility values for each datapoint as given by the utility function provided
+                 for the learner
         """
+        check_array(data)
+
         return self.utility_function(self.predictor, data)
 
     def query(self, data):
@@ -121,15 +124,42 @@ class Committee:
 
         self.learner_list = learner_list
 
-    def assess_utilities(self):
-        pass
+    def calculate_utility(self, data):
+        """
+        Calculates the utilities for every learner in the Committee and returns it
+        in the form of a numpy.ndarray
+        :param data: numpy.ndarray, data points for which the utilities should be measures
+        :return: numpy.ndarray of utilities
+        """
+
+        check_array(data, ensure_2d=True)
+        utilities = np.zeros(shape=(data.shape[0], len(self.learner_list)))
+
+        for learner_idx, learner in enumerate(self.learner_list):
+            learner_utility = learner.calculate_utility(data)
+            utilities[:, learner_idx] = learner_utility
+
+        return utilities
+
 
     def query(self, data):
         """
         Finds the most informative point in the data provided, then
         returns the instance and its index
-        :param data: the pool from which the query is selected
+        :param data: numpy.ndarray, the pool from which the query is selected
         :return: tuple(query_idx, data[query_idx]), where query_idx is the index of the instance
                  to be queried
         """
+        pass
+
+    def add_and_retrain(self, new_data, new_label):
+        pass
+
+    def add_training_data(self, new_data, new_label):
+        pass
+
+    def predict(self, data):
+        pass
+
+    def predict_proba(self, data):
         pass
