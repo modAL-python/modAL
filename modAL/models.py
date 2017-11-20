@@ -41,9 +41,13 @@ class ActiveLearner:
         """
         Finds the most informative point in the data provided, then
         returns the instance and its index
-        :param data:
-        :return:
+        :param data: the pool from which the query is selected
+        :return: tuple(query_idx, data[query_idx]), where query_idx is the index of the instance
+                 to be queried
         """
+
+        check_array(data, ensure_2d=True)
+
         utilities = self.calculate_utility(data)
         query_idx = np.argmax(utilities)
         return query_idx, data[query_idx]
