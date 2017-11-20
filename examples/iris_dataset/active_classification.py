@@ -19,6 +19,7 @@ iris = load_iris()
 with plt.style.context('seaborn-white'):
     pca = PCA(n_components=2).fit_transform(iris['data'])
     plt.scatter(x=pca[:, 0], y=pca[:, 1], c=iris['target'], cmap='viridis')
+    plt.title('The iris dataset')
     plt.show()
 
 # initial training data
@@ -45,3 +46,5 @@ for idx in range(n_queries):
 with plt.style.context('seaborn-white'):
     prediction =learner.predict(iris['data'])
     plt.scatter(x=pca[:, 0], y=pca[:, 1], c=prediction, cmap='viridis')
+    plt.title('Predictions after %i queries' % n_queries)
+    plt.show()
