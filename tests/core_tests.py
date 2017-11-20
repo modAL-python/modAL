@@ -29,8 +29,8 @@ class TestUtilities(unittest.TestCase):
     def test_uncertainty(self):
         print('Testing modAL.utilities.classifier_uncertainty()...')
 
-        test_cases = (Test(p * np.ones(shape=(k + 1, l + 1)), (1 - p) * np.ones(shape=(k + 1, )))
-                      for k in range(100) for l in range(10) for p in np.linspace(0, 1, 10))
+        test_cases = (Test(p * np.ones(shape=(k, l)), (1 - p) * np.ones(shape=(k, )))
+                      for k in range(1, 100) for l in range(1, 10) for p in np.linspace(0, 1, 11))
         for case in test_cases:
             mock_classifier = MockClassifier(predict_proba_return=case.input)
             np.testing.assert_almost_equal(
@@ -41,11 +41,11 @@ class TestUtilities(unittest.TestCase):
     def test_margin(self):
         print('Testing modAL.utilities.classifier_margin()...')
 
-        test_cases_1 = (Test(p * np.ones(shape=(k + 1, l + 1)), np.zeros(shape=(k + 1,)))
-                      for k in range(100) for l in range(10) for p in np.linspace(0, 1, 10))
-        test_cases_2 = (Test(p * np.tile(np.asarray(range(k+1))+1.0, l+1).reshape(l+1, k+1),
-                             p * np.ones(shape=(l+1, ))*int(k!=0))
-                        for k in range(10) for l in range(100) for p in np.linspace(0, 1, 11))
+        test_cases_1 = (Test(p * np.ones(shape=(k, l)), np.zeros(shape=(k,)))
+                      for k in range(1, 100) for l in range(1, 10) for p in np.linspace(0, 1, 11))
+        test_cases_2 = (Test(p * np.tile(np.asarray(range(k))+1.0, l).reshape(l, k),
+                             p * np.ones(shape=(l, ))*int(k!=1))
+                        for k in range(1, 10) for l in range(1, 100) for p in np.linspace(0, 1, 11))
         for case in chain(test_cases_1, test_cases_2):
             mock_classifier = MockClassifier(predict_proba_return=case.input)
             np.testing.assert_almost_equal(
@@ -58,6 +58,9 @@ class TestCommittee(unittest.TestCase):
 
     def test_calculate_utility(self):
         print('Testing Committee.calculate_utility()...')
+
+        for n_learners in range(1, 20):
+            pass
 
 if __name__ == '__main__':
     unittest.main()

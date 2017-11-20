@@ -141,7 +141,6 @@ class Committee:
 
         return utilities
 
-
     def query(self, data):
         """
         Finds the most informative point in the data provided, then
