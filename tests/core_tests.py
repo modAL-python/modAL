@@ -1,6 +1,7 @@
 import unittest
 import numpy as np
 import modAL.utilities
+import modAL.models
 from itertools import chain
 from collections import namedtuple
 
@@ -27,8 +28,6 @@ class MockClassifier:
 class TestUtilities(unittest.TestCase):
 
     def test_uncertainty(self):
-        print('Testing modAL.utilities.classifier_uncertainty()...')
-
         test_cases = (Test(p * np.ones(shape=(k, l)), (1 - p) * np.ones(shape=(k, )))
                       for k in range(1, 100) for l in range(1, 10) for p in np.linspace(0, 1, 11))
         for case in test_cases:
@@ -39,8 +38,6 @@ class TestUtilities(unittest.TestCase):
             )
 
     def test_margin(self):
-        print('Testing modAL.utilities.classifier_margin()...')
-
         test_cases_1 = (Test(p * np.ones(shape=(k, l)), np.zeros(shape=(k,)))
                       for k in range(1, 100) for l in range(1, 10) for p in np.linspace(0, 1, 11))
         test_cases_2 = (Test(p * np.tile(np.asarray(range(k))+1.0, l).reshape(l, k),
@@ -57,10 +54,17 @@ class TestUtilities(unittest.TestCase):
 class TestCommittee(unittest.TestCase):
 
     def test_calculate_utility(self):
-        print('Testing Committee.calculate_utility()...')
+        for n_learners in range(1, 200):
+            utility = np.random.rand(100, n_learners)
+            committee = modAL.models.Committee(
+                learner_list=[MockClassifier(calculate_utility_return=utility[:, learner_idx])
+                              for learner_idx in range(n_learners)]
+            )
+            np.testing.assert_almost_equal(
+                committee.calculate_utility(np.random.rand(100, 1)),
+                utility
+            )
 
-        for n_learners in range(1, 20):
-            pass
 
 if __name__ == '__main__':
     unittest.main()

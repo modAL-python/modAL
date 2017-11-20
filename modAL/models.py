@@ -119,8 +119,6 @@ class Committee:
         :param learner_list: list of ActiveLearners
         """
         assert type(learner_list) == list, 'learners must be supplied in a list'
-        for elem in list:
-            assert type(learner_list) == ActiveLearner, 'each object in learner_list must be an ActiveLearner'
 
         self.learner_list = learner_list
 
