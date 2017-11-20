@@ -2,11 +2,10 @@ import numpy as np
 from sklearn.utils import check_array
 
 
-def max_margin(array, axis=None):
+def max_margin(array):
     """
     Calculates the difference between the first and second largest element of an array.
     :param array: numpy.ndarray
-    :param axis: axis along which to calculate the max margin
     :return: max margin of array or
     """
     check_array(array, ensure_2d=True)
