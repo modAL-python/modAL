@@ -114,6 +114,9 @@ class ActiveLearner:
     def predict_proba(self, data):
         return self.predictor.predict_proba(data)
 
+    def score(self, X, y, sample_weight=None):
+        return self.predictor.score(X, y, sample_weight=sample_weight)
+
 
 class Committee:
     """
