@@ -24,7 +24,7 @@ with plt.style.context('seaborn-white'):
 
 # initial training data
 n_initial = 1
-train_idx = np.random.choice(range(iris['data'].shape[0]), size=10, replace=False)
+train_idx = np.random.choice(range(iris['data'].shape[0]), size=n_initial, replace=False)
 X_train = iris['data'][train_idx]
 y_train = iris['target'][train_idx]
 
