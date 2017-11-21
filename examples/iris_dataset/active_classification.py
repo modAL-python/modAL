@@ -28,8 +28,8 @@ train_idx = np.random.choice(range(iris['data'].shape[0]), size=n_initial, repla
 X_train = iris['data'][train_idx]
 y_train = iris['target'][train_idx]
 # creating a reduced copy of the data with the known instances removed
-X_reduced = np.delete(iris['data'], train_idx, axis=0)
-y_reduced = np.delete(iris['target'], train_idx)
+pool_data = np.delete(iris['data'], train_idx, axis=0)
+pool_labels = np.delete(iris['target'], train_idx)
 
 # active learning
 mlp_classifier = MLPClassifier(hidden_layer_sizes=(10, 10, 10), max_iter=1000)
@@ -40,13 +40,13 @@ learner = ActiveLearner(
 
 n_queries = 20
 for idx in range(n_queries):
-    query_idx, query_instance = learner.query(X_reduced)
+    query_idx, query_instance = learner.query(pool_data)
     learner.add_and_retrain(
-        new_data=X_reduced[query_idx].reshape(1, -1),
-        new_label=y_reduced[query_idx].reshape(-1, )
+        new_data=pool_data[query_idx].reshape(1, -1),
+        new_label=pool_labels[query_idx].reshape(-1, )
     )
-    X_reduced = np.delete(X_reduced, query_idx, axis=0)
-    y_reduced = np.delete(y_reduced, query_idx)
+    pool_data = np.delete(pool_data, query_idx, axis=0)
+    pool_labels = np.delete(pool_labels, query_idx)
 
 with plt.style.context('seaborn-white'):
     prediction =learner.predict(iris['data'])
