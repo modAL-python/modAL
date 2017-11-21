@@ -23,13 +23,16 @@ with plt.style.context('seaborn-white'):
     plt.show()
 
 # initial training data
-n_initial = 1
+n_initial = 10
 train_idx = np.random.choice(range(iris['data'].shape[0]), size=n_initial, replace=False)
 X_train = iris['data'][train_idx]
 y_train = iris['target'][train_idx]
+# creating a reduced copy of the data with the known instances removed
+X_reduced = np.delete(iris['data'], train_idx, axis=0)
+y_reduced = np.delete(iris['target'], train_idx)
 
 # active learning
-mlp_classifier = MLPClassifier(hidden_layer_sizes=(10, 10, 10))
+mlp_classifier = MLPClassifier(hidden_layer_sizes=(10, 10, 10), max_iter=1000)
 learner = ActiveLearner(
     predictor=mlp_classifier, utility_function=classifier_uncertainty,
     training_data=X_train, training_labels=y_train
@@ -37,11 +40,13 @@ learner = ActiveLearner(
 
 n_queries = 20
 for idx in range(n_queries):
-    query_idx, query_instance = learner.query(iris['data'])
+    query_idx, query_instance = learner.query(X_reduced)
     learner.add_and_retrain(
-        new_data=iris['data'][query_idx].reshape(1, -1),
-        new_label=iris['target'][query_idx].reshape(-1, )
+        new_data=X_reduced[query_idx].reshape(1, -1),
+        new_label=y_reduced[query_idx].reshape(-1, )
     )
+    X_reduced = np.delete(X_reduced, query_idx, axis=0)
+    y_reduced = np.delete(y_reduced, query_idx)
 
 with plt.style.context('seaborn-white'):
     prediction =learner.predict(iris['data'])
