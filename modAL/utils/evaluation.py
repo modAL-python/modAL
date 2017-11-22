@@ -15,14 +15,12 @@ class Evaluator:
             X_test, y_test
     ):
         """
-
         :param learner: active learner to evaluate
         :param performance_metric: performance metric to be used
         :param X_train: np.ndarray, training data
         :param y_train: np.ndarray, training labels
         :param X_test: np.ndarray, test data
         :param y_test: np.ndarray, test label
-        :param replace: bool, queried data is eliminated from the pool if True
         """
         # model and testing parameters
         self.learner = learner
@@ -36,6 +34,11 @@ class Evaluator:
         self.performance = list()
 
     def evaluate_learner(self, n_queries, replace=True):
+        """
+        Trains the given learner
+        :param n_queries: int, number of queries to be made
+        :param replace: bool, queried data is eliminated from the pool if True
+        """
         # clear the performances
         self.performance = list()
 
