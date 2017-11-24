@@ -29,5 +29,5 @@ class MockClassifier:
     def predict_proba(self, data):
         return self.predict_proba_return
 
-    def score(self, data):
+    def score(self, X, y, sample_weight=None):
         return self.score_return
