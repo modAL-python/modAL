@@ -44,12 +44,13 @@ class TestUtilities(unittest.TestCase):
 class TestActiveLearner(unittest.TestCase):
 
     def test_calculate_utility(self):
-        test_cases = (Test(array, array) for array in random_array((k, ), 100) for k in range(1, 10))
+        test_cases = (Test(array, array) for k in range(1, 10) for array in random_array((k, ), 100))
         for case in test_cases:
             mock_classifier = MockClassifier(calculate_utility_return=case.input)
             learner = modAL.models.ActiveLearner
             np.testing.assert_almost_equal(
-
+                mock_classifier.calculate_utility(case.input),
+                case.output
             )
 
 class TestCommittee(unittest.TestCase):
