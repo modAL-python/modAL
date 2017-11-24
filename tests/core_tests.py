@@ -53,6 +53,15 @@ class TestActiveLearner(unittest.TestCase):
                 case.output
             )
 
+    def test_query(self):
+        pass
+
+    def test_predict(self):
+        pass
+
+    def test_predict_proba(self):
+        pass
+
     def test_score(self):
         test_cases = (np.random.rand() for _ in range(10))
         for score_return in test_cases:
