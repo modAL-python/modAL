@@ -10,6 +10,11 @@ from mock import MockClassifier
 Test = namedtuple('Test', ['input', 'output'])
 
 
+def random_array(shape, n_arrays):
+    for _ in range(n_arrays):
+        yield np.random.rand(*shape)
+
+
 class TestUtilities(unittest.TestCase):
 
     def test_uncertainty(self):
@@ -35,6 +40,17 @@ class TestUtilities(unittest.TestCase):
                 case.output
             )
 
+
+class TestActiveLearner(unittest.TestCase):
+
+    def test_calculate_utility(self):
+        test_cases = (Test(array, array) for array in random_array((k, ), 100) for k in range(1, 10))
+        for case in test_cases:
+            mock_classifier = MockClassifier(calculate_utility_return=case.input)
+            learner = modAL.models.ActiveLearner
+            np.testing.assert_almost_equal(
+
+            )
 
 class TestCommittee(unittest.TestCase):
 

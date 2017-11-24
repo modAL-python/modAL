@@ -15,11 +15,11 @@ def classifier_uncertainty(classifier, data):
 
 
 def classifier_margin(classifier, data):
-    uncertainty = classifier.predict_proba(data)
+    classwise_uncertainty = classifier.predict_proba(data)
 
-    if uncertainty.shape[1] == 1:
-        return np.zeros(shape=(uncertainty.shape[0],))
+    if classwise_uncertainty.shape[1] == 1:
+        return np.zeros(shape=(classwise_uncertainty.shape[0],))
 
-    part = bn.partition(-uncertainty, 1, axis=1)
+    part = bn.partition(-classwise_uncertainty, 1, axis=1)
 
     return -part[:, 0] + part[:, 1]
