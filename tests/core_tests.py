@@ -4,7 +4,7 @@ import modAL.utilities
 import modAL.models
 from itertools import chain
 from collections import namedtuple
-from mock import MockClassifier
+from mock import MockClassifier, MockUtility
 
 
 Test = namedtuple('Test', ['input', 'output'])
@@ -44,14 +44,15 @@ class TestUtilities(unittest.TestCase):
 class TestActiveLearner(unittest.TestCase):
 
     def test_calculate_utility(self):
-        test_cases = (Test(array, array) for k in range(1, 10) for array in random_array((k, ), 100))
+        test_cases = (Test(array, array) for k in range(1, 10) for l in range(1, 10) for array in random_array((k, l), 100))
         for case in test_cases:
             mock_classifier = MockClassifier(calculate_utility_return=case.input)
-            learner = modAL.models.ActiveLearner
+            learner = modAL.models.ActiveLearner(mock_classifier, MockUtility(case.input))
             np.testing.assert_almost_equal(
-                mock_classifier.calculate_utility(case.input),
+                learner.calculate_utility(case.input),
                 case.output
             )
+
 
 class TestCommittee(unittest.TestCase):
 
