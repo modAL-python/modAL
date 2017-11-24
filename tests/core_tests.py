@@ -53,6 +53,16 @@ class TestActiveLearner(unittest.TestCase):
                 case.output
             )
 
+    def test_score(self):
+        test_cases = (np.random.rand() for _ in range(10))
+        for score_return in test_cases:
+            mock_classifier = MockClassifier(score_return=score_return)
+            learner = modAL.models.ActiveLearner(mock_classifier, MockUtility(None))
+            np.testing.assert_almost_equal(
+                learner.score(np.random.rand(5, 2), np.random.rand(5, )),
+                score_return
+            )
+
 
 class TestCommittee(unittest.TestCase):
 
