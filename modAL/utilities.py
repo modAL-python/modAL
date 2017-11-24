@@ -3,7 +3,7 @@ Utility functions for the active learning model.
 """
 
 import numpy as np
-from modAL.utils.np_utils import max_margin
+import bottleneck as bn
 
 
 def classifier_uncertainty(classifier, data):
@@ -15,4 +15,11 @@ def classifier_uncertainty(classifier, data):
 
 
 def classifier_margin(classifier, data):
-    return max_margin(classifier.predict_proba(data))
+    uncertainty = classifier.predict_proba(data)
+
+    if uncertainty.shape[1] == 1:
+        return np.zeros(shape=(uncertainty.shape[0],))
+
+    part = bn.partition(-uncertainty, 1, axis=1)
+
+    return -part[:, 0] + part[:, 1]
