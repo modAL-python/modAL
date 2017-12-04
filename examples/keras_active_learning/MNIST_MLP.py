@@ -79,4 +79,16 @@ learner = ActiveLearner(
     predictor=classifier, utility_function=classifier_uncertainty,
     training_data=x_initial, training_labels=y_initial
 )
-learner.score(x_test, y_test, verbose=0)
+
+# the active learning loop
+n_queries = 100
+for idx in range(n_queries):
+    query_idx, query_instance = learner.query(x_pool)
+    learner.add_and_retrain(
+        new_data=x_pool[query_idx].reshape(1, -1), new_label=y_pool[query_idx].reshape(1, -1)
+    )
+    # remove queried instance from pool
+    x_pool = np.delete(x_pool, query_idx, axis=0)
+    y_pool = np.delete(y_pool, query_idx, axis=0)
+
+print(learner.score(x_test, y_test, verbose=0))
