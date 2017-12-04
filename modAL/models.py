@@ -107,24 +107,30 @@ class ActiveLearner:
             self.training_data = new_data
             self.training_labels = new_label
 
-    def predict(self, data):
+    def predict(self, data, **kwargs):
         """
         Interface for the predictor
         :param data: np.ndarray instances for prediction
-        :return: np.ndarray of predictions
+        :return: output of the sklearn.base.ClassifierMixin.predict method
         """
-        return self.predictor.predict(data)
+        return self.predictor.predict(data, **kwargs)
 
-    def predict_proba(self, data):
-        return self.predictor.predict_proba(data)
+    def predict_proba(self, data, **kwargs):
+        """
+        Interface for the predict_proba method
+        :param data: np.ndarray of the instances
+        :param kwargs: keyword arguments
+        :return: output of the sklearn.base.ClassifierMixin.predict_proba method
+        """
+        return self.predictor.predict_proba(data, **kwargs)
 
     def score(self, X, y, **kwargs):
         """
         Interface for the score method
         :param X: np.ndarray of the instances to score
         :param y: np.ndarray of the labels
-        :param sample_weight:
-        :return:
+        :param kwargs: keyword arguments
+        :return: output of the sklearn.base.ClassifierMixin.score method
         """
         return self.predictor.score(X, y, **kwargs)
 
