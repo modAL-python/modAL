@@ -21,6 +21,9 @@ class ActiveLearner:
         :param training_data: initial training data if available
         :param training_labels: labels corresponding to the initial training data
         """
+
+        # TODO: add keyword argument handling for the fit_to_known() method
+
         assert callable(utility_function), 'utility_function must be callable'
 
         self.predictor = predictor
@@ -49,11 +52,12 @@ class ActiveLearner:
 
         return self.utility_function(self.predictor, data)
 
-    def query(self, data):
+    def query(self, data, n_instances=1):
         """
-        Finds the most informative point in the data provided, then
-        returns the instance and its index
-        :param data: the pool from which the query is selected
+        Finds the n_instances most informative point in the data provided, then
+        returns the instances and its indices
+        :param data: np.ndarray, the pool from which the query is selected
+        :param n_instances: int, the number of queries
         :return: tuple(query_idx, data[query_idx]), where query_idx is the index of the instance
                  to be queried
         """
@@ -61,7 +65,7 @@ class ActiveLearner:
         check_array(data, ensure_2d=True)
 
         utilities = self.calculate_utility(data)
-        query_idx = np.argmax(utilities)
+        query_idx = np.argpartition(-utilities, n_instances)[:n_instances]
         return query_idx, data[query_idx]
 
     def fit_to_known(self, **kwargs):

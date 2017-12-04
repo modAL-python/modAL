@@ -78,6 +78,7 @@ class TestActiveLearner(unittest.TestCase):
     def test_sklearn(self):
         pass
 
+
 class TestCommittee(unittest.TestCase):
 
     def test_calculate_utility(self):

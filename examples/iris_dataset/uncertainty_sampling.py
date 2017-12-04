@@ -45,11 +45,12 @@ for idx in range(n_queries):
         new_data=pool_data[query_idx].reshape(1, -1),
         new_label=pool_labels[query_idx].reshape(-1, )
     )
+    # remove queried instance from pool
     pool_data = np.delete(pool_data, query_idx, axis=0)
     pool_labels = np.delete(pool_labels, query_idx)
 
 with plt.style.context('seaborn-white'):
-    prediction =learner.predict(iris['data'])
+    prediction = learner.predict(iris['data'])
     plt.scatter(x=pca[:, 0], y=pca[:, 1], c=prediction, cmap='viridis')
     plt.title('Predictions after %i queries' % n_queries)
     plt.show()
