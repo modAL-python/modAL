@@ -72,6 +72,11 @@ class TestActiveLearner(unittest.TestCase):
                 score_return
             )
 
+    def test_keras(self):
+        pass
+
+    def test_sklearn(self):
+        pass
 
 class TestCommittee(unittest.TestCase):
 
