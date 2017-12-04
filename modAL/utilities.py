@@ -3,7 +3,6 @@ Utility functions for the active learning model.
 """
 
 import numpy as np
-import bottleneck as bn
 
 
 def classifier_uncertainty(classifier, data):
@@ -20,6 +19,6 @@ def classifier_margin(classifier, data):
     if classwise_uncertainty.shape[1] == 1:
         return np.zeros(shape=(classwise_uncertainty.shape[0],))
 
-    part = bn.partition(-classwise_uncertainty, 1, axis=1)
+    part = np.partition(-classwise_uncertainty, 1, axis=1)
 
     return -part[:, 0] + part[:, 1]
