@@ -64,22 +64,24 @@ class ActiveLearner:
         query_idx = np.argmax(utilities)
         return query_idx, data[query_idx]
 
-    def fit_to_known(self):
+    def fit_to_known(self, **kwargs):
         """
         This method fits self.predictor to the training data and labels
         provided to it so far.
+        :param kwargs: keyword arguments to be passed to the fit method of classifier
         """
-        self.predictor.fit(self.training_data, self.training_labels)
+        self.predictor.fit(self.training_data, self.training_labels, **kwargs)
 
-    def add_and_retrain(self, new_data, new_label):
+    def add_and_retrain(self, new_data, new_label, **kwargs):
         """
         This function adds the given data to the training examples
         and retrains the predictor with the augmented dataset
         :param new_data: new training data
         :param new_label: new training labels for the data
+        :param kwargs: keyword arguments to be passed to the fit method of classifier
         """
         self.add_training_data(new_data, new_label)
-        self.fit_to_known()
+        self.fit_to_known(**kwargs)
 
     def add_training_data(self, new_data, new_label):
         """
