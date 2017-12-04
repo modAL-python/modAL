@@ -110,16 +110,23 @@ class ActiveLearner:
     def predict(self, data):
         """
         Interface for the predictor
-        :param data:
-        :return:
+        :param data: np.ndarray instances for prediction
+        :return: np.ndarray of predictions
         """
         return self.predictor.predict(data)
 
     def predict_proba(self, data):
         return self.predictor.predict_proba(data)
 
-    def score(self, X, y, sample_weight=None):
-        return self.predictor.score(X, y, sample_weight=sample_weight)
+    def score(self, X, y, **kwargs):
+        """
+        Interface for the score method
+        :param X: np.ndarray of the instances to score
+        :param y: np.ndarray of the labels
+        :param sample_weight:
+        :return:
+        """
+        return self.predictor.score(X, y, **kwargs)
 
 
 class Committee:
