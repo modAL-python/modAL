@@ -35,8 +35,6 @@ class ActiveLearner:
         elif type(training_data) != type(None) and type(training_labels) != type(None):
             self.training_data = check_array(training_data)
             self.training_labels = check_array(training_labels, ensure_2d=False)
-
-        if (type(training_data) != type(None)) and (type(training_labels) != type(None)):
             self.fit_to_known()
 
     def calculate_utility(self, data, **utility_function_kwargs):
