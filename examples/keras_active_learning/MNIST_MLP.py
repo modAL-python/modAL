@@ -77,15 +77,17 @@ classifier = KerasClassifier(create_keras_model)
 # initialize ActiveLearner
 learner = ActiveLearner(
     predictor=classifier, utility_function=classifier_uncertainty,
-    training_data=x_initial, training_labels=y_initial
+    training_data=x_initial, training_labels=y_initial,
+    verbose=0
 )
 
 # the active learning loop
-n_queries = 100
+n_queries = 5
 for idx in range(n_queries):
-    query_idx, query_instance = learner.query(x_pool)
+    query_idx, query_instance = learner.query(x_pool, verbose=0)
     learner.add_and_retrain(
-        new_data=x_pool[query_idx].reshape(1, -1), new_label=y_pool[query_idx].reshape(1, -1)
+        new_data=x_pool[query_idx].reshape(1, -1), new_label=y_pool[query_idx].reshape(1, -1),
+        verbose=0
     )
     # remove queried instance from pool
     x_pool = np.delete(x_pool, query_idx, axis=0)
