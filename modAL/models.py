@@ -68,24 +68,24 @@ class ActiveLearner:
         query_idx = np.argpartition(-utilities, n_instances)[:n_instances]
         return query_idx, data[query_idx]
 
-    def fit_to_known(self, **kwargs):
+    def fit_to_known(self, **fit_kwargs):
         """
         This method fits self.predictor to the training data and labels
         provided to it so far.
-        :param kwargs: keyword arguments to be passed to the fit method of classifier
+        :param fit_kwargs: keyword arguments to be passed to the fit method of classifier
         """
-        self.predictor.fit(self.training_data, self.training_labels, **kwargs)
+        self.predictor.fit(self.training_data, self.training_labels, **fit_kwargs)
 
-    def add_and_retrain(self, new_data, new_label, **kwargs):
+    def add_and_retrain(self, new_data, new_label, **fit_kwargs):
         """
         This function adds the given data to the training examples
         and retrains the predictor with the augmented dataset
         :param new_data: new training data
         :param new_label: new training labels for the data
-        :param kwargs: keyword arguments to be passed to the fit method of classifier
+        :param fit_kwargs: keyword arguments to be passed to the fit method of classifier
         """
         self.add_training_data(new_data, new_label)
-        self.fit_to_known(**kwargs)
+        self.fit_to_known(**fit_kwargs)
 
     def add_training_data(self, new_data, new_label):
         """
@@ -113,32 +113,32 @@ class ActiveLearner:
             self.training_data = new_data
             self.training_labels = new_label
 
-    def predict(self, data, **kwargs):
+    def predict(self, data, **predict_kwargs):
         """
         Interface for the predictor
         :param data: np.ndarray instances for prediction
         :return: output of the sklearn.base.ClassifierMixin.predict method
         """
-        return self.predictor.predict(data, **kwargs)
+        return self.predictor.predict(data, **predict_kwargs)
 
-    def predict_proba(self, data, **kwargs):
+    def predict_proba(self, data, **predict_proba_kwargs):
         """
         Interface for the predict_proba method
         :param data: np.ndarray of the instances
-        :param kwargs: keyword arguments
+        :param predict_proba_kwargs: keyword arguments
         :return: output of the sklearn.base.ClassifierMixin.predict_proba method
         """
-        return self.predictor.predict_proba(data, **kwargs)
+        return self.predictor.predict_proba(data, **predict_proba_kwargs)
 
-    def score(self, X, y, **kwargs):
+    def score(self, X, y, **score_kwargs):
         """
         Interface for the score method
         :param X: np.ndarray of the instances to score
         :param y: np.ndarray of the labels
-        :param kwargs: keyword arguments
+        :param score_kwargs: keyword arguments
         :return: output of the sklearn.base.ClassifierMixin.score method
         """
-        return self.predictor.score(X, y, **kwargs)
+        return self.predictor.score(X, y, **score_kwargs)
 
 
 class Committee:
