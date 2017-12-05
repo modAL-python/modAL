@@ -39,7 +39,7 @@ class ActiveLearner:
         if (type(training_data) != type(None)) and (type(training_labels) != type(None)):
             self.fit_to_known()
 
-    def calculate_utility(self, data):
+    def calculate_utility(self, data, **utility_function_kwargs):
         """
         This method calls the utility function provided for ActiveLearner
         on the data passed to it. It is used to measure utilities for each
@@ -50,9 +50,9 @@ class ActiveLearner:
         """
         check_array(data)
 
-        return self.utility_function(self.predictor, data)
+        return self.utility_function(self.predictor, data, **utility_function_kwargs)
 
-    def query(self, data, n_instances=1):
+    def query(self, data, n_instances=1, **utility_function_kwargs):
         """
         Finds the n_instances most informative point in the data provided, then
         returns the instances and its indices
@@ -64,7 +64,7 @@ class ActiveLearner:
 
         check_array(data, ensure_2d=True)
 
-        utilities = self.calculate_utility(data)
+        utilities = self.calculate_utility(data, **utility_function_kwargs)
         query_idx = np.argpartition(-utilities, n_instances)[:n_instances]
         return query_idx, data[query_idx]
 
