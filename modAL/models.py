@@ -13,7 +13,8 @@ class ActiveLearner:
     def __init__(
             self,
             predictor, utility_function, 					# building blocks of the learner
-            training_data=None, training_labels=None			# initial data if available
+            training_data=None, training_labels=None,			 # initial data if available
+            **fit_kwargs                    # keyword arguments for fitting the initial data
     ):
         """
         :param predictor: an instance of the predictor
@@ -35,7 +36,7 @@ class ActiveLearner:
         elif type(training_data) != type(None) and type(training_labels) != type(None):
             self.training_data = check_array(training_data)
             self.training_labels = check_array(training_labels, ensure_2d=False)
-            self.fit_to_known()
+            self.fit_to_known(**fit_kwargs)
 
     def calculate_utility(self, data, **utility_function_kwargs):
         """
