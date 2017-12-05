@@ -4,7 +4,6 @@ For more information on the iris dataset, see https://en.wikipedia.org/wiki/Iris
 For its scikit-learn interface, see http://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_iris.html
 """
 
-import time
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA

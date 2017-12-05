@@ -108,6 +108,20 @@ class TestCommittee(unittest.TestCase):
                     prediction
                 )
 
+    def test_predict_proba(self):
+        for n_learners in range(1, 10):
+            for n_instances in range(1, 10):
+                uncertainties = np.random.rand(n_instances, n_learners)
+                committee = modAL.models.Committee(
+                    learner_list=[MockClassifier(predict_proba_return=uncertainties[:, learner_idx])
+                                  for learner_idx in range(n_learners)],
+                    voting_function=None
+                )
+                np.testing.assert_equal(
+                    committee.predict_proba(np.random.rand(n_instances, 5)),
+                    uncertainties
+                )
+
 
 if __name__ == '__main__':
     unittest.main()
