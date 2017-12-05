@@ -202,12 +202,3 @@ class Committee:
             prediction[:, learner_idx] = learner.predict(data, **predict_kwargs)
 
         return prediction
-
-    def predict_proba(self, data, **predict_proba_kwargs):
-        check_array(data, ensure_2d=True)
-        uncertainties = np.zeros(shape=(data.shape[0], len(self.learner_list)))
-
-        for learner_idx, learner in enumerate(self.learner_list):
-            uncertainties[:, learner_idx] = learner.predict_proba(data, **predict_proba_kwargs)
-
-        return uncertainties
