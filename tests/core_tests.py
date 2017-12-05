@@ -85,13 +85,28 @@ class TestCommittee(unittest.TestCase):
         for n_learners in range(1, 200):
             utility = np.random.rand(100, n_learners)
             committee = modAL.models.Committee(
-                learner_list=[MockClassifier(calculate_utility_return=utility[:, learner_idx])
-                              for learner_idx in range(n_learners)]
+                learner_list=[MockClassifier(calculate_utility_return=utility[:, learner_idx].reshape(-1),)
+                              for learner_idx in range(n_learners)],
+                voting_function=None
             )
             np.testing.assert_almost_equal(
                 committee.calculate_utility(np.random.rand(100, 1)),
                 utility
             )
+
+    def test_predict(self):
+        for n_learners in range(1, 10):
+            for n_instances in range(1, 10):
+                prediction = np.random.randint(10, size=(n_instances, n_learners))
+                committee = modAL.models.Committee(
+                    learner_list=[MockClassifier(predict_return=prediction[:, learner_idx])
+                                  for learner_idx in range(n_learners)],
+                    voting_function=None
+                )
+                np.testing.assert_equal(
+                    committee.predict(np.random.rand(n_instances, 5)),
+                    prediction
+                )
 
 
 if __name__ == '__main__':
