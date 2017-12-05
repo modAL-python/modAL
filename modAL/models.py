@@ -23,8 +23,6 @@ class ActiveLearner:
         :param training_labels: labels corresponding to the initial training data
         """
 
-        # TODO: add keyword argument handling for the fit_to_known() method
-
         assert callable(utility_function), 'utility_function must be callable'
 
         self.predictor = predictor
@@ -144,13 +142,17 @@ class Committee:
     """
     This class is an abstract model of a committee-based active learning algorithm.
     """
-    def __init__(self, learner_list):
+    def __init__(
+            self,
+            learner_list, voting_function
+    ):
         """
         :param learner_list: list of ActiveLearners
         """
         assert type(learner_list) == list, 'learners must be supplied in a list'
 
         self.learner_list = learner_list
+        self.voting_function = voting_function
 
     def calculate_utility(self, data):
         """
@@ -185,8 +187,21 @@ class Committee:
     def add_training_data(self, new_data, new_label):
         pass
 
-    def predict(self, data):
-        pass
+    def predict(self, data, **predict_kwargs):
+        """
+        Predicts the labels for the supplied data
+        :param data: numpy.ndarray containing the instances to be predicted
+        :param predict_kwargs: keyword arguments to be passed for the learners predict method
+        :return: numpy.ndarray containing the predictions of all learners
+        """
+
+        check_array(data, ensure_2d=True)
+        prediction = np.zeros(shape=(data.shape[0], len(self.learner_list)))
+
+        for learner_idx, learner in enumerate(self.learner_list):
+            prediction[:, learner_idx] = learner.predict(data, **predict_kwargs)
+
+        return prediction
 
     def predict_proba(self, data):
         pass
