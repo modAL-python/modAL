@@ -8,7 +8,7 @@ def check_class_labels(*args):
     """
 
     for classifier_idx in range(len(args) - 1):
-        if not np.all(args[classifier_idx].classes_ == args[classifier_idx+1].classes_):
+        if not np.array_equal(args[classifier_idx].classes_, args[classifier_idx+1].classes_):
             return False
 
     return True
