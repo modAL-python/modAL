@@ -37,43 +37,6 @@ class ActiveLearner:
             self.training_labels = check_array(training_labels, ensure_2d=False)
             self.fit_to_known(**fit_kwargs)
 
-    def calculate_utility(self, data, **utility_function_kwargs):
-        """
-        This method calls the utility function provided for ActiveLearner
-        on the data passed to it. It is used to measure utilities for each
-        data point.
-        :param data: numpy.ndarray, data points for which the utilities should be measured
-        :return: utility values for each datapoint as given by the utility function provided
-                 for the learner
-        """
-        check_array(data)
-
-        return self.utility_function(self.predictor, data, **utility_function_kwargs)
-
-    def query(self, data, n_instances=1, **utility_function_kwargs):
-        """
-        Finds the n_instances most informative point in the data provided, then
-        returns the instances and its indices
-        :param data: np.ndarray, the pool from which the query is selected
-        :param n_instances: int, the number of queries
-        :return: tuple(query_idx, data[query_idx]), where query_idx is the index of the instance
-                 to be queried
-        """
-
-        check_array(data, ensure_2d=True)
-
-        utilities = self.calculate_utility(data, **utility_function_kwargs)
-        query_idx = np.argpartition(-utilities, n_instances)[:n_instances]
-        return query_idx, data[query_idx]
-
-    def fit_to_known(self, **fit_kwargs):
-        """
-        This method fits self.predictor to the training data and labels
-        provided to it so far.
-        :param fit_kwargs: keyword arguments to be passed to the fit method of classifier
-        """
-        self.predictor.fit(self.training_data, self.training_labels, **fit_kwargs)
-
     def add_and_retrain(self, new_data, new_label, **fit_kwargs):
         """
         This function adds the given data to the training examples
@@ -111,6 +74,27 @@ class ActiveLearner:
             self.training_data = new_data
             self.training_labels = new_label
 
+    def calculate_utility(self, data, **utility_function_kwargs):
+        """
+        This method calls the utility function provided for ActiveLearner
+        on the data passed to it. It is used to measure utilities for each
+        data point.
+        :param data: numpy.ndarray, data points for which the utilities should be measured
+        :return: utility values for each datapoint as given by the utility function provided
+                 for the learner
+        """
+        check_array(data)
+
+        return self.utility_function(self.predictor, data, **utility_function_kwargs)
+
+    def fit_to_known(self, **fit_kwargs):
+        """
+        This method fits self.predictor to the training data and labels
+        provided to it so far.
+        :param fit_kwargs: keyword arguments to be passed to the fit method of classifier
+        """
+        self.predictor.fit(self.training_data, self.training_labels, **fit_kwargs)
+
     def predict(self, data, **predict_kwargs):
         """
         Interface for the predictor
@@ -127,6 +111,22 @@ class ActiveLearner:
         :return: output of the sklearn.base.ClassifierMixin.predict_proba method
         """
         return self.predictor.predict_proba(data, **predict_proba_kwargs)
+
+    def query(self, data, n_instances=1, **utility_function_kwargs):
+        """
+        Finds the n_instances most informative point in the data provided, then
+        returns the instances and its indices
+        :param data: np.ndarray, the pool from which the query is selected
+        :param n_instances: int, the number of queries
+        :return: tuple(query_idx, data[query_idx]), where query_idx is the index of the instance
+                 to be queried
+        """
+
+        check_array(data, ensure_2d=True)
+
+        utilities = self.calculate_utility(data, **utility_function_kwargs)
+        query_idx = np.argpartition(-utilities, n_instances)[:n_instances]
+        return query_idx, data[query_idx]
 
     def score(self, X, y, **score_kwargs):
         """
@@ -155,6 +155,22 @@ class Committee:
         self.learner_list = learner_list
         self.voting_function = voting_function
 
+    def _set_classes(self):
+        """
+        Checks the known class labels by each learner,
+        merges the labels and returns a mapping which
+        maps the learner's classes to the complete label
+        list
+        """
+        pass
+
+    def add_and_retrain(self, new_data, new_label):
+        pass
+
+    def add_training_data(self, new_data, new_label):
+        # don't forget to update self.n_classes_ and self.classes_
+        pass
+
     def calculate_utility(self, data):
         """
         Calculates the utilities for every learner in the Committee and returns it
@@ -171,22 +187,6 @@ class Committee:
             utilities[:, learner_idx] = learner_utility
 
         return utilities
-
-    def query(self, data):
-        """
-        Finds the most informative point in the data provided, then
-        returns the instance and its index
-        :param data: numpy.ndarray, the pool from which the query is selected
-        :return: tuple(query_idx, data[query_idx]), where query_idx is the index of the instance
-                 to be queried
-        """
-        pass
-
-    def add_and_retrain(self, new_data, new_label):
-        pass
-
-    def add_training_data(self, new_data, new_label):
-        pass
 
     def predict(self, data, **predict_kwargs):
         """
@@ -229,7 +229,17 @@ class Committee:
                 proba[:, learner_idx, :] = learner.predict_proba(data)
 
         else:
-            raise NotImplementedError('Committee.predict_proba() when the learners class labels'
-                                      'dont match is not implemented yet')
+            # assembling map of class labels
+            pass
 
         return proba
+
+    def query(self, data):
+        """
+        Finds the most informative point in the data provided, then
+        returns the instance and its index
+        :param data: numpy.ndarray, the pool from which the query is selected
+        :return: tuple(query_idx, data[query_idx]), where query_idx is the index of the instance
+                 to be queried
+        """
+        pass
