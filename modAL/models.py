@@ -4,6 +4,7 @@ Core models for active learning algorithms.
 
 import numpy as np
 from sklearn.utils import check_array
+from modAL.utils.validation import check_class_labels
 
 
 class ActiveLearner:
@@ -192,7 +193,7 @@ class Committee:
         Predicts the labels for the supplied data
         :param data: numpy.ndarray containing the instances to be predicted
         :param predict_kwargs: keyword arguments to be passed for the learners predict method
-        :return: numpy.ndarray containing the predictions of all learners
+        :return: numpy.ndarray of shape (n_samples, 1) containing the predictions of all learners
         """
 
         check_array(data, ensure_2d=True)
@@ -202,3 +203,33 @@ class Committee:
             prediction[:, learner_idx] = learner.predict(data, **predict_kwargs)
 
         return prediction
+
+    def predict_proba(self, data, **predict_proba_kwargs):
+        """
+        Predicts the probabilities for the supplied data
+        :param data: numpy.ndarray containing the instances for which class probabilities are to be predicted
+        :param predict_proba_kwargs: keyword arguments to be passed for the learners predict_proba method
+        :return: numpy.ndarray containing the classwise probabilities of all learners
+        """
+
+        check_array(data, ensure_2d=True)
+
+        # checking if the learners in the Committee know the same set of class labels
+        if check_class_labels(*[learner.predictor for learner in self.learner_list]):
+            # known class labels are the same for each learner
+            # probability prediction is straightforward
+
+            # determining dimensions
+            n_samples = data.shape[0]
+            n_learners = len(self.learner_list)
+            n_classes = len(self.learner_list[0].predictor.classes_)
+            proba = np.zeros(shape=(n_samples, n_learners, n_classes))
+
+            for learner_idx, learner in enumerate(self.learner_list):
+                proba[:, learner_idx, :] = learner.predict_proba(data)
+
+        else:
+            raise NotImplementedError('Committee.predict_proba() when the learners class labels'
+                                      'dont match is not implemented yet')
+
+        return proba
