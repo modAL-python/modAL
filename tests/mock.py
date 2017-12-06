@@ -13,8 +13,11 @@ class MockClassifier:
     """
     def __init__(
             self, predict_proba_return=None, calculate_utility_return=None, predict_return=None,
-            score_return=None
+            score_return=None,
+            classes_=None
     ):
+        self.classes_ = classes_
+
         self.calculate_utility_return = calculate_utility_return
         self.predict_return = predict_return
         self.predict_proba_return = predict_proba_return

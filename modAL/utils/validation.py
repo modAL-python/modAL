@@ -1,3 +1,5 @@
+import numpy as np
+
 def check_class_labels(*args):
     """
     Checks the known class labels for each classifier.
