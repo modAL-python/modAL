@@ -46,3 +46,4 @@ for member_idx in range(n_members):
 committee = Committee(
     learner_list=learner_list, voting_function=None
 )
+committee.predict_proba(X_train)
