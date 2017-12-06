@@ -1,7 +1,9 @@
+import random
 import unittest
 import numpy as np
 import modAL.utilities
 import modAL.models
+import modAL.utils.validation
 from itertools import chain
 from collections import namedtuple
 from mock import MockClassifier, MockUtility
@@ -13,6 +15,19 @@ Test = namedtuple('Test', ['input', 'output'])
 def random_array(shape, n_arrays):
     for _ in range(n_arrays):
         yield np.random.rand(*shape)
+
+
+class TestUtils(unittest.TestCase):
+    def test_check_class_labels(self):
+        for n_labels in range(1, 10):
+            for n_learners in range(1, 10):
+                labels = np.random.randint(10, size=n_labels)
+                different_labels = np.random.randint(10, 20, size=np.random.randint(1, 10))
+                learner_list_1 = [MockClassifier(classes_=labels) for _ in range(n_learners)]
+                learner_list_2 = [MockClassifier(classes_=different_labels) for _ in range(np.random.randint(1, 5))]
+                shuffled_learners = random.sample(learner_list_1 + learner_list_2, len(learner_list_1 + learner_list_2))
+                self.assertTrue(modAL.utils.validation.check_class_labels(*learner_list_1))
+                self.assertFalse(modAL.utils.validation.check_class_labels(*shuffled_learners))
 
 
 class TestUtilities(unittest.TestCase):
