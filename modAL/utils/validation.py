@@ -13,4 +13,4 @@ def check_class_labels(*args):
         if not np.array_equal(args[classifier_idx].classes_, args[classifier_idx+1].classes_):
             return False
 
-    return len(args[0].classes_)
+    return True
