@@ -113,5 +113,23 @@ class TestCommittee(unittest.TestCase):
                 utility
             )
 
+    def test_predict(self):
+        for n_learners in range(1, 10):
+            for n_instances in range(1, 10):
+                prediction = np.random.randint(10, size=(n_instances, n_learners))
+                committee = modAL.models.Committee(
+                    learner_list=[MockActiveLearner(
+                                          MockClassifier(classes_=np.asarray([0])),
+                                          predict_return=prediction[:, learner_idx]
+                                  )
+                                  for learner_idx in range(n_learners)],
+                    voting_function=None
+                )
+                np.testing.assert_equal(
+                    committee.predict(np.random.rand(n_instances, 5)),
+                    prediction
+                )
+
+
 if __name__ == '__main__':
     unittest.main()
