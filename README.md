@@ -7,4 +7,5 @@ Built on top of scikit-learn, it allows you to rapidly create active learning wo
 What is more, you can easily replace parts with your custom built solutions, allowing you to design novel algorithms
 with ease.
 
-    
+## Active learning from bird's-eye view
+![](doc/img/active_learning.svg)
