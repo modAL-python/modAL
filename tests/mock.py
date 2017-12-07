@@ -1,4 +1,7 @@
 class MockUtility:
+    """
+    Mock utility function for testing.
+    """
     def __init__(self, utility_return):
         self.utility_return = utility_return
 
@@ -8,20 +11,45 @@ class MockUtility:
 
 class MockClassifier:
     """
-    Mock classifier object for testing. The predict_proba method returns the
-    object given for argument predict_proba_return.
+    Mock classifier object for testing.
     """
     def __init__(
-            self, predict_proba_return=None, calculate_utility_return=None, predict_return=None,
-            score_return=None,
+            self, predict_proba_return=None, predict_return=None, score_return=None,
             classes_=None
     ):
         self.classes_ = classes_
 
-        self.calculate_utility_return = calculate_utility_return
         self.predict_return = predict_return
         self.predict_proba_return = predict_proba_return
         self.score_return = score_return
+
+    def fit(self, *args, **kwargs):
+        pass
+
+    def predict(self, data):
+        return self.predict_return
+
+    def predict_proba(self, data):
+        return self.predict_proba_return
+
+    def score(self, X, y, sample_weight=None):
+        return self.score_return
+
+
+class MockActiveLearner:
+    """
+    Mock ActiveLearner for testing.
+    """
+    def __init__(
+            self, predictor=None, predict_proba_return=None, calculate_utility_return=None, predict_return=None,
+            score_return=None,
+            classes_=None,
+    ):
+        self.predictor = self.predictor
+        self.predict_proba_return = predict_proba_return
+        self.calculate_utility_return = calculate_utility_return
+        self.predict_return = predict_return
+        self.classes_ = classes_
 
     def calculate_utility(self, data):
         return self.calculate_utility_return
