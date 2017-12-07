@@ -34,3 +34,5 @@ def check_class_proba(proba, known_labels, all_labels):
                 label_idx_map[label_idx] = known_label_idx
                 break
 
+    aug_proba = np.hstack((proba, np.zeros(shape=(proba.shape[0], 1))))
+    return aug_proba[:, label_idx_map]
