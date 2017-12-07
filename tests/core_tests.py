@@ -6,7 +6,7 @@ import modAL.models
 import modAL.utils.validation
 from itertools import chain
 from collections import namedtuple
-from mock import MockClassifier, MockUtility
+from mock import MockClassifier, MockUtility, MockActiveLearner
 
 
 Test = namedtuple('Test', ['input', 'output'])
@@ -93,6 +93,25 @@ class TestActiveLearner(unittest.TestCase):
 
     def test_sklearn(self):
         pass
+
+
+class TestCommittee(unittest.TestCase):
+
+    def test_calculate_utility(self):
+        for n_learners in range(1, 200):
+            utility = np.random.rand(100, n_learners)
+            committee = modAL.models.Committee(
+                learner_list=[MockActiveLearner(
+                                    MockClassifier(classes_=np.asarray([0])),
+                                    calculate_utility_return=utility[:, learner_idx].reshape(-1)
+                              )
+                              for learner_idx in range(n_learners)],
+                voting_function=None
+            )
+            np.testing.assert_almost_equal(
+                committee.calculate_utility(np.random.rand(100, 1)),
+                utility
+            )
 
 if __name__ == '__main__':
     unittest.main()
