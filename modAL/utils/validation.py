@@ -14,3 +14,23 @@ def check_class_labels(*args):
             return False
 
     return True
+
+
+def check_class_proba(proba, known_labels, all_labels):
+    """
+    Checks the output of predict_proba and reshapes it if not all labels are present in the classifier
+    :param proba:
+    :param classes:
+    :param all_classes:
+    :return:
+    """
+
+    label_idx_map = -np.ones(len(all_labels), dtype='int')
+
+    for known_label_idx, known_label in enumerate(known_labels):
+        # finds the position of label in all_labels
+        for label_idx, label in enumerate(all_labels):
+            if np.array_equal(label, known_label):
+                label_idx_map[label_idx] = known_label_idx
+                break
+

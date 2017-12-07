@@ -93,6 +93,9 @@ class ActiveLearner:
         provided to it so far.
         :param fit_kwargs: keyword arguments to be passed to the fit method of classifier
         """
+
+        # UNCOMMENT AFTER _set_classes() is tested!
+        # self._set_classes()
         self.predictor.fit(self.training_data, self.training_labels, **fit_kwargs)
 
     def predict(self, data, **predict_kwargs):
@@ -165,16 +168,10 @@ class Committee:
 
         # assemble the list of known classes from each learner
         self.classes_ = np.unique(
-            np.concatenate(tuple(learner.training_labels for learner in self.learner_list), axis=0),
+            np.concatenate(tuple(learner.predictor.classes_ for learner in self.learner_list), axis=0),
             axis=0
         )
         self.n_classes_ = len(self.classes_)
-
-        # create the mapping between learner class labels and committee class labels
-        self.class_map_ = dict()
-        for learner_idx, learner in enumerate(self.learner_list):
-            learner_map = dict()
-            learner_classes = None
 
     def add_and_retrain(self, new_data, new_label):
         pass
