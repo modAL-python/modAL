@@ -26,6 +26,9 @@ class MockClassifier:
     def calculate_utility(self, data):
         return self.calculate_utility_return
 
+    def fit(self, *args, **kwargs):
+        pass
+
     def predict(self, data):
         return self.predict_return
 
