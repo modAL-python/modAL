@@ -8,4 +8,4 @@ What is more, you can easily replace parts with your custom built solutions, all
 with ease.
 
 ## Active learning from bird's-eye view
-![](doc/img/active_learning.svg)
+![](doc/img/active_learning.png)
