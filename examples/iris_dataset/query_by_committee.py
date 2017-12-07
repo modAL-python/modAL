@@ -23,6 +23,7 @@ pool_labels = deepcopy(iris['target'])
 # initializing Committee members
 n_members = 2
 learner_list = list()
+
 for member_idx in range(n_members):
     # initial training data
     n_initial = 5
@@ -46,4 +47,3 @@ for member_idx in range(n_members):
 committee = Committee(
     learner_list=learner_list, voting_function=None
 )
-committee.predict_proba(X_train)

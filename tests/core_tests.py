@@ -18,6 +18,7 @@ def random_array(shape, n_arrays):
 
 
 class TestUtils(unittest.TestCase):
+
     def test_check_class_labels(self):
         for n_labels in range(1, 10):
             for n_learners in range(1, 10):

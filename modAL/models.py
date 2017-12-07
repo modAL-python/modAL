@@ -4,7 +4,7 @@ Core models for active learning algorithms.
 
 import numpy as np
 from sklearn.utils import check_array
-from modAL.utils.validation import check_class_labels
+from modAL.utils.validation import check_class_labels, check_class_proba
 
 
 class ActiveLearner:
@@ -158,6 +158,8 @@ class Committee:
         self.learner_list = learner_list
         self.voting_function = voting_function
 
+        self._set_classes()
+
     def _set_classes(self):
         """
         Checks the known class labels by each learner,
@@ -223,23 +225,26 @@ class Committee:
 
         check_array(data, ensure_2d=True)
 
+        # get dimensions
+        n_samples = data.shape[0]
+        n_learners = len(self.learner_list)
+        proba = np.zeros(shape=(n_samples, n_learners, self.n_classes_))
+
         # checking if the learners in the Committee know the same set of class labels
         if check_class_labels(*[learner.predictor for learner in self.learner_list]):
             # known class labels are the same for each learner
             # probability prediction is straightforward
 
-            # determining dimensions
-            n_samples = data.shape[0]
-            n_learners = len(self.learner_list)
-            n_classes = len(self.learner_list[0].predictor.classes_)
-            proba = np.zeros(shape=(n_samples, n_learners, n_classes))
-
             for learner_idx, learner in enumerate(self.learner_list):
                 proba[:, learner_idx, :] = learner.predict_proba(data)
 
         else:
-            # assembling map of class labels
-            pass
+            for learner_idx, learner in enumerate(self.learner_list):
+                proba[:, learner_idx, :] = check_class_proba(
+                    proba=learner.predict_proba(data),
+                    known_labels=learner.predictor.classes_,
+                    all_labels=self.classes_
+                )
 
         return proba
 
