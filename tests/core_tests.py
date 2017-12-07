@@ -62,7 +62,7 @@ class TestActiveLearner(unittest.TestCase):
     def test_calculate_utility(self):
         test_cases = (Test(array, array) for k in range(1, 10) for l in range(1, 10) for array in random_array((k, l), 100))
         for case in test_cases:
-            mock_classifier = MockClassifier(calculate_utility_return=case.input)
+            mock_classifier = MockClassifier()
             learner = modAL.models.ActiveLearner(mock_classifier, MockUtility(case.input))
             np.testing.assert_almost_equal(
                 learner.calculate_utility(case.input),
@@ -93,36 +93,6 @@ class TestActiveLearner(unittest.TestCase):
 
     def test_sklearn(self):
         pass
-
-
-class TestCommittee(unittest.TestCase):
-
-    def test_calculate_utility(self):
-        for n_learners in range(1, 200):
-            utility = np.random.rand(100, n_learners)
-            committee = modAL.models.Committee(
-                learner_list=[MockClassifier(calculate_utility_return=utility[:, learner_idx].reshape(-1),)
-                              for learner_idx in range(n_learners)],
-                voting_function=None
-            )
-            np.testing.assert_almost_equal(
-                committee.calculate_utility(np.random.rand(100, 1)),
-                utility
-            )
-
-    def test_predict(self):
-        for n_learners in range(1, 10):
-            for n_instances in range(1, 10):
-                prediction = np.random.randint(10, size=(n_instances, n_learners))
-                committee = modAL.models.Committee(
-                    learner_list=[MockClassifier(predict_return=prediction[:, learner_idx])
-                                  for learner_idx in range(n_learners)],
-                    voting_function=None
-                )
-                np.testing.assert_equal(
-                    committee.predict(np.random.rand(n_instances, 5)),
-                    prediction
-                )
 
 if __name__ == '__main__':
     unittest.main()
