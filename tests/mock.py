@@ -45,7 +45,7 @@ class MockActiveLearner:
             score_return=None,
             classes_=None,
     ):
-        self.predictor = self.predictor
+        self.predictor = predictor
         self.predict_proba_return = predict_proba_return
         self.calculate_utility_return = calculate_utility_return
         self.predict_return = predict_return
