@@ -9,7 +9,6 @@ import numpy as np
 from scipy import misc
 from sklearn.ensemble import RandomForestClassifier
 from modAL.models import ActiveLearner
-from modAL.utilities import classifier_uncertainty
 
 # creating the image
 im_width = 200
@@ -37,7 +36,7 @@ while len(np.unique(y_train)) == 1:
 
 # create an ActiveLearner instance
 learner = ActiveLearner(
-    predictor=RandomForestClassifier(), utility_function=classifier_uncertainty,
+    predictor=RandomForestClassifier(),
     training_data=X_train, training_labels=y_train
 )
 
