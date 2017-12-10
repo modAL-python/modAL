@@ -217,6 +217,21 @@ class Committee:
         for learner in self.learner_list:
             learner.fit_to_known(**fit_kwargs)
 
+    def predict(self, data, **predict_proba_kwargs):
+        """
+        Predicts the class of the samples by picking
+        the average least uncertain prediction.
+        """
+        # getting average certainties
+        proba = self.predict_proba(data, **predict_proba_kwargs)
+        # finding the sample-wise max probability
+        max_proba_idx = np.argmax(proba, axis=1)
+        # translating label indices to labels
+        return self.classes_[max_proba_idx]
+
+    def predict_proba(self, data, **predict_proba_kwargs):
+        return np.mean(self.vote_proba(data, **predict_proba_kwargs), axis=1)
+
     def vote(self, data, **predict_kwargs):
         """
         Predicts the labels for the supplied data
@@ -235,10 +250,21 @@ class Committee:
 
     def vote_proba(self, data, **predict_proba_kwargs):
         """
-        Predicts the probabilities for the supplied data
-        :param data: numpy.ndarray containing the instances for which class probabilities are to be predicted
-        :param predict_proba_kwargs: keyword arguments to be passed for the learners predict_proba method
-        :return: numpy.ndarray containing the classwise probabilities of all learners
+        Predicts the probabilities of the classes for each sample and each learner.
+
+        Parameters
+        ----------
+        data: numpy.ndarray of shape (n_samples, n_features)
+            The samples to be predicted by all learners
+
+        predict_proba_kwargs: dict of keyword arguments
+
+        Returns
+        -------
+        proba: numpy.ndarray of shape (n_samples, n_learners, n_classes)
+            Contains the probabilities of each class for each learner and
+            each instance
+
         """
 
         check_array(data, ensure_2d=True)
