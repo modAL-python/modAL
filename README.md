@@ -37,6 +37,9 @@ learner = ActiveLearner(
 
 # the active learning loop
 for loop_idx in range(n_loops):
+    # query for labels
     query_idx, query_inst = learner.query(X_pool)
+
+    # supply label for queried instance
     learner.add_and_retrain(X_pool[query_idx], y_pool[query_idx])
 ```
