@@ -5,50 +5,50 @@ Query strategies for the active learning model.
 import numpy as np
 
 
-def max_uncertainty(utility, n_instances=1):
+def max_uncertainty(uncertainties, n_samples=1):
     """
-    Selects n_instances instances having the highest utility
+    Selects n_samples samples having the highest utility
 
     Parameters
     ----------
-    utility: array-like, shape = (n_instances, 1)
+    uncertainties: array-like, shape = (n_samples, 1)
         Contains the utility values for the instances
 
-    n_instances: int
+    n_samples: int
         Specifies how many largest values to return
 
     Returns
     -------
-    query_idx: numpy.ndarray, shape = (n_instances, 1)
-        Contains the indices of the n_instances largest
-        values in utility
+    query_idx: numpy.ndarray, shape = (n_samples, 1)
+        Contains the indices of the n_samples largest
+        values in uncertainties
 
     """
-    assert n_instances <= len(utility), 'n_instances must be less or equal than the size of utility'
+    assert n_samples <= len(uncertainties), 'n_instances must be less or equal than the size of utility'
 
-    query_idx = np.argpartition(-utility, n_instances)[:n_instances]
+    query_idx = np.argpartition(-uncertainties, n_samples)[:n_samples]
     return query_idx
 
 
-def uncertainty_weighted_random(utility, n_instances=1):
+def uncertainty_weighted_random(uncertainties, n_samples=1):
     """
-    Samples n_instances instances, using utilities as weights
+    Samples n_samples samples, using uncertainties as weights
 
     Parameters
     ----------
-    utility: array-like, shape = (n_instances, 1)
-        Contains the utility values for the instances
+    uncertainties: array-like, shape = (n_samples, 1)
+        Contains the uncertainty values for the instances
 
-    n_instances: int
+    n_samples: int
         Specifies how many largest values to return
 
     Returns
     -------
-    query_idx: numpy.ndarray, shape = (n_instances, 1)
-        Contains the indices of the n_instances largest
-        values in utility
+    query_idx: numpy.ndarray, shape = (n_samples, 1)
+        Contains the indices of the n_samples sample
+        given by the query
     """
-    assert n_instances <= len(utility), 'n_instances must be less or equal than the size of utility'
+    assert n_samples <= len(uncertainties), 'n_instances must be less or equal than the size of utility'
 
-    query_idx = np.random.choice(range(len(utility)), size=n_instances, p=utility/np.sum(utility), replace=False)
+    query_idx = np.random.choice(range(len(uncertainties)), size=n_samples, p=uncertainties / np.sum(uncertainties), replace=False)
     return query_idx
