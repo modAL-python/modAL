@@ -13,7 +13,7 @@ class ActiveLearner:
     """
     def __init__(
             self,
-            predictor, utility_function, 					# building blocks of the learner
+            predictor, utility_function, query_strategy, 		 # building blocks of the learner
             training_data=None, training_labels=None,			 # initial data if available
             **fit_kwargs                    # keyword arguments for fitting the initial data
     ):
@@ -25,9 +25,11 @@ class ActiveLearner:
         """
 
         assert callable(utility_function), 'utility_function must be callable'
+        assert callable(query_strategy), 'query_function must be callable'
 
         self.predictor = predictor
         self.utility_function = utility_function
+        self.query_strategy = query_strategy
 
         if type(training_data) == type(None) and type(training_labels) == type(None):
             self.training_data = None
@@ -115,21 +117,21 @@ class ActiveLearner:
         """
         return self.predictor.predict_proba(data, **predict_proba_kwargs)
 
-    def query(self, data, n_instances=1, **utility_function_kwargs):
+    def query(self, pool, n_instances=1, **utility_function_kwargs):
         """
         Finds the n_instances most informative point in the data provided, then
         returns the instances and its indices
-        :param data: np.ndarray, the pool from which the query is selected
+        :param pool: np.ndarray, the pool from which the query is selected
         :param n_instances: int, the number of queries
         :return: tuple(query_idx, data[query_idx]), where query_idx is the index of the instance
                  to be queried
         """
 
-        check_array(data, ensure_2d=True)
+        check_array(pool, ensure_2d=True)
 
-        utilities = self.calculate_utility(data, **utility_function_kwargs)
-        query_idx = np.argpartition(-utilities, n_instances)[:n_instances]
-        return query_idx, data[query_idx]
+        utilities = self.calculate_utility(pool, **utility_function_kwargs)
+        query_idx = self.query_strategy(utilities, n_instances)
+        return query_idx, pool[query_idx]
 
     def score(self, X, y, **score_kwargs):
         """
