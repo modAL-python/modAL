@@ -5,6 +5,8 @@ Core models for active learning algorithms.
 import numpy as np
 from sklearn.utils import check_array
 from modAL.utils.validation import check_class_labels, check_class_proba
+from modAL.utilities import classifier_uncertainty
+from modAL.queries import max_utility
 
 
 class ActiveLearner:
@@ -13,7 +15,9 @@ class ActiveLearner:
     """
     def __init__(
             self,
-            predictor, utility_function, query_strategy, 		 # building blocks of the learner
+            predictor,                                           # building blocks of the learner
+            utility_function=classifier_uncertainty,             #
+            query_strategy=max_utility, 		                 #
             training_data=None, training_labels=None,			 # initial data if available
             **fit_kwargs                    # keyword arguments for fitting the initial data
     ):
