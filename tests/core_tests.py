@@ -71,6 +71,16 @@ class TestQueries(unittest.TestCase):
                     np.sort(max_idx)
                 )
 
+    def test_utility_weighted_random(self):
+        for n_pool in range(2, 100):
+            for n_instances in range(1, n_pool):
+                utility = np.ones(n_pool)
+                query_idx = modAL.queries.utility_weighted_random(utility, n_instances)
+                # testing for correct number of returned indices
+                np.testing.assert_equal(len(query_idx), n_instances)
+                # testing for uniqueness of each query index
+                np.testing.assert_equal(len(query_idx), len(np.unique(query_idx)))
+
 
 class TestActiveLearner(unittest.TestCase):
 
