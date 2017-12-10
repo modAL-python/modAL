@@ -11,7 +11,7 @@ def vote_entropy(committee, data, **predict_proba_kwargs):
     n_learners = len(committee.learner_list)
     votes = committee.vote(data, **predict_proba_kwargs)
     vote_proba = np.zeros(shape=(data.shape[0], len(committee.classes_)))
-    entropy_values = np.zeros(shape=(data.shape[0], ))
+    entr = np.zeros(shape=(data.shape[0], ))
 
     for vote_idx, vote in enumerate(votes):
         vote_counter = Counter(vote)
@@ -19,6 +19,6 @@ def vote_entropy(committee, data, **predict_proba_kwargs):
         for class_idx, class_label in enumerate(committee.classes_):
             vote_proba[vote_idx, class_idx] = vote_counter[class_label]/n_learners
 
-        entropy_values[vote_idx] = entropy(vote_proba[vote_idx])
+        entr[vote_idx] = entropy(vote_proba[vote_idx])
 
-    return entropy_values
+    return entr

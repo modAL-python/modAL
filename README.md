@@ -35,6 +35,7 @@ learner = ActiveLearner(
 )
 
 # the active learning loop
+n_loops = 50
 for loop_idx in range(n_loops):
     # query for labels
     query_idx, query_inst = learner.query(X_pool)

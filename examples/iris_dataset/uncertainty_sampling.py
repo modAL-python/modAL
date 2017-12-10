@@ -10,7 +10,6 @@ from sklearn.decomposition import PCA
 from sklearn.datasets import load_iris
 from sklearn.neural_network import MLPClassifier
 from modAL.models import ActiveLearner
-from modAL.uncertainty import classifier_uncertainty
 
 # loading the iris dataset
 iris = load_iris()
