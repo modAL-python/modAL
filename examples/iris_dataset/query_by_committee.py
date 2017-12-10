@@ -44,5 +44,7 @@ for member_idx in range(n_members):
 
 # assembling the Committee
 committee = Committee(learner_list=learner_list, disagreement_measure=vote_entropy)
-committee.calculate_disagreement(iris['data'])
-committee.vote_proba(iris['data'])
+
+n_queries = 5
+for idx in range(n_queries):
+    pass

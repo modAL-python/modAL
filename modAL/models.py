@@ -101,8 +101,6 @@ class ActiveLearner:
         :param fit_kwargs: keyword arguments to be passed to the fit method of classifier
         """
 
-        # UNCOMMENT AFTER _set_classes() is tested!
-        # self._set_classes()
         self.predictor.fit(self.training_data, self.training_labels, **fit_kwargs)
 
     def predict(self, data, **predict_kwargs):
@@ -186,12 +184,14 @@ class Committee:
         )
         self.n_classes_ = len(self.classes_)
 
-    def add_and_retrain(self, new_data, new_label):
-        pass
+    def add_and_retrain(self, new_data, new_label, **fit_kwargs):
+        self.add_training_data(new_data, new_label)
+        self.fit_to_known(**fit_kwargs)
 
     def add_training_data(self, new_data, new_label):
-        # don't forget to update self.n_classes_ and self.classes_
-        pass
+        for learner in self.learner_list:
+            learner.add_training_data(new_data, new_label)
+        self._set_classes()
 
     def calculate_disagreement(self, data, **disagreement_measure_kwargs):
         return self.disagreement_measure(self, data, **disagreement_measure_kwargs)
@@ -212,6 +212,10 @@ class Committee:
             uncertainties[:, learner_idx] = learner_utility
 
         return uncertainties
+
+    def fit_to_known(self, **fit_kwargs):
+        for learner in self.learner_list:
+            learner.fit_to_known(**fit_kwargs)
 
     def vote(self, data, **predict_kwargs):
         """
