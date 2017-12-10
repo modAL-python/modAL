@@ -6,6 +6,7 @@ import numpy as np
 from sklearn.utils import check_array
 from modAL.utils.validation import check_class_labels, check_class_proba
 from modAL.uncertainty import classifier_uncertainty
+from modAL.disagreement import vote_entropy
 from modAL.query import max_uncertainty
 
 
@@ -16,10 +17,10 @@ class ActiveLearner:
     def __init__(
             self,
             predictor,                                           # scikit-learner estimator object
-            uncertainty_measure=classifier_uncertainty,          # callable to calculate utility
-            query_strategy=max_uncertainty, 		                 # callable to query labels
+            uncertainty_measure=classifier_uncertainty,          # callable to measure uncertainty
+            query_strategy=max_uncertainty, 		             # callable to query labels
             training_data=None, training_labels=None,			 # initial data if available
-            **fit_kwargs                    # keyword arguments for fitting the initial data
+            **fit_kwargs                                         # keyword arguments for fitting the initial data
     ):
         """
         :param predictor: an instance of the predictor
@@ -80,7 +81,7 @@ class ActiveLearner:
             self.training_data = new_data
             self.training_labels = new_label
 
-    def calculate_uncertainty(self, data, **utility_function_kwargs):
+    def calculate_uncertainty(self, data, **uncertainty_measure_kwargs):
         """
         This method calls the utility function provided for ActiveLearner
         on the data passed to it. It is used to measure utilities for each
@@ -91,7 +92,7 @@ class ActiveLearner:
         """
         check_array(data)
 
-        return self.uncertainty_measure(self.predictor, data, **utility_function_kwargs)
+        return self.uncertainty_measure(self.predictor, data, **uncertainty_measure_kwargs)
 
     def fit_to_known(self, **fit_kwargs):
         """
@@ -121,7 +122,7 @@ class ActiveLearner:
         """
         return self.predictor.predict_proba(data, **predict_proba_kwargs)
 
-    def query(self, pool, n_instances=1, **utility_function_kwargs):
+    def query(self, pool, n_instances=1, **uncertainty_measure_kwargs):
         """
         Finds the n_instances most informative point in the data provided, then
         returns the instances and its indices
@@ -133,8 +134,8 @@ class ActiveLearner:
 
         check_array(pool, ensure_2d=True)
 
-        utilities = self.calculate_uncertainty(pool, **utility_function_kwargs)
-        query_idx = self.query_strategy(utilities, n_instances)
+        uncertainties = self.calculate_uncertainty(pool, **uncertainty_measure_kwargs)
+        query_idx = self.query_strategy(uncertainties, n_instances)
         return query_idx, pool[query_idx]
 
     def score(self, X, y, **score_kwargs):
@@ -154,7 +155,10 @@ class Committee:
     """
     def __init__(
             self,
-            learner_list, voting_function
+            learner_list,                                        # list of ActiveLearner objects
+            disagreement_measure=vote_entropy,                   # callable to measure disagreement
+            query_strategy=max_uncertainty                       # callable to query labels
+
     ):
         """
         :param learner_list: list of ActiveLearners
@@ -162,7 +166,8 @@ class Committee:
         assert type(learner_list) == list, 'learners must be supplied in a list'
 
         self.learner_list = learner_list
-        self.voting_function = voting_function
+        self.disagreement_measure = disagreement_measure
+        self.query_strategy = query_strategy
 
         self._set_classes()
 
@@ -188,22 +193,25 @@ class Committee:
         # don't forget to update self.n_classes_ and self.classes_
         pass
 
+    def calculate_disagreement(self, data, **disagreement_measure_kwargs):
+        return self.disagreement_measure(self, data, **disagreement_measure_kwargs)
+
     def calculate_uncertainty(self, data, **utility_function_kwargs):
         """
-        Calculates the utilities for every learner in the Committee and returns it
+        Calculates the uncertainties for every learner in the Committee and returns it
         in the form of a numpy.ndarray
         :param data: numpy.ndarray, data points for which the utilities should be measures
         :return: numpy.ndarray of utilities
         """
 
         check_array(data, ensure_2d=True)
-        utilities = np.zeros(shape=(data.shape[0], len(self.learner_list)))
+        uncertainties = np.zeros(shape=(data.shape[0], len(self.learner_list)))
 
         for learner_idx, learner in enumerate(self.learner_list):
             learner_utility = learner.calculate_uncertainty(data, **utility_function_kwargs)
-            utilities[:, learner_idx] = learner_utility
+            uncertainties[:, learner_idx] = learner_utility
 
-        return utilities
+        return uncertainties
 
     def predict(self, data, **predict_kwargs):
         """
@@ -262,4 +270,4 @@ class Committee:
         :return: tuple(query_idx, data[query_idx]), where query_idx is the index of the instance
                  to be queried
         """
-        pass
+        check_array(data)
