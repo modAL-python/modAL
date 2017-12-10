@@ -2,6 +2,7 @@ import random
 import unittest
 import numpy as np
 import modAL.utilities
+import modAL.queries
 import modAL.models
 import modAL.utils.validation
 from itertools import chain
@@ -55,6 +56,20 @@ class TestUtilities(unittest.TestCase):
                 modAL.utilities.classifier_margin(mock_classifier, np.random.rand(10)),
                 case.output
             )
+
+
+class TestQueries(unittest.TestCase):
+
+    def test_max_utility(self):
+        for n_pool in range(2, 100):
+            for n_instances in range(1, n_pool):
+                utility = np.zeros(n_pool)
+                max_idx = np.random.choice(range(n_pool), size=n_instances, replace=False)
+                utility[max_idx] = 1.0
+                np.testing.assert_equal(
+                    np.sort(modAL.queries.max_utility(utility, n_instances)),
+                    np.sort(max_idx)
+                )
 
 
 class TestActiveLearner(unittest.TestCase):
