@@ -33,7 +33,7 @@ pool_labels = np.delete(iris['target'], train_idx)
 # active learning
 mlp_classifier = MLPClassifier(hidden_layer_sizes=(10, 10, 10), max_iter=1000)
 learner = ActiveLearner(
-    predictor=mlp_classifier, utility_function=classifier_uncertainty,
+    predictor=mlp_classifier,
     training_data=X_train, training_labels=y_train
 )
 
