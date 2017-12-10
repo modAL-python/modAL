@@ -41,12 +41,12 @@ class MockActiveLearner:
     Mock ActiveLearner for testing.
     """
     def __init__(
-            self, predictor=None, utility_function=None, query_strategy=None,
+            self, predictor=None, uncertainty_measure=None, query_strategy=None,
             predict_proba_return=None, calculate_utility_return=None, predict_return=None, score_return=None,
             classes_=None,
     ):
         self.predictor = predictor
-        self.utility_function = utility_function
+        self.uncertainty_measure = uncertainty_measure
         self.query_strategy = query_strategy
 
         self.predict_proba_return = predict_proba_return
@@ -56,7 +56,7 @@ class MockActiveLearner:
 
         self.classes_ = classes_
 
-    def calculate_utility(self, data):
+    def calculate_uncertainty(self, data):
         return self.calculate_utility_return
 
     def fit(self, *args, **kwargs):

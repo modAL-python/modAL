@@ -1,8 +1,8 @@
 import random
 import unittest
 import numpy as np
-import modAL.utilities
-import modAL.queries
+import modAL.uncertainty
+import modAL.query
 import modAL.models
 import modAL.utils.validation
 from itertools import chain
@@ -40,7 +40,7 @@ class TestUtilities(unittest.TestCase):
         for case in test_cases:
             mock_classifier = MockClassifier(predict_proba_return=case.input)
             np.testing.assert_almost_equal(
-                modAL.utilities.classifier_uncertainty(mock_classifier, np.random.rand(10)),
+                modAL.uncertainty.classifier_uncertainty(mock_classifier, np.random.rand(10)),
                 case.output
             )
 
@@ -53,7 +53,7 @@ class TestUtilities(unittest.TestCase):
         for case in chain(test_cases_1, test_cases_2):
             mock_classifier = MockClassifier(predict_proba_return=case.input)
             np.testing.assert_almost_equal(
-                modAL.utilities.classifier_margin(mock_classifier, np.random.rand(10)),
+                modAL.uncertainty.classifier_margin(mock_classifier, np.random.rand(10)),
                 case.output
             )
 
@@ -67,7 +67,7 @@ class TestQueries(unittest.TestCase):
                 max_idx = np.random.choice(range(n_pool), size=n_instances, replace=False)
                 utility[max_idx] = 1.0
                 np.testing.assert_equal(
-                    np.sort(modAL.queries.max_utility(utility, n_instances)),
+                    np.sort(modAL.query.max_utility(utility, n_instances)),
                     np.sort(max_idx)
                 )
 
@@ -75,7 +75,7 @@ class TestQueries(unittest.TestCase):
         for n_pool in range(2, 100):
             for n_instances in range(1, n_pool):
                 utility = np.ones(n_pool)
-                query_idx = modAL.queries.utility_weighted_random(utility, n_instances)
+                query_idx = modAL.query.utility_weighted_random(utility, n_instances)
                 # testing for correct number of returned indices
                 np.testing.assert_equal(len(query_idx), n_instances)
                 # testing for uniqueness of each query index
@@ -90,7 +90,7 @@ class TestActiveLearner(unittest.TestCase):
             mock_classifier = MockClassifier()
             learner = modAL.models.ActiveLearner(mock_classifier, MockUtility(case.input))
             np.testing.assert_almost_equal(
-                learner.calculate_utility(case.input),
+                learner.calculate_uncertainty(case.input),
                 case.output
             )
 
@@ -134,7 +134,7 @@ class TestCommittee(unittest.TestCase):
                 voting_function=None
             )
             np.testing.assert_almost_equal(
-                committee.calculate_utility(np.random.rand(100, 1)),
+                committee.calculate_uncertainty(np.random.rand(100, 1)),
                 utility
             )
 

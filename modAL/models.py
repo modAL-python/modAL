@@ -5,8 +5,8 @@ Core models for active learning algorithms.
 import numpy as np
 from sklearn.utils import check_array
 from modAL.utils.validation import check_class_labels, check_class_proba
-from modAL.utilities import classifier_uncertainty
-from modAL.queries import max_utility
+from modAL.uncertainty import classifier_uncertainty
+from modAL.query import max_utility
 
 
 class ActiveLearner:
@@ -16,23 +16,23 @@ class ActiveLearner:
     def __init__(
             self,
             predictor,                                           # scikit-learner estimator object
-            utility_function=classifier_uncertainty,             # callable to calculate utility
+            uncertainty_measure=classifier_uncertainty,          # callable to calculate utility
             query_strategy=max_utility, 		                 # callable to query labels
             training_data=None, training_labels=None,			 # initial data if available
             **fit_kwargs                    # keyword arguments for fitting the initial data
     ):
         """
         :param predictor: an instance of the predictor
-        :param utility_function: function to calculate utilities
+        :param uncertainty_measure: function to calculate utilities
         :param training_data: initial training data if available
         :param training_labels: labels corresponding to the initial training data
         """
 
-        assert callable(utility_function), 'utility_function must be callable'
+        assert callable(uncertainty_measure), 'utility_function must be callable'
         assert callable(query_strategy), 'query_function must be callable'
 
         self.predictor = predictor
-        self.utility_function = utility_function
+        self.uncertainty_measure = uncertainty_measure
         self.query_strategy = query_strategy
 
         if type(training_data) == type(None) and type(training_labels) == type(None):
@@ -80,7 +80,7 @@ class ActiveLearner:
             self.training_data = new_data
             self.training_labels = new_label
 
-    def calculate_utility(self, data, **utility_function_kwargs):
+    def calculate_uncertainty(self, data, **utility_function_kwargs):
         """
         This method calls the utility function provided for ActiveLearner
         on the data passed to it. It is used to measure utilities for each
@@ -91,7 +91,7 @@ class ActiveLearner:
         """
         check_array(data)
 
-        return self.utility_function(self.predictor, data, **utility_function_kwargs)
+        return self.uncertainty_measure(self.predictor, data, **utility_function_kwargs)
 
     def fit_to_known(self, **fit_kwargs):
         """
@@ -133,7 +133,7 @@ class ActiveLearner:
 
         check_array(pool, ensure_2d=True)
 
-        utilities = self.calculate_utility(pool, **utility_function_kwargs)
+        utilities = self.calculate_uncertainty(pool, **utility_function_kwargs)
         query_idx = self.query_strategy(utilities, n_instances)
         return query_idx, pool[query_idx]
 
@@ -188,7 +188,7 @@ class Committee:
         # don't forget to update self.n_classes_ and self.classes_
         pass
 
-    def calculate_utility(self, data, **utility_function_kwargs):
+    def calculate_uncertainty(self, data, **utility_function_kwargs):
         """
         Calculates the utilities for every learner in the Committee and returns it
         in the form of a numpy.ndarray
@@ -200,7 +200,7 @@ class Committee:
         utilities = np.zeros(shape=(data.shape[0], len(self.learner_list)))
 
         for learner_idx, learner in enumerate(self.learner_list):
-            learner_utility = learner.calculate_utility(data, **utility_function_kwargs)
+            learner_utility = learner.calculate_uncertainty(data, **utility_function_kwargs)
             utilities[:, learner_idx] = learner_utility
 
         return utilities
