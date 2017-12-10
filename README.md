@@ -21,9 +21,8 @@ built-in components, you have the freedom to seamlessly integrate
 scikit-learn or Keras models into your algorithm and you can easily tailor
 your custom query strategies and uncertainty measures.
 
-## modAL in 5 minutes
-Active learning with a scikit-learn classifier, RandomForestClassifier
-in this instance, can be as simple as the following.
+## modAL in action
+Active learning with a scikit-learn classifier, for instance RandomForestClassifier, can be as simple as the following.
 
 ```python
 from sklearn.ensemble import RandomForestClassifier
