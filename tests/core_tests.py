@@ -130,8 +130,7 @@ class TestCommittee(unittest.TestCase):
                                     MockClassifier(classes_=np.asarray([0])),
                                     calculate_utility_return=utility[:, learner_idx].reshape(-1)
                               )
-                              for learner_idx in range(n_learners)],
-                voting_function=None
+                              for learner_idx in range(n_learners)]
             )
             np.testing.assert_almost_equal(
                 committee.calculate_uncertainty(np.random.rand(100, 1)),
@@ -147,8 +146,7 @@ class TestCommittee(unittest.TestCase):
                                           MockClassifier(classes_=np.asarray([0])),
                                           predict_return=prediction[:, learner_idx]
                                   )
-                                  for learner_idx in range(n_learners)],
-                    voting_function=None
+                                  for learner_idx in range(n_learners)]
                 )
                 np.testing.assert_equal(
                     committee.vote(np.random.rand(n_instances, 5)),
