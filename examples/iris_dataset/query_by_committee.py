@@ -5,7 +5,7 @@ from sklearn.decomposition import PCA
 from sklearn.datasets import load_iris
 from sklearn.neural_network import MLPClassifier
 from modAL.models import ActiveLearner, Committee
-from modAL.uncertainty import classifier_uncertainty
+from modAL.disagreement import vote_entropy
 
 # loading the iris dataset
 iris = load_iris()
@@ -43,6 +43,5 @@ for member_idx in range(n_members):
     learner_list.append(learner)
 
 # assembling the Committee
-committee = Committee(
-    learner_list=learner_list, voting_function=None
-)
+committee = Committee(learner_list=learner_list, disagreement_measure=vote_entropy)
+committee.calculate_disagreement(iris['data'])

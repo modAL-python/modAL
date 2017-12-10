@@ -15,11 +15,11 @@ Let's take a look at a general active learning workflow!
 ![](doc/img/active_learning.png)
 
 The key components of any workflow are the **model** you choose, the
-**information** measure you use and the **query** strategy you apply to
+**uncertainty** measure you use and the **query** strategy you apply to
 request labels. With modAL, instead of choosing from a small set of
-built-in classifiers, you have the freedom to seamlessly integrate
+built-in components, you have the freedom to seamlessly integrate
 scikit-learn or Keras models into your algorithm and you can easily tailor
-your custom query strategies and information measures.
+your custom query strategies and uncertainty measures.
 
 ## modAL in 5 minutes
 Active learning with a scikit-learn classifier, RandomForestClassifier
