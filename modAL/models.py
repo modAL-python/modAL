@@ -188,7 +188,7 @@ class Committee:
         # don't forget to update self.n_classes_ and self.classes_
         pass
 
-    def calculate_utility(self, data):
+    def calculate_utility(self, data, **utility_function_kwargs):
         """
         Calculates the utilities for every learner in the Committee and returns it
         in the form of a numpy.ndarray
@@ -200,7 +200,7 @@ class Committee:
         utilities = np.zeros(shape=(data.shape[0], len(self.learner_list)))
 
         for learner_idx, learner in enumerate(self.learner_list):
-            learner_utility = learner.calculate_utility(data)
+            learner_utility = learner.calculate_utility(data, **utility_function_kwargs)
             utilities[:, learner_idx] = learner_utility
 
         return utilities
