@@ -266,12 +266,16 @@ class Committee:
 
         return proba
 
-    def query(self, data):
+    def query(self, pool, n_instances=1, **disagreement_measure_kwargs):
         """
         Finds the most informative point in the data provided, then
         returns the instance and its index
-        :param data: numpy.ndarray, the pool from which the query is selected
+        :param pool: numpy.ndarray, the pool from which the query is selected
         :return: tuple(query_idx, data[query_idx]), where query_idx is the index of the instance
                  to be queried
         """
-        check_array(data)
+        check_array(pool, ensure_2d=True)
+
+        disagreement = self.calculate_disagreement(pool, **disagreement_measure_kwargs)
+        query_idx = self.query_strategy(disagreement, n_instances)
+        return query_idx, pool[query_idx]

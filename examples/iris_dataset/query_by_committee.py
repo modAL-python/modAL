@@ -6,6 +6,7 @@ from sklearn.datasets import load_iris
 from sklearn.neural_network import MLPClassifier
 from modAL.models import ActiveLearner, Committee
 from modAL.disagreement import vote_entropy
+from modAL.query import max_uncertainty
 
 # loading the iris dataset
 iris = load_iris()
@@ -43,8 +44,15 @@ for member_idx in range(n_members):
     learner_list.append(learner)
 
 # assembling the Committee
-committee = Committee(learner_list=learner_list, disagreement_measure=vote_entropy)
+committee = Committee(learner_list=learner_list, disagreement_measure=vote_entropy, query_strategy=max_uncertainty)
 
 n_queries = 5
 for idx in range(n_queries):
-    pass
+    query_idx, query_instance = committee.query(pool_data)
+    committee.add_and_retrain(
+        new_data=pool_data[query_idx].reshape(1, -1),
+        new_label=pool_labels[query_idx].reshape(-1, )
+    )
+    # remove queried instance from pool
+    pool_data = np.delete(pool_data, query_idx, axis=0)
+    pool_labels = np.delete(pool_labels, query_idx)
