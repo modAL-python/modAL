@@ -6,7 +6,7 @@ import numpy as np
 from sklearn.utils import check_array
 from modAL.utils.validation import check_class_labels, check_class_proba
 from modAL.uncertainty import classifier_uncertainty
-from modAL.query import max_utility
+from modAL.query import max_uncertainty
 
 
 class ActiveLearner:
@@ -17,7 +17,7 @@ class ActiveLearner:
             self,
             predictor,                                           # scikit-learner estimator object
             uncertainty_measure=classifier_uncertainty,          # callable to calculate utility
-            query_strategy=max_utility, 		                 # callable to query labels
+            query_strategy=max_uncertainty, 		                 # callable to query labels
             training_data=None, training_labels=None,			 # initial data if available
             **fit_kwargs                    # keyword arguments for fitting the initial data
     ):

@@ -5,7 +5,7 @@ Query strategies for the active learning model.
 import numpy as np
 
 
-def max_utility(utility, n_instances=1):
+def max_uncertainty(utility, n_instances=1):
     """
     Selects n_instances instances having the highest utility
 
@@ -30,7 +30,7 @@ def max_utility(utility, n_instances=1):
     return query_idx
 
 
-def utility_weighted_random(utility, n_instances=1):
+def uncertainty_weighted_random(utility, n_instances=1):
     """
     Samples n_instances instances, using utilities as weights
 

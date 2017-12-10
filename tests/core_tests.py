@@ -67,7 +67,7 @@ class TestQueries(unittest.TestCase):
                 max_idx = np.random.choice(range(n_pool), size=n_instances, replace=False)
                 utility[max_idx] = 1.0
                 np.testing.assert_equal(
-                    np.sort(modAL.query.max_utility(utility, n_instances)),
+                    np.sort(modAL.query.max_uncertainty(utility, n_instances)),
                     np.sort(max_idx)
                 )
 
@@ -75,7 +75,7 @@ class TestQueries(unittest.TestCase):
         for n_pool in range(2, 100):
             for n_instances in range(1, n_pool):
                 utility = np.ones(n_pool)
-                query_idx = modAL.query.utility_weighted_random(utility, n_instances)
+                query_idx = modAL.query.uncertainty_weighted_random(utility, n_instances)
                 # testing for correct number of returned indices
                 np.testing.assert_equal(len(query_idx), n_instances)
                 # testing for uniqueness of each query index
