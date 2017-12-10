@@ -15,9 +15,9 @@ class ActiveLearner:
     """
     def __init__(
             self,
-            predictor,                                           # building blocks of the learner
-            utility_function=classifier_uncertainty,             #
-            query_strategy=max_utility, 		                 #
+            predictor,                                           # scikit-learner estimator object
+            utility_function=classifier_uncertainty,             # callable to calculate utility
+            query_strategy=max_utility, 		                 # callable to query labels
             training_data=None, training_labels=None,			 # initial data if available
             **fit_kwargs                    # keyword arguments for fitting the initial data
     ):

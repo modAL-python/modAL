@@ -82,11 +82,11 @@ learner = ActiveLearner(
 )
 
 # the active learning loop
-n_queries = 5
+n_queries = 10
 for idx in range(n_queries):
-    query_idx, query_instance = learner.query(x_pool, verbose=0)
+    query_idx, query_instance = learner.query(x_pool, n_instances=50, verbose=0)
     learner.add_and_retrain(
-        new_data=x_pool[query_idx].reshape(1, -1), new_label=y_pool[query_idx].reshape(1, -1),
+        new_data=x_pool[query_idx], new_label=y_pool[query_idx],
         verbose=0
     )
     # remove queried instance from pool
