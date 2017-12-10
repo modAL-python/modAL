@@ -242,12 +242,12 @@ class Committee:
             # probability prediction is straightforward
 
             for learner_idx, learner in enumerate(self.learner_list):
-                proba[:, learner_idx, :] = learner.predict_proba(data)
+                proba[:, learner_idx, :] = learner.predict_proba(data, **predict_proba_kwargs)
 
         else:
             for learner_idx, learner in enumerate(self.learner_list):
                 proba[:, learner_idx, :] = check_class_proba(
-                    proba=learner.predict_proba(data),
+                    proba=learner.predict_proba(data, **predict_proba_kwargs),
                     known_labels=learner.predictor.classes_,
                     all_labels=self.classes_
                 )
