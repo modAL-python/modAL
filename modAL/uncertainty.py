@@ -22,7 +22,3 @@ def classifier_margin(classifier, data, **predict_proba_kwargs):
     part = np.partition(-classwise_uncertainty, 1, axis=1)
 
     return -part[:, 0] + part[:, 1]
-
-
-def vote_entropy(committee, data, **predict_proba_kwargs):
-    vote = committee.predict_proba(data, **predict_proba_kwargs)
