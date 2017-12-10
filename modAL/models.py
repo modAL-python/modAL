@@ -213,7 +213,7 @@ class Committee:
 
         return uncertainties
 
-    def predict(self, data, **predict_kwargs):
+    def vote(self, data, **predict_kwargs):
         """
         Predicts the labels for the supplied data
         :param data: numpy.ndarray containing the instances to be predicted
@@ -229,7 +229,7 @@ class Committee:
 
         return prediction
 
-    def predict_proba(self, data, **predict_proba_kwargs):
+    def vote_proba(self, data, **predict_proba_kwargs):
         """
         Predicts the probabilities for the supplied data
         :param data: numpy.ndarray containing the instances for which class probabilities are to be predicted

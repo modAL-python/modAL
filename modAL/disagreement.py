@@ -9,7 +9,7 @@ from scipy.stats import entropy
 
 def vote_entropy(committee, data, **predict_proba_kwargs):
     n_learners = len(committee.learner_list)
-    votes = committee.predict(data, **predict_proba_kwargs)
+    votes = committee.vote(data, **predict_proba_kwargs)
     vote_proba = np.zeros(shape=(data.shape[0], len(committee.classes_)))
     entropy_values = np.zeros(shape=(data.shape[0], ))
 

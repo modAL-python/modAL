@@ -151,7 +151,7 @@ class TestCommittee(unittest.TestCase):
                     voting_function=None
                 )
                 np.testing.assert_equal(
-                    committee.predict(np.random.rand(n_instances, 5)),
+                    committee.vote(np.random.rand(n_instances, 5)),
                     prediction
                 )
 
