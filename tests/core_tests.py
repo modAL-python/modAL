@@ -32,7 +32,7 @@ class TestUtils(unittest.TestCase):
                 self.assertFalse(modAL.utils.validation.check_class_labels(*shuffled_learners))
 
 
-class TestUtilities(unittest.TestCase):
+class TestUncertainties(unittest.TestCase):
 
     def test_uncertainty(self):
         test_cases = (Test(p * np.ones(shape=(k, l)), (1 - p) * np.ones(shape=(k, )))
@@ -56,6 +56,19 @@ class TestUtilities(unittest.TestCase):
                 modAL.uncertainty.classifier_margin(mock_classifier, np.random.rand(10)),
                 case.output
             )
+
+    def test_entropy(self):
+        for n_samples in range(1, 100):
+            for n_classes in range(1, 20):
+                proba = np.zeros(shape=(n_samples, n_classes))
+                for sample_idx in range(n_samples):
+                    proba[sample_idx, np.random.choice(range(n_classes))] = 1.0
+
+                classifier = MockClassifier(predict_proba_return=proba)
+                np.testing.assert_equal(
+                    modAL.uncertainty.classifier_entropy(classifier, np.random.rand(n_samples, 1)),
+                    np.zeros(shape=(n_samples, ))
+                )
 
 
 class TestQueries(unittest.TestCase):
