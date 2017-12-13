@@ -16,14 +16,14 @@ class ActiveLearner:
 
     Parameters
     ----------
-    predictor: scikit-learn estimator object
+    predictor: scikit-learn estimator
         The estimator to be used in the active learning loop.
 
-    uncertainty_measure: function object
+    uncertainty_measure: function
         Function providing the uncertainty measure, for instance
         modAL.uncertainty.classifier_uncertainty.
 
-    query_strategy: function object
+    query_strategy: function
         Function providing the query strategy for the active learning
         loop, for instance modAL.query.max_uncertainty.
 
@@ -37,6 +37,26 @@ class ActiveLearner:
 
     Attributes
     ----------
+    predictor: scikit-learn estimator
+        The estimator to be used in the active learning loop.
+
+    uncertainty_measure: function
+        Function providing the uncertainty measure, for instance
+        modAL.uncertainty.classifier_uncertainty.
+
+    query_strategy: function
+        Function providing the query strategy for the active learning
+        loop, for instance modAL.query.max_uncertainty.
+
+    _training_samples: None numpy.ndarray of shape (n_samples, n_features)
+        If the model hasn't been fitted yet: None
+        If the model has been fitted already: numpy.ndarray containing the
+        samples which the model has been trained on
+
+    _training_labels: None or numpy.ndarray of shape (n_samples, )
+        If the model hasn't been fitted yet: None
+        If the model has been fitted already: numpy.ndarray containing the
+        labels corresponding to _training_samples
 
     Examples
     --------
@@ -82,11 +102,11 @@ class ActiveLearner:
         self.query_strategy = query_strategy
 
         if type(training_samples) == type(None) and type(training_labels) == type(None):
-            self.training_data = None
-            self.training_labels = None
+            self._training_samples = None
+            self._training_labels = None
         elif type(training_samples) != type(None) and type(training_labels) != type(None):
-            self.training_data = check_array(training_samples)
-            self.training_labels = check_array(training_labels, ensure_2d=False)
+            self._training_samples = check_array(training_samples)
+            self._training_labels = check_array(training_labels, ensure_2d=False)
             self.fit_to_known(**fit_kwargs)
 
     def teach(self, new_sample, new_label, **fit_kwargs):
@@ -114,17 +134,17 @@ class ActiveLearner:
         new_sample, new_label = check_array(new_sample), check_array(new_label, ensure_2d=False)
         assert len(new_sample) == len(new_label), 'the number of new data points and number of labels must match'
 
-        if type(self.training_data) != type(None):
+        if type(self._training_samples) != type(None):
             try:
-                self.training_data = np.vstack((self.training_data, new_sample))
-                self.training_labels = np.concatenate((self.training_labels, new_label))
+                self._training_samples = np.vstack((self._training_samples, new_sample))
+                self._training_labels = np.concatenate((self._training_labels, new_label))
             except ValueError:
                 raise ValueError('the dimensions of the new training data and label must'
                                  'agree with the training data and labels provided so far')
 
         else:
-            self.training_data = new_sample
-            self.training_labels = new_label
+            self._training_samples = new_sample
+            self._training_labels = new_label
 
     def calculate_uncertainty(self, samples, **uncertainty_measure_kwargs):
         """
@@ -146,7 +166,7 @@ class ActiveLearner:
         :param fit_kwargs: keyword arguments to be passed to the fit method of classifier
         """
 
-        self.predictor.fit(self.training_data, self.training_labels, **fit_kwargs)
+        self.predictor.fit(self._training_samples, self._training_labels, **fit_kwargs)
 
     def predict(self, samples, **predict_kwargs):
         """
