@@ -42,6 +42,6 @@ learner = ActiveLearner(
 
 for round_idx in range(50):
     query_idx, query_inst = learner.query(pool)
-    learner.add_and_retrain(pool[query_idx].reshape(1, -1), y[query_idx].reshape(-1, ))
+    learner.teach(pool[query_idx].reshape(1, -1), y[query_idx].reshape(-1, ))
 
 misc.imshow(learner.predict(pool).reshape(im_height, im_width))

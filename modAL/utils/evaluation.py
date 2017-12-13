@@ -52,7 +52,7 @@ class Evaluator:
             print(query_idx, query_instance)
 
             # retrain model with the new label
-            self.learner.add_and_retrain(
+            self.learner.teach(
                 new_data=query_instance.reshape(1, -1),
                 new_label=pool_labels[query_idx].reshape(-1, )
             )

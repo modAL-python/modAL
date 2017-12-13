@@ -85,7 +85,7 @@ learner = ActiveLearner(
 n_queries = 10
 for idx in range(n_queries):
     query_idx, query_instance = learner.query(x_pool, n_instances=50, verbose=0)
-    learner.add_and_retrain(
+    learner.teach(
         new_data=x_pool[query_idx], new_label=y_pool[query_idx],
         verbose=0
     )

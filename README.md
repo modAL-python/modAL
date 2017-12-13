@@ -41,5 +41,5 @@ for loop_idx in range(n_loops):
     query_idx, query_inst = learner.query(X_pool)
 
     # supply label for queried instance
-    learner.add_and_retrain(X_pool[query_idx], y_pool[query_idx])
+    learner.teach(X_pool[query_idx], y_pool[query_idx])
 ```

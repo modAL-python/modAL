@@ -13,6 +13,40 @@ from modAL.query import max_uncertainty
 class ActiveLearner:
     """
     This class is an abstract model of a general active learning algorithm.
+
+    Parameters
+    ----------
+
+    Attributes
+    ----------
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from sklearn.datasets import load_iris
+    >>> from sklearn.ensemble import RandomForestClassifier
+    >>> from modAL.models import ActiveLearner
+    >>>
+    >>> iris = load_iris()
+    >>> # give initial training examples
+    >>> X_training = iris['data'][[0, 50, 100]]
+    >>> y_training = iris['target'][[0, 50, 100]]
+    >>>
+    >>> # initialize active learner
+    >>> learner = ActiveLearner(
+    ...     predictor=RandomForestClassifier(),
+    ...     training_data=X_training, training_labels=y_training
+    ... )
+    >>>
+    >>> # the active learning loop
+    >>> n_queries = 20
+    >>> for idx in range(n_queries):
+    ...     query_idx, query_sample = learner.query(iris['data'])
+    ...     learner.teach(
+    ...         new_data=iris['data'][query_idx].reshape(1, -1),
+    ...         new_label=iris['target'][query_idx].reshape(1, )
+    ...     )
+
     """
     def __init__(
             self,
@@ -22,12 +56,7 @@ class ActiveLearner:
             training_data=None, training_labels=None,			 # initial data if available
             **fit_kwargs                                         # keyword arguments for fitting the initial data
     ):
-        """
-        :param predictor: an instance of the predictor
-        :param uncertainty_measure: function to calculate utilities
-        :param training_data: initial training data if available
-        :param training_labels: labels corresponding to the initial training data
-        """
+
 
         assert callable(uncertainty_measure), 'utility_function must be callable'
         assert callable(query_strategy), 'query_function must be callable'
@@ -44,7 +73,7 @@ class ActiveLearner:
             self.training_labels = check_array(training_labels, ensure_2d=False)
             self.fit_to_known(**fit_kwargs)
 
-    def add_and_retrain(self, new_data, new_label, **fit_kwargs):
+    def teach(self, new_data, new_label, **fit_kwargs):
         """
         This function adds the given data to the training examples
         and retrains the predictor with the augmented dataset
@@ -305,3 +334,8 @@ class Committee:
         disagreement = self.calculate_disagreement(pool, **disagreement_measure_kwargs)
         query_idx = self.query_strategy(disagreement, n_instances)
         return query_idx, pool[query_idx]
+
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()

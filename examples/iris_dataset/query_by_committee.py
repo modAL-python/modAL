@@ -51,7 +51,7 @@ for idx in range(n_queries):
     query_idx, query_instance = committee.query(pool_data)
     committee.add_and_retrain(
         new_data=pool_data[query_idx].reshape(1, -1),
-        new_label=pool_labels[query_idx].reshape(-1, )
+        new_label=pool_labels[query_idx].reshape(1, )
     )
     # remove queried instance from pool
     pool_data = np.delete(pool_data, query_idx, axis=0)
