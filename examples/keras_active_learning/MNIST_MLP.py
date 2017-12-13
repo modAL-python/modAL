@@ -86,7 +86,7 @@ n_queries = 10
 for idx in range(n_queries):
     query_idx, query_instance = learner.query(x_pool, n_instances=50, verbose=0)
     learner.teach(
-        new_sample=x_pool[query_idx], new_label=y_pool[query_idx],
+        X=x_pool[query_idx], y=y_pool[query_idx],
         verbose=0
     )
     # remove queried instance from pool

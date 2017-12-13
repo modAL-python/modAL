@@ -81,8 +81,8 @@ class ActiveLearner:
     >>> for idx in range(n_queries):
     ...     query_idx, query_sample = learner.query(iris['data'])
     ...     learner.teach(
-    ...         new_sample=iris['data'][query_idx].reshape(1, -1),
-    ...         new_label=iris['target'][query_idx].reshape(1, )
+    ...         X=iris['data'][query_idx].reshape(1, -1),
+    ...         y=iris['target'][query_idx].reshape(1, )
     ...     )
 
     """
@@ -107,59 +107,69 @@ class ActiveLearner:
         elif type(training_samples) != type(None) and type(training_labels) != type(None):
             self._training_samples = check_array(training_samples)
             self._training_labels = check_array(training_labels, ensure_2d=False)
-            self.fit_to_known(**fit_kwargs)
+            self._fit_to_known(**fit_kwargs)
 
-    def teach(self, new_sample, new_label, **fit_kwargs):
+    def teach(self, X, y, **fit_kwargs):
         """
-        This function adds the given data to the training examples
-        and retrains the predictor with the augmented dataset
-        :param new_sample: new training data
-        :param new_label: new training labels for the data
-        :param fit_kwargs: keyword arguments to be passed to the fit method of classifier
-        """
-        self.add_training_data(new_sample, new_label)
-        self.fit_to_known(**fit_kwargs)
+        This function adds X and y to the known training data
+        and retrains the predictor with the augmented dataset.
 
-    def add_training_data(self, new_sample, new_label):
+        Parameters
+        ----------
+        X: numpy.ndarray of shape (n_samples, n_features)
+            The new instances for which the labels are supplied
+            by the expert.
+
+        y: numpy.ndarray of shape (n_samples, )
+            Labels corresponding to the new instances in X
+
+        fit_kwargs: keyword arguments
+            Keyword arguments to be passed to the fit method
+            of the predictor
+        """
+        self.add_training_data(X, y)
+        self._fit_to_known(**fit_kwargs)
+
+    def add_training_data(self, X, y):
         """
         Adds the new data and label to the known data, but does
         not retrain the model.
-        :param new_sample:
-        :param new_label:
+        :param X:
+        :param y:
         :return:
         """
         # TODO: get rid of the if clause
         # TODO: test if this works with multiple shapes and types of data
 
-        new_sample, new_label = check_array(new_sample), check_array(new_label, ensure_2d=False)
-        assert len(new_sample) == len(new_label), 'the number of new data points and number of labels must match'
+        X, y = check_array(X), check_array(y, ensure_2d=False)
+        assert len(X) == len(y), 'the number of new data points and number of labels must match'
 
         if type(self._training_samples) != type(None):
             try:
-                self._training_samples = np.vstack((self._training_samples, new_sample))
-                self._training_labels = np.concatenate((self._training_labels, new_label))
+                self._training_samples = np.vstack((self._training_samples, X))
+                self._training_labels = np.concatenate((self._training_labels, y))
             except ValueError:
                 raise ValueError('the dimensions of the new training data and label must'
                                  'agree with the training data and labels provided so far')
 
         else:
-            self._training_samples = new_sample
-            self._training_labels = new_label
+            self._training_samples = X
+            self._training_labels = y
 
-    def calculate_uncertainty(self, samples, **uncertainty_measure_kwargs):
+    def calculate_uncertainty(self, X, **uncertainty_measure_kwargs):
         """
         This method calls the utility function provided for ActiveLearner
         on the data passed to it. It is used to measure utilities for each
         data point.
-        :param samples: numpy.ndarray, data points for which the utilities should be measured
+        :param X: numpy.ndarray, data points for which the utilities should be measured
         :return: utility values for each datapoint as given by the utility function provided
                  for the learner
         """
-        check_array(samples)
+        check_array(X)
 
-        return self.uncertainty_measure(self.predictor, samples, **uncertainty_measure_kwargs)
+        return self.uncertainty_measure(self.predictor, X, **uncertainty_measure_kwargs)
 
-    def fit_to_known(self, **fit_kwargs):
+    def _fit_to_known(self, **fit_kwargs):
         """
         This method fits self.predictor to the training data and labels
         provided to it so far.
@@ -168,38 +178,38 @@ class ActiveLearner:
 
         self.predictor.fit(self._training_samples, self._training_labels, **fit_kwargs)
 
-    def predict(self, samples, **predict_kwargs):
+    def predict(self, X, **predict_kwargs):
         """
         Interface for the predictor
-        :param samples: np.ndarray instances for prediction
+        :param X: np.ndarray instances for prediction
         :return: output of the sklearn.base.ClassifierMixin.predict method
         """
-        return self.predictor.predict(samples, **predict_kwargs)
+        return self.predictor.predict(X, **predict_kwargs)
 
-    def predict_proba(self, samples, **predict_proba_kwargs):
+    def predict_proba(self, X, **predict_proba_kwargs):
         """
         Interface for the predict_proba method
-        :param samples: np.ndarray of the instances
+        :param X: np.ndarray of the instances
         :param predict_proba_kwargs: keyword arguments
         :return: output of the sklearn.base.ClassifierMixin.predict_proba method
         """
-        return self.predictor.predict_proba(samples, **predict_proba_kwargs)
+        return self.predictor.predict_proba(X, **predict_proba_kwargs)
 
-    def query(self, pool, n_instances=1, **uncertainty_measure_kwargs):
+    def query(self, X_pool, n_instances=1, **uncertainty_measure_kwargs):
         """
         Finds the n_instances most informative point in the data provided, then
         returns the instances and its indices
-        :param pool: np.ndarray, the pool from which the query is selected
+        :param X_pool: np.ndarray, the pool from which the query is selected
         :param n_instances: int, the number of queries
         :return: tuple(query_idx, data[query_idx]), where query_idx is the index of the instance
                  to be queried
         """
 
-        check_array(pool, ensure_2d=True)
+        check_array(X_pool, ensure_2d=True)
 
-        uncertainties = self.calculate_uncertainty(pool, **uncertainty_measure_kwargs)
+        uncertainties = self.calculate_uncertainty(X_pool, **uncertainty_measure_kwargs)
         query_idx = self.query_strategy(uncertainties, n_instances)
-        return query_idx, pool[query_idx]
+        return query_idx, X_pool[query_idx]
 
     def score(self, X, y, **score_kwargs):
         """
@@ -249,17 +259,17 @@ class Committee:
         )
         self.n_classes_ = len(self.classes_)
 
-    def add_and_retrain(self, new_data, new_label, **fit_kwargs):
-        self.add_training_data(new_data, new_label)
+    def teach(self, X, y, **fit_kwargs):
+        self.add_training_data(X, y)
         self.fit_to_known(**fit_kwargs)
 
-    def add_training_data(self, new_data, new_label):
+    def add_training_data(self, X, y):
         for learner in self.learner_list:
-            learner.add_training_data(new_data, new_label)
+            learner.add_training_data(X, y)
         self._set_classes()
 
-    def calculate_disagreement(self, data, **disagreement_measure_kwargs):
-        return self.disagreement_measure(self, data, **disagreement_measure_kwargs)
+    def calculate_disagreement(self, X, **disagreement_measure_kwargs):
+        return self.disagreement_measure(self, X, **disagreement_measure_kwargs)
 
     def calculate_uncertainty(self, data, **utility_function_kwargs):
         """
@@ -280,46 +290,46 @@ class Committee:
 
     def fit_to_known(self, **fit_kwargs):
         for learner in self.learner_list:
-            learner.fit_to_known(**fit_kwargs)
+            learner._fit_to_known(**fit_kwargs)
 
-    def predict(self, data, **predict_proba_kwargs):
+    def predict(self, X, **predict_proba_kwargs):
         """
         Predicts the class of the samples by picking
         the average least uncertain prediction.
         """
         # getting average certainties
-        proba = self.predict_proba(data, **predict_proba_kwargs)
+        proba = self.predict_proba(X, **predict_proba_kwargs)
         # finding the sample-wise max probability
         max_proba_idx = np.argmax(proba, axis=1)
         # translating label indices to labels
         return self.classes_[max_proba_idx]
 
-    def predict_proba(self, data, **predict_proba_kwargs):
-        return np.mean(self.vote_proba(data, **predict_proba_kwargs), axis=1)
+    def predict_proba(self, X, **predict_proba_kwargs):
+        return np.mean(self.vote_proba(X, **predict_proba_kwargs), axis=1)
 
-    def vote(self, data, **predict_kwargs):
+    def vote(self, X, **predict_kwargs):
         """
         Predicts the labels for the supplied data
-        :param data: numpy.ndarray containing the instances to be predicted
+        :param X: numpy.ndarray containing the instances to be predicted
         :param predict_kwargs: keyword arguments to be passed for the learners predict method
         :return: numpy.ndarray of shape (n_samples, 1) containing the predictions of all learners
         """
 
-        check_array(data, ensure_2d=True)
-        prediction = np.zeros(shape=(data.shape[0], len(self.learner_list)))
+        check_array(X, ensure_2d=True)
+        prediction = np.zeros(shape=(X.shape[0], len(self.learner_list)))
 
         for learner_idx, learner in enumerate(self.learner_list):
-            prediction[:, learner_idx] = learner.predict(data, **predict_kwargs)
+            prediction[:, learner_idx] = learner.predict(X, **predict_kwargs)
 
         return prediction
 
-    def vote_proba(self, data, **predict_proba_kwargs):
+    def vote_proba(self, X, **predict_proba_kwargs):
         """
         Predicts the probabilities of the classes for each sample and each learner.
 
         Parameters
         ----------
-        data: numpy.ndarray of shape (n_samples, n_features)
+        X: numpy.ndarray of shape (n_samples, n_features)
             The samples to be predicted by all learners
 
         predict_proba_kwargs: dict of keyword arguments
@@ -332,10 +342,10 @@ class Committee:
 
         """
 
-        check_array(data, ensure_2d=True)
+        check_array(X, ensure_2d=True)
 
         # get dimensions
-        n_samples = data.shape[0]
+        n_samples = X.shape[0]
         n_learners = len(self.learner_list)
         proba = np.zeros(shape=(n_samples, n_learners, self.n_classes_))
 
@@ -345,31 +355,31 @@ class Committee:
             # probability prediction is straightforward
 
             for learner_idx, learner in enumerate(self.learner_list):
-                proba[:, learner_idx, :] = learner.predict_proba(data, **predict_proba_kwargs)
+                proba[:, learner_idx, :] = learner.predict_proba(X, **predict_proba_kwargs)
 
         else:
             for learner_idx, learner in enumerate(self.learner_list):
                 proba[:, learner_idx, :] = check_class_proba(
-                    proba=learner.predict_proba(data, **predict_proba_kwargs),
+                    proba=learner.predict_proba(X, **predict_proba_kwargs),
                     known_labels=learner.predictor.classes_,
                     all_labels=self.classes_
                 )
 
         return proba
 
-    def query(self, pool, n_instances=1, **disagreement_measure_kwargs):
+    def query(self, X_pool, n_instances=1, **disagreement_measure_kwargs):
         """
         Finds the most informative point in the data provided, then
         returns the instance and its index
-        :param pool: numpy.ndarray, the pool from which the query is selected
+        :param X_pool: numpy.ndarray, the pool from which the query is selected
         :return: tuple(query_idx, data[query_idx]), where query_idx is the index of the instance
                  to be queried
         """
-        check_array(pool, ensure_2d=True)
+        check_array(X_pool, ensure_2d=True)
 
-        disagreement = self.calculate_disagreement(pool, **disagreement_measure_kwargs)
+        disagreement = self.calculate_disagreement(X_pool, **disagreement_measure_kwargs)
         query_idx = self.query_strategy(disagreement, n_instances)
-        return query_idx, pool[query_idx]
+        return query_idx, X_pool[query_idx]
 
 
 if __name__ == '__main__':

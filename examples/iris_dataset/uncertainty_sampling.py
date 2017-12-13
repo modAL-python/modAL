@@ -36,12 +36,12 @@ learner = ActiveLearner(
     training_samples=X_train, training_labels=y_train
 )
 
-n_queries = 20
+n_queries = 10
 for idx in range(n_queries):
     query_idx, query_instance = learner.query(pool_data)
     learner.teach(
-        new_sample=pool_data[query_idx].reshape(1, -1),
-        new_label=pool_labels[query_idx].reshape(1, )
+        X=pool_data[query_idx].reshape(1, -1),
+        y=pool_labels[query_idx].reshape(1, )
     )
     # remove queried instance from pool
     pool_data = np.delete(pool_data, query_idx, axis=0)

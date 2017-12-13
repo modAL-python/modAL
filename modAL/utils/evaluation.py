@@ -53,8 +53,8 @@ class Evaluator:
 
             # retrain model with the new label
             self.learner.teach(
-                new_sample=query_instance.reshape(1, -1),
-                new_label=pool_labels[query_idx].reshape(-1, )
+                X=query_instance.reshape(1, -1),
+                y=pool_labels[query_idx].reshape(-1, )
             )
 
             # eliminate queried instance from pool if needed
