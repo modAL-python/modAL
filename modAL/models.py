@@ -107,7 +107,7 @@ class ActiveLearner:
         elif type(X_initial) != type(None) and type(y_initial) != type(None):
             self._X_training = check_array(X_initial)
             self._y_training = check_array(y_initial, ensure_2d=False)
-            self._fit_to_known(**fit_kwargs)
+            self.fit_to_known(**fit_kwargs)
 
     def teach(self, X, y, **fit_kwargs):
         """
@@ -128,12 +128,13 @@ class ActiveLearner:
             of the predictor.
         """
         self.add_training_data(X, y)
-        self._fit_to_known(**fit_kwargs)
+        self.fit_to_known(**fit_kwargs)
 
     def add_training_data(self, X, y):
         """
         Adds the new data and label to the known data, but does
-        not retrain the model.
+        not retrain the model. Used internally of in stream based
+        active learning scenarios.
 
         Parameters
         ----------
@@ -168,25 +169,62 @@ class ActiveLearner:
 
     def calculate_uncertainty(self, X, **uncertainty_measure_kwargs):
         """
-        This method calls the utility function provided for ActiveLearner
-        on the data passed to it. It is used to measure utilities for each
-        data point.
-        :param X: numpy.ndarray, data points for which the utilities should be measured
-        :return: utility values for each datapoint as given by the utility function provided
-                 for the learner
+        This method calls the uncertainty measure function provided
+        for ActiveLearner upon initialization on the samples passed
+        to it. It is used to measure uncertainty for each data point.
+
+        Parameters
+        ----------
+        X: numpy.ndarray of shape (n_samples, n_features)
+            The samples for which the uncertainty of prediction is
+            to be calculated.
+
+        uncertainty_measure_kwargs: keyword arguments
+            Keyword arguments to be passed to the uncertainty measure
+            function.
+
+        Returns
+        -------
+        uncertainty: numpy.ndarray of shape (n_samples, )
+            Contains the uncertainties for the predictions on sample X
         """
         check_array(X)
-
         return self.uncertainty_measure(self.predictor, X, **uncertainty_measure_kwargs)
 
-    def _fit_to_known(self, **fit_kwargs):
+    def fit_to_known(self, **fit_kwargs):
         """
         This method fits self.predictor to the training data and labels
-        provided to it so far.
-        :param fit_kwargs: keyword arguments to be passed to the fit method of classifier
-        """
+        provided to it so far. Used internally or in stream based active
+        learning scenarios.
 
+        Parameters
+        ----------
+        fit_kwargs: keyword arguments
+            Keyword arguments to be passed to the fit method of the predictor.
+
+        """
         self.predictor.fit(self._X_training, self._y_training, **fit_kwargs)
+
+    def fit(self, X, y, **fit_kwargs):
+        """
+        Interface for the fit method of the predictor. Fits the predictor
+        to the supplied data, then stores it internally for the active
+        learning loop.
+
+        Parameters
+        ----------
+        X: numpy.ndarray of shape (n_samples, n_features)
+            The samples to be fitted.
+
+        y: numpy.ndarray of shape (n_samples, )
+            The corresponding labels.
+
+        fit_kwargs: keyword arguments
+            Keyword arguments to be passed to the fit method of the predictor.
+        """
+        self.predictor.fit(X, y, **fit_kwargs)
+        self._X_training = X
+        self._y_training = y
 
     def predict(self, X, **predict_kwargs):
         """
@@ -300,7 +338,7 @@ class Committee:
 
     def fit_to_known(self, **fit_kwargs):
         for learner in self.learner_list:
-            learner._fit_to_known(**fit_kwargs)
+            learner.fit_to_known(**fit_kwargs)
 
     def predict(self, X, **predict_proba_kwargs):
         """
