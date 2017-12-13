@@ -39,7 +39,7 @@ for member_idx in range(n_members):
     # initializing learner
     learner = ActiveLearner(
         predictor=MLPClassifier(hidden_layer_sizes=(10, 10, 10), max_iter=1000),
-        training_data=X_train, training_labels=y_train
+        training_samples=X_train, training_labels=y_train
     )
     learner_list.append(learner)
 

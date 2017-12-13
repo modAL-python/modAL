@@ -37,7 +37,7 @@ while len(np.unique(y_train)) == 1:
 # create an ActiveLearner instance
 learner = ActiveLearner(
     predictor=RandomForestClassifier(),
-    training_data=X_train, training_labels=y_train
+    training_samples=X_train, training_labels=y_train
 )
 
 for round_idx in range(50):

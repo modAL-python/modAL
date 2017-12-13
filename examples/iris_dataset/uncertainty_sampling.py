@@ -33,14 +33,14 @@ pool_labels = np.delete(iris['target'], train_idx)
 rfc = RandomForestClassifier()
 learner = ActiveLearner(
     predictor=rfc,
-    training_data=X_train, training_labels=y_train
+    training_samples=X_train, training_labels=y_train
 )
 
 n_queries = 20
 for idx in range(n_queries):
     query_idx, query_instance = learner.query(pool_data)
     learner.teach(
-        new_data=pool_data[query_idx].reshape(1, -1),
+        new_sample=pool_data[query_idx].reshape(1, -1),
         new_label=pool_labels[query_idx].reshape(1, )
     )
     # remove queried instance from pool

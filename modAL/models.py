@@ -16,6 +16,24 @@ class ActiveLearner:
 
     Parameters
     ----------
+    predictor: scikit-learn estimator object
+        The estimator to be used in the active learning loop.
+
+    uncertainty_measure: function object
+        Function providing the uncertainty measure, for instance
+        modAL.uncertainty.classifier_uncertainty.
+
+    query_strategy: function object
+        Function providing the query strategy for the active learning
+        loop, for instance modAL.query.max_uncertainty.
+
+    training_samples: None or numpy.ndarray of shape (n_samples, n_features)
+        Initial training samples, if available.
+
+    training_labels: None or numpy.ndarray of shape (n_samples, )
+        Initial training labels corresponding to initial training samples
+
+    fit_kwargs: keyword arguments for the fit method
 
     Attributes
     ----------
@@ -35,7 +53,7 @@ class ActiveLearner:
     >>> # initialize active learner
     >>> learner = ActiveLearner(
     ...     predictor=RandomForestClassifier(),
-    ...     training_data=X_training, training_labels=y_training
+    ...     training_samples=X_training, training_labels=y_training
     ... )
     >>>
     >>> # the active learning loop
@@ -43,7 +61,7 @@ class ActiveLearner:
     >>> for idx in range(n_queries):
     ...     query_idx, query_sample = learner.query(iris['data'])
     ...     learner.teach(
-    ...         new_data=iris['data'][query_idx].reshape(1, -1),
+    ...         new_sample=iris['data'][query_idx].reshape(1, -1),
     ...         new_label=iris['target'][query_idx].reshape(1, )
     ...     )
 
@@ -53,11 +71,9 @@ class ActiveLearner:
             predictor,                                           # scikit-learner estimator object
             uncertainty_measure=classifier_uncertainty,          # callable to measure uncertainty
             query_strategy=max_uncertainty, 		             # callable to query labels
-            training_data=None, training_labels=None,			 # initial data if available
+            training_samples=None, training_labels=None,	     # initial data if available
             **fit_kwargs                                         # keyword arguments for fitting the initial data
     ):
-
-
         assert callable(uncertainty_measure), 'utility_function must be callable'
         assert callable(query_strategy), 'query_function must be callable'
 
@@ -65,63 +81,63 @@ class ActiveLearner:
         self.uncertainty_measure = uncertainty_measure
         self.query_strategy = query_strategy
 
-        if type(training_data) == type(None) and type(training_labels) == type(None):
+        if type(training_samples) == type(None) and type(training_labels) == type(None):
             self.training_data = None
             self.training_labels = None
-        elif type(training_data) != type(None) and type(training_labels) != type(None):
-            self.training_data = check_array(training_data)
+        elif type(training_samples) != type(None) and type(training_labels) != type(None):
+            self.training_data = check_array(training_samples)
             self.training_labels = check_array(training_labels, ensure_2d=False)
             self.fit_to_known(**fit_kwargs)
 
-    def teach(self, new_data, new_label, **fit_kwargs):
+    def teach(self, new_sample, new_label, **fit_kwargs):
         """
         This function adds the given data to the training examples
         and retrains the predictor with the augmented dataset
-        :param new_data: new training data
+        :param new_sample: new training data
         :param new_label: new training labels for the data
         :param fit_kwargs: keyword arguments to be passed to the fit method of classifier
         """
-        self.add_training_data(new_data, new_label)
+        self.add_training_data(new_sample, new_label)
         self.fit_to_known(**fit_kwargs)
 
-    def add_training_data(self, new_data, new_label):
+    def add_training_data(self, new_sample, new_label):
         """
         Adds the new data and label to the known data, but does
         not retrain the model.
-        :param new_data:
+        :param new_sample:
         :param new_label:
         :return:
         """
         # TODO: get rid of the if clause
         # TODO: test if this works with multiple shapes and types of data
 
-        new_data, new_label = check_array(new_data), check_array(new_label, ensure_2d=False)
-        assert len(new_data) == len(new_label), 'the number of new data points and number of labels must match'
+        new_sample, new_label = check_array(new_sample), check_array(new_label, ensure_2d=False)
+        assert len(new_sample) == len(new_label), 'the number of new data points and number of labels must match'
 
         if type(self.training_data) != type(None):
             try:
-                self.training_data = np.vstack((self.training_data, new_data))
+                self.training_data = np.vstack((self.training_data, new_sample))
                 self.training_labels = np.concatenate((self.training_labels, new_label))
             except ValueError:
                 raise ValueError('the dimensions of the new training data and label must'
                                  'agree with the training data and labels provided so far')
 
         else:
-            self.training_data = new_data
+            self.training_data = new_sample
             self.training_labels = new_label
 
-    def calculate_uncertainty(self, data, **uncertainty_measure_kwargs):
+    def calculate_uncertainty(self, samples, **uncertainty_measure_kwargs):
         """
         This method calls the utility function provided for ActiveLearner
         on the data passed to it. It is used to measure utilities for each
         data point.
-        :param data: numpy.ndarray, data points for which the utilities should be measured
+        :param samples: numpy.ndarray, data points for which the utilities should be measured
         :return: utility values for each datapoint as given by the utility function provided
                  for the learner
         """
-        check_array(data)
+        check_array(samples)
 
-        return self.uncertainty_measure(self.predictor, data, **uncertainty_measure_kwargs)
+        return self.uncertainty_measure(self.predictor, samples, **uncertainty_measure_kwargs)
 
     def fit_to_known(self, **fit_kwargs):
         """
@@ -132,22 +148,22 @@ class ActiveLearner:
 
         self.predictor.fit(self.training_data, self.training_labels, **fit_kwargs)
 
-    def predict(self, data, **predict_kwargs):
+    def predict(self, samples, **predict_kwargs):
         """
         Interface for the predictor
-        :param data: np.ndarray instances for prediction
+        :param samples: np.ndarray instances for prediction
         :return: output of the sklearn.base.ClassifierMixin.predict method
         """
-        return self.predictor.predict(data, **predict_kwargs)
+        return self.predictor.predict(samples, **predict_kwargs)
 
-    def predict_proba(self, data, **predict_proba_kwargs):
+    def predict_proba(self, samples, **predict_proba_kwargs):
         """
         Interface for the predict_proba method
-        :param data: np.ndarray of the instances
+        :param samples: np.ndarray of the instances
         :param predict_proba_kwargs: keyword arguments
         :return: output of the sklearn.base.ClassifierMixin.predict_proba method
         """
-        return self.predictor.predict_proba(data, **predict_proba_kwargs)
+        return self.predictor.predict_proba(samples, **predict_proba_kwargs)
 
     def query(self, pool, n_instances=1, **uncertainty_measure_kwargs):
         """

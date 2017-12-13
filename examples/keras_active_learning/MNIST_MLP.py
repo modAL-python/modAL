@@ -77,7 +77,7 @@ classifier = KerasClassifier(create_keras_model)
 # initialize ActiveLearner
 learner = ActiveLearner(
     predictor=classifier,
-    training_data=x_initial, training_labels=y_initial,
+    training_samples=x_initial, training_labels=y_initial,
     verbose=0
 )
 
@@ -86,7 +86,7 @@ n_queries = 10
 for idx in range(n_queries):
     query_idx, query_instance = learner.query(x_pool, n_instances=50, verbose=0)
     learner.teach(
-        new_data=x_pool[query_idx], new_label=y_pool[query_idx],
+        new_sample=x_pool[query_idx], new_label=y_pool[query_idx],
         verbose=0
     )
     # remove queried instance from pool
