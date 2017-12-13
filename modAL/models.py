@@ -73,7 +73,7 @@ class ActiveLearner:
     >>> # initialize active learner
     >>> learner = ActiveLearner(
     ...     predictor=RandomForestClassifier(),
-    ...     training_samples=X_training, training_labels=y_training
+    ...     X_initial=X_training, y_initial=y_training
     ... )
     >>>
     >>> # the active learning loop
@@ -91,7 +91,7 @@ class ActiveLearner:
             predictor,                                           # scikit-learner estimator object
             uncertainty_measure=classifier_uncertainty,          # callable to measure uncertainty
             query_strategy=max_uncertainty, 		             # callable to query labels
-            training_samples=None, training_labels=None,	     # initial data if available
+            X_initial=None, y_initial=None,	                     # initial data if available
             **fit_kwargs                                         # keyword arguments for fitting the initial data
     ):
         assert callable(uncertainty_measure), 'utility_function must be callable'
@@ -101,12 +101,12 @@ class ActiveLearner:
         self.uncertainty_measure = uncertainty_measure
         self.query_strategy = query_strategy
 
-        if type(training_samples) == type(None) and type(training_labels) == type(None):
-            self._training_samples = None
-            self._training_labels = None
-        elif type(training_samples) != type(None) and type(training_labels) != type(None):
-            self._training_samples = check_array(training_samples)
-            self._training_labels = check_array(training_labels, ensure_2d=False)
+        if type(X_initial) == type(None) and type(y_initial) == type(None):
+            self._X_training = None
+            self._y_training = None
+        elif type(X_initial) != type(None) and type(y_initial) != type(None):
+            self._X_training = check_array(X_initial)
+            self._y_training = check_array(y_initial, ensure_2d=False)
             self._fit_to_known(**fit_kwargs)
 
     def teach(self, X, y, **fit_kwargs):
@@ -117,15 +117,15 @@ class ActiveLearner:
         Parameters
         ----------
         X: numpy.ndarray of shape (n_samples, n_features)
-            The new instances for which the labels are supplied
+            The new samples for which the labels are supplied
             by the expert.
 
         y: numpy.ndarray of shape (n_samples, )
-            Labels corresponding to the new instances in X
+            Labels corresponding to the new instances in X.
 
         fit_kwargs: keyword arguments
             Keyword arguments to be passed to the fit method
-            of the predictor
+            of the predictor.
         """
         self.add_training_data(X, y)
         self._fit_to_known(**fit_kwargs)
@@ -134,27 +134,37 @@ class ActiveLearner:
         """
         Adds the new data and label to the known data, but does
         not retrain the model.
-        :param X:
-        :param y:
-        :return:
+
+        Parameters
+        ----------
+        X: numpy.ndarray of shape (n_samples, n_features)
+            The new samples for which the labels are supplied
+            by the expert.
+
+        y: numpy.ndarray of shape (n_samples, )
+            Labels corresponding to the new instances in X.
+
+        Note
+        ----
+        If the classifier has been fitted, the features in X
+        have to agree with the training samples which the
+        classifier has seen.
         """
-        # TODO: get rid of the if clause
-        # TODO: test if this works with multiple shapes and types of data
 
         X, y = check_array(X), check_array(y, ensure_2d=False)
         assert len(X) == len(y), 'the number of new data points and number of labels must match'
 
-        if type(self._training_samples) != type(None):
+        if type(self._X_training) != type(None):
             try:
-                self._training_samples = np.vstack((self._training_samples, X))
-                self._training_labels = np.concatenate((self._training_labels, y))
+                self._X_training = np.vstack((self._X_training, X))
+                self._y_training = np.concatenate((self._y_training, y))
             except ValueError:
                 raise ValueError('the dimensions of the new training data and label must'
                                  'agree with the training data and labels provided so far')
 
         else:
-            self._training_samples = X
-            self._training_labels = y
+            self._X_training = X
+            self._y_training = y
 
     def calculate_uncertainty(self, X, **uncertainty_measure_kwargs):
         """
@@ -176,7 +186,7 @@ class ActiveLearner:
         :param fit_kwargs: keyword arguments to be passed to the fit method of classifier
         """
 
-        self.predictor.fit(self._training_samples, self._training_labels, **fit_kwargs)
+        self.predictor.fit(self._X_training, self._y_training, **fit_kwargs)
 
     def predict(self, X, **predict_kwargs):
         """

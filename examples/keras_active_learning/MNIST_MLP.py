@@ -77,7 +77,7 @@ classifier = KerasClassifier(create_keras_model)
 # initialize ActiveLearner
 learner = ActiveLearner(
     predictor=classifier,
-    training_samples=x_initial, training_labels=y_initial,
+    X_initial=x_initial, y_initial=y_initial,
     verbose=0
 )
 

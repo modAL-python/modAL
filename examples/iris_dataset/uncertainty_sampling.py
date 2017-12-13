@@ -33,7 +33,7 @@ pool_labels = np.delete(iris['target'], train_idx)
 rfc = RandomForestClassifier()
 learner = ActiveLearner(
     predictor=rfc,
-    training_samples=X_train, training_labels=y_train
+    X_initial=X_train, y_initial=y_train
 )
 
 n_queries = 10
