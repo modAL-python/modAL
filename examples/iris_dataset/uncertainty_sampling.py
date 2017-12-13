@@ -21,8 +21,7 @@ with plt.style.context('seaborn-white'):
     plt.show()
 
 # initial training data
-n_initial = 10
-train_idx = np.random.choice(range(iris['data'].shape[0]), size=n_initial, replace=False)
+train_idx = [0, 50, 100]
 X_train = iris['data'][train_idx]
 y_train = iris['target'][train_idx]
 # creating a reduced copy of the data with the known instances removed
@@ -39,6 +38,7 @@ learner = ActiveLearner(
 n_queries = 10
 for idx in range(n_queries):
     query_idx, query_instance = learner.query(pool_data)
+    print(query_idx, query_instance)
     learner.teach(
         X=pool_data[query_idx].reshape(1, -1),
         y=pool_labels[query_idx].reshape(1, )
