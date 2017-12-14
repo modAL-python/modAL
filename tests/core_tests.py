@@ -111,7 +111,7 @@ class TestActiveLearner(unittest.TestCase):
 
     def test_query(self):
         for n_samples in range(1, 100):
-            for n_features in range(1, 100):
+            for n_features in range(1, 10):
                 X = np.random.rand(n_samples, n_features)
                 query_idx = np.random.randint(0, n_samples)
                 mock_query = mock.MockFunction(return_val=query_idx)
@@ -126,7 +126,18 @@ class TestActiveLearner(unittest.TestCase):
                 )
 
     def test_predict(self):
-        pass
+        for n_samples in range(1, 100):
+            for n_features in range(1, 10):
+                X = np.random.rand(n_samples, n_features)
+                predict_return = np.random.randint(0, 2, size=(n_samples, ))
+                mock_classifier = mock.MockClassifier(predict_return=predict_return)
+                learner = modAL.models.ActiveLearner(
+                    predictor=mock_classifier
+                )
+                np.testing.assert_equal(
+                    learner.predict(X),
+                    predict_return
+                )
 
     def test_predict_proba(self):
         pass
