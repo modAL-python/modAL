@@ -226,6 +226,9 @@ class TestActiveLearner(unittest.TestCase):
 
 class TestCommittee(unittest.TestCase):
 
+    def test_set_classes(self):
+        pass
+
     def test_calculate_uncertainty(self):
         for n_learners in range(1, 200):
             utility = np.random.rand(100, n_learners)

@@ -320,7 +320,7 @@ class Committee:
 
         # assemble the list of known classes from each learner
         self.classes_ = np.unique(
-            np.concatenate(tuple(learner.predictor.classes_ for learner in self._learner_list), axis=0),
+            np.concatenate(tuple(learner._predictor.classes_ for learner in self._learner_list), axis=0),
             axis=0
         )
         self.n_classes_ = len(self.classes_)
