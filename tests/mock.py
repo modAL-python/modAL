@@ -1,12 +1,12 @@
-class MockUtility:
+class MockFunction:
     """
     Mock utility function for testing.
     """
-    def __init__(self, utility_return):
-        self.utility_return = utility_return
+    def __init__(self, return_val):
+        self.return_val = return_val
 
     def __call__(self, *args):
-        return self.utility_return
+        return self.return_val
 
 
 class MockClassifier:
