@@ -97,7 +97,7 @@ class ActiveLearner:
         assert callable(uncertainty_measure), 'utility_function must be callable'
         assert callable(query_strategy), 'query_function must be callable'
 
-        self.predictor = predictor
+        self._predictor = predictor
         self.uncertainty_measure = uncertainty_measure
         self.query_strategy = query_strategy
 
@@ -168,7 +168,7 @@ class ActiveLearner:
             Contains the uncertainties for the predictions on sample X
         """
         check_array(X)
-        return self.uncertainty_measure(self.predictor, X, **uncertainty_measure_kwargs)
+        return self.uncertainty_measure(self._predictor, X, **uncertainty_measure_kwargs)
 
     def fit_to_known(self, **fit_kwargs):
         """
@@ -182,7 +182,7 @@ class ActiveLearner:
             Keyword arguments to be passed to the fit method of the predictor.
 
         """
-        self.predictor.fit(self._X_training, self._y_training, **fit_kwargs)
+        self._predictor.fit(self._X_training, self._y_training, **fit_kwargs)
 
     def fit(self, X, y, **fit_kwargs):
         """
@@ -201,7 +201,7 @@ class ActiveLearner:
         fit_kwargs: keyword arguments
             Keyword arguments to be passed to the fit method of the predictor.
         """
-        self.predictor.fit(X, y, **fit_kwargs)
+        self._predictor.fit(X, y, **fit_kwargs)
         self._X_training = X
         self._y_training = y
 
@@ -220,7 +220,7 @@ class ActiveLearner:
         pred: numpy.ndarray of shape (n_samples, )
             Estimator predictions for X.
         """
-        return self.predictor.predict(X, **predict_kwargs)
+        return self._predictor.predict(X, **predict_kwargs)
 
     def predict_proba(self, X, **predict_proba_kwargs):
         """
@@ -238,7 +238,7 @@ class ActiveLearner:
         proba: numpy.ndarray of shape (n_samples, n_classes)
             Class probabilities for X.
         """
-        return self.predictor.predict_proba(X, **predict_proba_kwargs)
+        return self._predictor.predict_proba(X, **predict_proba_kwargs)
 
     def query(self, X_pool, n_instances=1, **uncertainty_measure_kwargs):
         """
@@ -264,7 +264,7 @@ class ActiveLearner:
         :param score_kwargs: keyword arguments
         :return: output of the sklearn.base.ClassifierMixin.score method
         """
-        return self.predictor.score(X, y, **score_kwargs)
+        return self._predictor.score(X, y, **score_kwargs)
 
     def teach(self, X, y, **fit_kwargs):
         """
@@ -304,7 +304,7 @@ class Committee:
         """
         assert type(learner_list) == list, 'learners must be supplied in a list'
 
-        self.learner_list = learner_list
+        self._learner_list = learner_list
         self.disagreement_measure = disagreement_measure
         self.query_strategy = query_strategy
 
@@ -320,13 +320,13 @@ class Committee:
 
         # assemble the list of known classes from each learner
         self.classes_ = np.unique(
-            np.concatenate(tuple(learner.predictor.classes_ for learner in self.learner_list), axis=0),
+            np.concatenate(tuple(learner.predictor.classes_ for learner in self._learner_list), axis=0),
             axis=0
         )
         self.n_classes_ = len(self.classes_)
 
     def add_training_data(self, X, y):
-        for learner in self.learner_list:
+        for learner in self._learner_list:
             learner.add_training_data(X, y)
         self._set_classes()
 
@@ -342,16 +342,16 @@ class Committee:
         """
 
         check_array(X, ensure_2d=True)
-        uncertainties = np.zeros(shape=(X.shape[0], len(self.learner_list)))
+        uncertainties = np.zeros(shape=(X.shape[0], len(self._learner_list)))
 
-        for learner_idx, learner in enumerate(self.learner_list):
+        for learner_idx, learner in enumerate(self._learner_list):
             learner_utility = learner.calculate_uncertainty(X, **utility_function_kwargs)
             uncertainties[:, learner_idx] = learner_utility
 
         return uncertainties
 
     def fit_to_known(self, **fit_kwargs):
-        for learner in self.learner_list:
+        for learner in self._learner_list:
             learner.fit_to_known(**fit_kwargs)
 
     def predict(self, X, **predict_proba_kwargs):
@@ -378,9 +378,9 @@ class Committee:
         """
 
         check_array(X, ensure_2d=True)
-        prediction = np.zeros(shape=(X.shape[0], len(self.learner_list)))
+        prediction = np.zeros(shape=(X.shape[0], len(self._learner_list)))
 
-        for learner_idx, learner in enumerate(self.learner_list):
+        for learner_idx, learner in enumerate(self._learner_list):
             prediction[:, learner_idx] = learner.predict(X, **predict_kwargs)
 
         return prediction
@@ -408,19 +408,19 @@ class Committee:
 
         # get dimensions
         n_samples = X.shape[0]
-        n_learners = len(self.learner_list)
+        n_learners = len(self._learner_list)
         proba = np.zeros(shape=(n_samples, n_learners, self.n_classes_))
 
         # checking if the learners in the Committee know the same set of class labels
-        if check_class_labels(*[learner.predictor for learner in self.learner_list]):
+        if check_class_labels(*[learner.predictor for learner in self._learner_list]):
             # known class labels are the same for each learner
             # probability prediction is straightforward
 
-            for learner_idx, learner in enumerate(self.learner_list):
+            for learner_idx, learner in enumerate(self._learner_list):
                 proba[:, learner_idx, :] = learner.predict_proba(X, **predict_proba_kwargs)
 
         else:
-            for learner_idx, learner in enumerate(self.learner_list):
+            for learner_idx, learner in enumerate(self._learner_list):
                 proba[:, learner_idx, :] = check_class_proba(
                     proba=learner.predict_proba(X, **predict_proba_kwargs),
                     known_labels=learner.predictor.classes_,
