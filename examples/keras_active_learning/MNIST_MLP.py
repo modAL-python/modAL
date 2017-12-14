@@ -10,7 +10,6 @@ from keras.models import Sequential
 from keras.layers import Dense, Dropout
 from keras.wrappers.scikit_learn import KerasClassifier
 from modAL.models import ActiveLearner
-from modAL.uncertainty import classifier_uncertainty
 
 
 def create_keras_model():

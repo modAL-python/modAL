@@ -99,7 +99,29 @@ class TestQueries(unittest.TestCase):
 
 class TestActiveLearner(unittest.TestCase):
 
-    def test_calculate_utility(self):
+    def test_add_training_data(self):
+        for n_samples in range(1, 10):
+            for n_features in range(1, 10):
+                X_initial = np.random.rand(n_samples, n_features)
+                y_initial = np.random.randint(0, 2, size=(n_samples,))
+                for n_new_samples in range(1, 10):
+                    X_new = np.random.rand(n_new_samples, n_features)
+                    y_new = np.random.randint(0, 2, size=(n_new_samples,))
+                    learner = modAL.models.ActiveLearner(
+                        predictor=mock.MockClassifier(),
+                        X_initial=X_initial, y_initial=y_initial
+                    )
+                    learner.add_training_data(X_new, y_new)
+                    np.testing.assert_almost_equal(
+                        learner._X_training,
+                        np.vstack((X_initial, X_new))
+                    )
+                    np.testing.assert_almost_equal(
+                        learner._y_training,
+                        np.hstack((y_initial, y_new)).reshape(-1, )
+                    )
+
+    def test_calculate_uncertainty(self):
         test_cases = (Test(array, array) for k in range(1, 10) for l in range(1, 10) for array in random_array((k, l), 100))
         for case in test_cases:
             mock_classifier = mock.MockClassifier()
@@ -140,7 +162,18 @@ class TestActiveLearner(unittest.TestCase):
                 )
 
     def test_predict_proba(self):
-        pass
+        for n_samples in range(1, 100):
+            for n_features in range(1, 10):
+                X = np.random.rand(n_samples, n_features)
+                predict_proba_return = np.random.randint(0, 2, size=(n_samples,))
+                mock_classifier = mock.MockClassifier(predict_proba_return=predict_proba_return)
+                learner = modAL.models.ActiveLearner(
+                    predictor=mock_classifier
+                )
+                np.testing.assert_equal(
+                    learner.predict_proba(X),
+                    predict_proba_return
+                )
 
     def test_score(self):
         test_cases = (np.random.rand() for _ in range(10))
@@ -161,7 +194,7 @@ class TestActiveLearner(unittest.TestCase):
 
 class TestCommittee(unittest.TestCase):
 
-    def test_calculate_utility(self):
+    def test_calculate_uncertainty(self):
         for n_learners in range(1, 200):
             utility = np.random.rand(100, n_learners)
             committee = modAL.models.Committee(
