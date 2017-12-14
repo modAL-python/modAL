@@ -7,7 +7,7 @@ import modAL.models
 import modAL.utils.validation
 from itertools import chain
 from collections import namedtuple
-from mock import MockClassifier, MockUtility, MockActiveLearner
+from mock import MockClassifier, MockFunction, MockActiveLearner
 
 
 Test = namedtuple('Test', ['input', 'output'])
@@ -101,14 +101,27 @@ class TestActiveLearner(unittest.TestCase):
         test_cases = (Test(array, array) for k in range(1, 10) for l in range(1, 10) for array in random_array((k, l), 100))
         for case in test_cases:
             mock_classifier = MockClassifier()
-            learner = modAL.models.ActiveLearner(mock_classifier, MockUtility(case.input))
+            learner = modAL.models.ActiveLearner(mock_classifier, MockFunction(case.input))
             np.testing.assert_almost_equal(
                 learner.calculate_uncertainty(case.input),
                 case.output
             )
 
     def test_query(self):
-        pass
+        for n_samples in range(1, 100):
+            for n_features in range(1, 100):
+                X = np.random.rand(n_samples, n_features)
+                query_idx = np.random.randint(0, n_samples)
+                mock_query = MockFunction(return_val=query_idx)
+                mock_uncertainty = MockFunction(return_val=None)
+                learner = modAL.models.ActiveLearner(
+                    predictor=None,
+                    uncertainty_measure=mock_uncertainty, query_strategy=mock_query
+                )
+                np.testing.assert_equal(
+                    learner.query(X),
+                    (query_idx, X[query_idx])
+                )
 
     def test_predict(self):
         pass
@@ -120,7 +133,7 @@ class TestActiveLearner(unittest.TestCase):
         test_cases = (np.random.rand() for _ in range(10))
         for score_return in test_cases:
             mock_classifier = MockClassifier(score_return=score_return)
-            learner = modAL.models.ActiveLearner(mock_classifier, MockUtility(None))
+            learner = modAL.models.ActiveLearner(mock_classifier, MockFunction(None))
             np.testing.assert_almost_equal(
                 learner.score(np.random.rand(5, 2), np.random.rand(5, )),
                 score_return
