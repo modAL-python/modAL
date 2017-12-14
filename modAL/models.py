@@ -207,18 +207,36 @@ class ActiveLearner:
 
     def predict(self, X, **predict_kwargs):
         """
-        Interface for the predictor
-        :param X: np.ndarray instances for prediction
-        :return: output of the sklearn.base.ClassifierMixin.predict method
+        Estimator predictions for X. Interface with the predict
+        method of the estimator.
+
+        Parameters
+        ----------
+        X: numpy.ndarray of shape (n_samples, n_features)
+            The samples to be predicted.
+
+        Returns
+        -------
+        pred: numpy.ndarray of shape (n_samples, )
+            Estimator predictions for X.
         """
         return self.predictor.predict(X, **predict_kwargs)
 
     def predict_proba(self, X, **predict_proba_kwargs):
         """
-        Interface for the predict_proba method
-        :param X: np.ndarray of the instances
-        :param predict_proba_kwargs: keyword arguments
-        :return: output of the sklearn.base.ClassifierMixin.predict_proba method
+        Class probabilities if the predictor is a classifier.
+        Interface with the predict_proba method of the classifier.
+
+        Parameters
+        ----------
+        X: numpy.ndarray of shape (n_samples, n_features)
+            The samples for which the class probabilities are
+            to be predicted.
+
+        Returns
+        -------
+        proba: numpy.ndarray of shape (n_samples, n_classes)
+            Class probabilities for X.
         """
         return self.predictor.predict_proba(X, **predict_proba_kwargs)
 
