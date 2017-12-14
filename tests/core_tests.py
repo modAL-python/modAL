@@ -227,7 +227,14 @@ class TestActiveLearner(unittest.TestCase):
 class TestCommittee(unittest.TestCase):
 
     def test_set_classes(self):
-        pass
+        for n_classes in range(1, 10):
+            learner_list = [modAL.models.ActiveLearner(predictor=mock.MockClassifier(classes_=np.asarray([idx])))
+                            for idx in range(n_classes)]
+            committee = modAL.models.Committee(learner_list=learner_list)
+            np.testing.assert_equal(
+                committee.classes_,
+                np.unique(range(n_classes))
+            )
 
     def test_calculate_uncertainty(self):
         for n_learners in range(1, 200):
