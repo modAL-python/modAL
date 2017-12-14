@@ -10,6 +10,7 @@ import modAL.utils.validation
 
 from itertools import chain
 from collections import namedtuple
+from sklearn.ensemble import RandomForestClassifier
 
 
 Test = namedtuple('Test', ['input', 'output'])
@@ -155,22 +156,6 @@ class TestActiveLearner(unittest.TestCase):
                 case.output
             )
 
-    def test_query(self):
-        for n_samples in range(1, 100):
-            for n_features in range(1, 10):
-                X = np.random.rand(n_samples, n_features)
-                query_idx = np.random.randint(0, n_samples)
-                mock_query = mock.MockFunction(return_val=query_idx)
-                mock_uncertainty = mock.MockFunction(return_val=None)
-                learner = modAL.models.ActiveLearner(
-                    predictor=None,
-                    uncertainty_measure=mock_uncertainty, query_strategy=mock_query
-                )
-                np.testing.assert_equal(
-                    learner.query(X),
-                    (query_idx, X[query_idx])
-                )
-
     def test_predict(self):
         for n_samples in range(1, 100):
             for n_features in range(1, 10):
@@ -199,6 +184,22 @@ class TestActiveLearner(unittest.TestCase):
                     predict_proba_return
                 )
 
+    def test_query(self):
+        for n_samples in range(1, 100):
+            for n_features in range(1, 10):
+                X = np.random.rand(n_samples, n_features)
+                query_idx = np.random.randint(0, n_samples)
+                mock_query = mock.MockFunction(return_val=query_idx)
+                mock_uncertainty = mock.MockFunction(return_val=None)
+                learner = modAL.models.ActiveLearner(
+                    predictor=None,
+                    uncertainty_measure=mock_uncertainty, query_strategy=mock_query
+                )
+                np.testing.assert_equal(
+                    learner.query(X),
+                    (query_idx, X[query_idx])
+                )
+
     def test_score(self):
         test_cases = (np.random.rand() for _ in range(10))
         for score_return in test_cases:
@@ -213,7 +214,14 @@ class TestActiveLearner(unittest.TestCase):
         pass
 
     def test_sklearn(self):
-        pass
+        learner = modAL.models.ActiveLearner(
+            predictor=RandomForestClassifier(),
+            X_initial=np.random.rand(10, 10),
+            y_initial=np.random.randint(0, 2, size=(10,))
+        )
+        learner.fit(np.random.rand(10, 10), np.random.randint(0, 2, size=(10,)))
+        learner.predict(np.random.rand(10, 10))
+        learner.predict_proba(np.random.rand(10, 10))
 
 
 class TestCommittee(unittest.TestCase):
