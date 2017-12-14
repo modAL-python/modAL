@@ -35,10 +35,11 @@ learner = ActiveLearner(
     X_initial=X_train, y_initial=y_train
 )
 
+print('Accuracy before active learning: %f' % learner.score(iris['data'], iris['target']))
+
 n_queries = 10
 for idx in range(n_queries):
     query_idx, query_instance = learner.query(pool_data)
-    print(query_idx, query_instance)
     learner.teach(
         X=pool_data[query_idx].reshape(1, -1),
         y=pool_labels[query_idx].reshape(1, )
@@ -46,6 +47,7 @@ for idx in range(n_queries):
     # remove queried instance from pool
     pool_data = np.delete(pool_data, query_idx, axis=0)
     pool_labels = np.delete(pool_labels, query_idx)
+    print('Accuracy after query no. %d: %f' % (idx+1, learner.score(iris['data'], iris['target'])))
 
 with plt.style.context('seaborn-white'):
     prediction = learner.predict(iris['data'])

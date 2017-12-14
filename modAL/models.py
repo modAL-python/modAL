@@ -109,27 +109,6 @@ class ActiveLearner:
             self._y_training = check_array(y_initial, ensure_2d=False)
             self.fit_to_known(**fit_kwargs)
 
-    def teach(self, X, y, **fit_kwargs):
-        """
-        This function adds X and y to the known training data
-        and retrains the predictor with the augmented dataset.
-
-        Parameters
-        ----------
-        X: numpy.ndarray of shape (n_samples, n_features)
-            The new samples for which the labels are supplied
-            by the expert.
-
-        y: numpy.ndarray of shape (n_samples, )
-            Labels corresponding to the new instances in X.
-
-        fit_kwargs: keyword arguments
-            Keyword arguments to be passed to the fit method
-            of the predictor.
-        """
-        self.add_training_data(X, y)
-        self.fit_to_known(**fit_kwargs)
-
     def add_training_data(self, X, y):
         """
         Adds the new data and label to the known data, but does
@@ -269,6 +248,27 @@ class ActiveLearner:
         """
         return self.predictor.score(X, y, **score_kwargs)
 
+    def teach(self, X, y, **fit_kwargs):
+        """
+        This function adds X and y to the known training data
+        and retrains the predictor with the augmented dataset.
+
+        Parameters
+        ----------
+        X: numpy.ndarray of shape (n_samples, n_features)
+            The new samples for which the labels are supplied
+            by the expert.
+
+        y: numpy.ndarray of shape (n_samples, )
+            Labels corresponding to the new instances in X.
+
+        fit_kwargs: keyword arguments
+            Keyword arguments to be passed to the fit method
+            of the predictor.
+        """
+        self.add_training_data(X, y)
+        self.fit_to_known(**fit_kwargs)
+
 
 class Committee:
     """
@@ -307,10 +307,6 @@ class Committee:
         )
         self.n_classes_ = len(self.classes_)
 
-    def teach(self, X, y, **fit_kwargs):
-        self.add_training_data(X, y)
-        self.fit_to_known(**fit_kwargs)
-
     def add_training_data(self, X, y):
         for learner in self.learner_list:
             learner.add_training_data(X, y)
@@ -319,19 +315,19 @@ class Committee:
     def calculate_disagreement(self, X, **disagreement_measure_kwargs):
         return self.disagreement_measure(self, X, **disagreement_measure_kwargs)
 
-    def calculate_uncertainty(self, data, **utility_function_kwargs):
+    def calculate_uncertainty(self, X, **utility_function_kwargs):
         """
         Calculates the uncertainties for every learner in the Committee and returns it
         in the form of a numpy.ndarray
-        :param data: numpy.ndarray, data points for which the utilities should be measures
+        :param X: numpy.ndarray, data points for which the utilities should be measures
         :return: numpy.ndarray of utilities
         """
 
-        check_array(data, ensure_2d=True)
-        uncertainties = np.zeros(shape=(data.shape[0], len(self.learner_list)))
+        check_array(X, ensure_2d=True)
+        uncertainties = np.zeros(shape=(X.shape[0], len(self.learner_list)))
 
         for learner_idx, learner in enumerate(self.learner_list):
-            learner_utility = learner.calculate_uncertainty(data, **utility_function_kwargs)
+            learner_utility = learner.calculate_uncertainty(X, **utility_function_kwargs)
             uncertainties[:, learner_idx] = learner_utility
 
         return uncertainties
@@ -428,6 +424,10 @@ class Committee:
         disagreement = self.calculate_disagreement(X_pool, **disagreement_measure_kwargs)
         query_idx = self.query_strategy(disagreement, n_instances)
         return query_idx, X_pool[query_idx]
+
+    def teach(self, X, y, **fit_kwargs):
+        self.add_training_data(X, y)
+        self.fit_to_known(**fit_kwargs)
 
 
 if __name__ == '__main__':
