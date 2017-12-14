@@ -1,13 +1,15 @@
 import random
 import unittest
 import numpy as np
+
+import mock
 import modAL.uncertainty
 import modAL.query
 import modAL.models
 import modAL.utils.validation
+
 from itertools import chain
 from collections import namedtuple
-from mock import MockClassifier, MockFunction, MockActiveLearner
 
 
 Test = namedtuple('Test', ['input', 'output'])
@@ -25,8 +27,8 @@ class TestUtils(unittest.TestCase):
             for n_learners in range(1, 10):
                 labels = np.random.randint(10, size=n_labels)
                 different_labels = np.random.randint(10, 20, size=np.random.randint(1, 10))
-                learner_list_1 = [MockClassifier(classes_=labels) for _ in range(n_learners)]
-                learner_list_2 = [MockClassifier(classes_=different_labels) for _ in range(np.random.randint(1, 5))]
+                learner_list_1 = [mock.MockClassifier(classes_=labels) for _ in range(n_learners)]
+                learner_list_2 = [mock.MockClassifier(classes_=different_labels) for _ in range(np.random.randint(1, 5))]
                 shuffled_learners = random.sample(learner_list_1 + learner_list_2, len(learner_list_1 + learner_list_2))
                 self.assertTrue(modAL.utils.validation.check_class_labels(*learner_list_1))
                 self.assertFalse(modAL.utils.validation.check_class_labels(*shuffled_learners))
@@ -38,7 +40,7 @@ class TestUncertainties(unittest.TestCase):
         test_cases = (Test(p * np.ones(shape=(k, l)), (1 - p) * np.ones(shape=(k, )))
                       for k in range(1, 100) for l in range(1, 10) for p in np.linspace(0, 1, 11))
         for case in test_cases:
-            mock_classifier = MockClassifier(predict_proba_return=case.input)
+            mock_classifier = mock.MockClassifier(predict_proba_return=case.input)
             np.testing.assert_almost_equal(
                 modAL.uncertainty.classifier_uncertainty(mock_classifier, np.random.rand(10)),
                 case.output
@@ -51,7 +53,7 @@ class TestUncertainties(unittest.TestCase):
                              p * np.ones(shape=(l, ))*int(k!=1))
                         for k in range(1, 10) for l in range(1, 100) for p in np.linspace(0, 1, 11))
         for case in chain(test_cases_1, test_cases_2):
-            mock_classifier = MockClassifier(predict_proba_return=case.input)
+            mock_classifier = mock.MockClassifier(predict_proba_return=case.input)
             np.testing.assert_almost_equal(
                 modAL.uncertainty.classifier_margin(mock_classifier, np.random.rand(10)),
                 case.output
@@ -64,7 +66,7 @@ class TestUncertainties(unittest.TestCase):
                 for sample_idx in range(n_samples):
                     proba[sample_idx, np.random.choice(range(n_classes))] = 1.0
 
-                classifier = MockClassifier(predict_proba_return=proba)
+                classifier = mock.MockClassifier(predict_proba_return=proba)
                 np.testing.assert_equal(
                     modAL.uncertainty.classifier_entropy(classifier, np.random.rand(n_samples, 1)),
                     np.zeros(shape=(n_samples, ))
@@ -100,8 +102,8 @@ class TestActiveLearner(unittest.TestCase):
     def test_calculate_utility(self):
         test_cases = (Test(array, array) for k in range(1, 10) for l in range(1, 10) for array in random_array((k, l), 100))
         for case in test_cases:
-            mock_classifier = MockClassifier()
-            learner = modAL.models.ActiveLearner(mock_classifier, MockFunction(case.input))
+            mock_classifier = mock.MockClassifier()
+            learner = modAL.models.ActiveLearner(mock_classifier, mock.MockFunction(case.input))
             np.testing.assert_almost_equal(
                 learner.calculate_uncertainty(case.input),
                 case.output
@@ -112,8 +114,8 @@ class TestActiveLearner(unittest.TestCase):
             for n_features in range(1, 100):
                 X = np.random.rand(n_samples, n_features)
                 query_idx = np.random.randint(0, n_samples)
-                mock_query = MockFunction(return_val=query_idx)
-                mock_uncertainty = MockFunction(return_val=None)
+                mock_query = mock.MockFunction(return_val=query_idx)
+                mock_uncertainty = mock.MockFunction(return_val=None)
                 learner = modAL.models.ActiveLearner(
                     predictor=None,
                     uncertainty_measure=mock_uncertainty, query_strategy=mock_query
@@ -132,8 +134,8 @@ class TestActiveLearner(unittest.TestCase):
     def test_score(self):
         test_cases = (np.random.rand() for _ in range(10))
         for score_return in test_cases:
-            mock_classifier = MockClassifier(score_return=score_return)
-            learner = modAL.models.ActiveLearner(mock_classifier, MockFunction(None))
+            mock_classifier = mock.MockClassifier(score_return=score_return)
+            learner = modAL.models.ActiveLearner(mock_classifier, mock.MockFunction(None))
             np.testing.assert_almost_equal(
                 learner.score(np.random.rand(5, 2), np.random.rand(5, )),
                 score_return
@@ -152,8 +154,8 @@ class TestCommittee(unittest.TestCase):
         for n_learners in range(1, 200):
             utility = np.random.rand(100, n_learners)
             committee = modAL.models.Committee(
-                learner_list=[MockActiveLearner(
-                                    MockClassifier(classes_=np.asarray([0])),
+                learner_list=[mock.MockActiveLearner(
+                                    mock.MockClassifier(classes_=np.asarray([0])),
                                     calculate_utility_return=utility[:, learner_idx].reshape(-1)
                               )
                               for learner_idx in range(n_learners)]
@@ -168,8 +170,8 @@ class TestCommittee(unittest.TestCase):
             for n_instances in range(1, 10):
                 prediction = np.random.randint(10, size=(n_instances, n_learners))
                 committee = modAL.models.Committee(
-                    learner_list=[MockActiveLearner(
-                                          MockClassifier(classes_=np.asarray([0])),
+                    learner_list=[mock.MockActiveLearner(
+                                          mock.MockClassifier(classes_=np.asarray([0])),
                                           predict_return=prediction[:, learner_idx]
                                   )
                                   for learner_idx in range(n_learners)]
