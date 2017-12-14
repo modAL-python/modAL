@@ -43,7 +43,7 @@ class MockActiveLearner:
     def __init__(
             self, predictor=None, uncertainty_measure=None, query_strategy=None,
             predict_proba_return=None, calculate_utility_return=None, predict_return=None, score_return=None,
-            classes_=None,
+            _X_initial=None, _y_initial=None
     ):
         self.predictor = predictor
         self.uncertainty_measure = uncertainty_measure
@@ -53,8 +53,6 @@ class MockActiveLearner:
         self.calculate_utility_return = calculate_utility_return
         self.predict_return = predict_return
         self.score_return = score_return
-
-        self.classes_ = classes_
 
     def calculate_uncertainty(self, data):
         return self.calculate_utility_return
