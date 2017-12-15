@@ -6,7 +6,7 @@ import numpy as np
 from scipy.stats import entropy
 
 
-def classifier_uncertainty(classifier, samples, **predict_proba_kwargs):
+def classifier_uncertainty(classifier, X, **predict_proba_kwargs):
     """
     Classification uncertainty of the classifier for the provided samples
 
@@ -15,7 +15,7 @@ def classifier_uncertainty(classifier, samples, **predict_proba_kwargs):
     classifier: sklearn classifier object, for instance sklearn.ensemble.RandomForestClassifier
         The classifier for which the uncertainty is to be measured
 
-    samples: numpy.ndarray of shape (n_samples, n_features)
+    X: numpy.ndarray of shape (n_samples, n_features)
         The samples for which the uncertainty of classification is to be measured
 
     **predict_proba_kwargs: keyword arguments
@@ -28,14 +28,14 @@ def classifier_uncertainty(classifier, samples, **predict_proba_kwargs):
 
     """
     # calculate uncertainty for each point provided
-    classwise_uncertainty = classifier.predict_proba(samples, **predict_proba_kwargs)
+    classwise_uncertainty = classifier.predict_proba(X, **predict_proba_kwargs)
 
     # for each point, select the maximum uncertainty
     uncertainty = 1 - np.max(classwise_uncertainty, axis=1)
     return uncertainty
 
 
-def classifier_margin(classifier, samples, **predict_proba_kwargs):
+def classifier_margin(classifier, X, **predict_proba_kwargs):
     """
     Classification margin uncertainty of the classifier for the provided samples
     This uncertainty measure takes the first and second most likely predictions
@@ -46,7 +46,7 @@ def classifier_margin(classifier, samples, **predict_proba_kwargs):
     classifier: sklearn classifier object, for instance sklearn.ensemble.RandomForestClassifier
         The classifier for which the uncertainty is to be measured
 
-    samples: numpy.ndarray of shape (n_samples, n_features)
+    X: numpy.ndarray of shape (n_samples, n_features)
         The samples for which the uncertainty of classification is to be measured
 
     **predict_proba_kwargs: keyword arguments
@@ -59,7 +59,7 @@ def classifier_margin(classifier, samples, **predict_proba_kwargs):
         and second most likely predictions
 
     """
-    classwise_uncertainty = classifier.predict_proba(samples, **predict_proba_kwargs)
+    classwise_uncertainty = classifier.predict_proba(X, **predict_proba_kwargs)
 
     if classwise_uncertainty.shape[1] == 1:
         return np.zeros(shape=(classwise_uncertainty.shape[0],))
@@ -70,7 +70,7 @@ def classifier_margin(classifier, samples, **predict_proba_kwargs):
     return margin
 
 
-def classifier_entropy(classifier, samples, **predict_proba_kwargs):
+def classifier_entropy(classifier, X, **predict_proba_kwargs):
     """
     Entropy of predictions of the for the provided samples
 
@@ -79,7 +79,7 @@ def classifier_entropy(classifier, samples, **predict_proba_kwargs):
     classifier: sklearn classifier object, for instance sklearn.ensemble.RandomForestClassifier
         The classifier for which the prediction entropy is to be measured
 
-    samples: numpy.ndarray of shape (n_samples, n_features)
+    X: numpy.ndarray of shape (n_samples, n_features)
         The samples for which the prediction entropy is to be measured
 
     **predict_proba_kwargs: keyword arguments
@@ -91,9 +91,9 @@ def classifier_entropy(classifier, samples, **predict_proba_kwargs):
         Entropy of the class probabilities
 
     """
-    classwise_uncertainty = classifier.predict_proba(samples, **predict_proba_kwargs)
+    classwise_uncertainty = classifier.predict_proba(X, **predict_proba_kwargs)
 
-    entr = np.zeros(shape=(samples.shape[0],))
+    entr = np.zeros(shape=(X.shape[0],))
 
     for unc_idx, unc in enumerate(classwise_uncertainty):
         entr[unc_idx] = entropy(unc)
