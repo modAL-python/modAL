@@ -243,11 +243,27 @@ class ActiveLearner:
     def query(self, X_pool, n_instances=1, **uncertainty_measure_kwargs):
         """
         Finds the n_instances most informative point in the data provided, then
-        returns the instances and its indices
-        :param X_pool: np.ndarray, the pool from which the query is selected
-        :param n_instances: int, the number of queries
-        :return: tuple(query_idx, data[query_idx]), where query_idx is the index of the instance
-                 to be queried
+        returns the instances and its indices.
+
+        Parameters
+        ----------
+        X_pool: numpy.ndarray of shape (n_samples, n_features)
+            The pool of samples from which the query strategy should choose
+            instances to request labels.
+
+        n_instances: integer
+            The number of instances chosen to be labelled by the oracle.
+
+        uncertainty_measure_kwargs: keyword arguments
+            Keyword arguments for the uncertainty measure function
+
+        Returns
+        -------
+        query_idx: numpy.ndarray of shape (n_instances)
+            The indices of the instances from X_pool chosen to be labelled.
+
+        X_pool[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+            The instances from X_pool choosen to be labelled.
         """
 
         check_array(X_pool, ensure_2d=True)
