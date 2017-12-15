@@ -146,20 +146,6 @@ class ActiveLearner:
             self._X_training = X
             self._y_training = y
 
-    def _fit_to_known(self, **fit_kwargs):
-        """
-        This method fits self.predictor to the training data and labels
-        provided to it so far. Used internally or in stream based active
-        learning scenarios.
-
-        Parameters
-        ----------
-        fit_kwargs: keyword arguments
-            Keyword arguments to be passed to the fit method of the predictor.
-
-        """
-        self._predictor.fit(self._X_training, self._y_training, **fit_kwargs)
-
     def _calculate_uncertainty(self, X, **uncertainty_measure_kwargs):
         """
         This method calls the uncertainty measure function provided
@@ -184,6 +170,20 @@ class ActiveLearner:
         check_array(X)
         return self.uncertainty_measure(self._predictor, X, **uncertainty_measure_kwargs)
 
+    def _fit_to_known(self, **fit_kwargs):
+        """
+        This method fits self.predictor to the training data and labels
+        provided to it so far. Used internally or in stream based active
+        learning scenarios.
+
+        Parameters
+        ----------
+        fit_kwargs: keyword arguments
+            Keyword arguments to be passed to the fit method of the predictor.
+
+        """
+        self._predictor.fit(self._X_training, self._y_training, **fit_kwargs)
+
     def fit(self, X, y, **fit_kwargs):
         """
         Interface for the fit method of the predictor. Fits the predictor
@@ -200,6 +200,11 @@ class ActiveLearner:
 
         fit_kwargs: keyword arguments
             Keyword arguments to be passed to the fit method of the predictor.
+
+        DANGER ZONE
+        -----------
+        Calling this method will make the ActiveLearner forget all training data
+        it has seen!
         """
         self._predictor.fit(X, y, **fit_kwargs)
         self._X_training = X
@@ -349,10 +354,6 @@ class Committee:
             learner._add_training_data(X, y)
         self._set_classes()
 
-    def _fit_to_known(self, **fit_kwargs):
-        for learner in self._learner_list:
-            learner._fit_to_known(**fit_kwargs)
-
     def _calculate_disagreement(self, X, **disagreement_measure_kwargs):
         return self.disagreement_measure(self, X, **disagreement_measure_kwargs)
 
@@ -372,6 +373,10 @@ class Committee:
             uncertainties[:, learner_idx] = learner_utility
 
         return uncertainties
+
+    def _fit_to_known(self, **fit_kwargs):
+        for learner in self._learner_list:
+            learner._fit_to_known(**fit_kwargs)
 
     def predict(self, X, **predict_proba_kwargs):
         """
