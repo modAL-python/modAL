@@ -26,10 +26,10 @@ class MockClassifier:
     def fit(self, *args, **kwargs):
         pass
 
-    def predict(self, data):
+    def predict(self, X):
         return self.predict_return
 
-    def predict_proba(self, data):
+    def predict_proba(self, X):
         return self.predict_proba_return
 
     def score(self, X, y, sample_weight=None):
@@ -54,16 +54,16 @@ class MockActiveLearner:
         self.predict_return = predict_return
         self.score_return = score_return
 
-    def calculate_uncertainty(self, data):
+    def calculate_uncertainty(self, X):
         return self.calculate_utility_return
 
     def fit(self, *args, **kwargs):
         pass
 
-    def predict(self, data):
+    def predict(self, X):
         return self.predict_return
 
-    def predict_proba(self, data):
+    def predict_proba(self, X):
         return self.predict_proba_return
 
     def score(self, X, y, sample_weight=None):
