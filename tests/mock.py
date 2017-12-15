@@ -54,7 +54,7 @@ class MockActiveLearner:
         self.predict_return = predict_return
         self.score_return = score_return
 
-    def calculate_uncertainty(self, X):
+    def _calculate_uncertainty(self, X):
         return self.calculate_utility_return
 
     def fit(self, *args, **kwargs):
@@ -77,5 +77,5 @@ class MockCommittee:
     def __init__(self, calculate_disagreement_return=None):
         self.calculate_disagreement_return = calculate_disagreement_return
 
-    def calculate_disagreement(self, X):
+    def _calculate_disagreement(self, X):
         return self.calculate_disagreement_return
