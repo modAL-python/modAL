@@ -68,3 +68,14 @@ class MockActiveLearner:
 
     def score(self, X, y, sample_weight=None):
         return self.score_return
+
+
+class MockCommittee:
+    """
+    Mock Committee for testing.
+    """
+    def __init__(self, calculate_disagreement_return=None):
+        self.calculate_disagreement_return = calculate_disagreement_return
+
+    def calculate_disagreement(self, X):
+        return self.calculate_disagreement_return

@@ -149,8 +149,7 @@ class TestActiveLearner(unittest.TestCase):
     def test_calculate_uncertainty(self):
         test_cases = (Test(array, array) for k in range(1, 10) for l in range(1, 10) for array in random_array((k, l), 100))
         for case in test_cases:
-            mock_classifier = mock.MockClassifier()
-            learner = modAL.models.ActiveLearner(mock_classifier, mock.MockFunction(case.input))
+            learner = modAL.models.ActiveLearner(mock.MockClassifier(), mock.MockFunction(case.input))
             np.testing.assert_almost_equal(
                 learner.calculate_uncertainty(case.input),
                 case.output
