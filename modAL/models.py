@@ -310,6 +310,9 @@ class Committee:
 
         self._set_classes()
 
+    def __len__(self):
+        return len(self._learner_list)
+
     def _set_classes(self):
         """
         Checks the known class labels by each learner,
