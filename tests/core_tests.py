@@ -11,6 +11,7 @@ import modAL.utils.validation
 from itertools import chain
 from collections import namedtuple
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import confusion_matrix
 
 
 Test = namedtuple('Test', ['input', 'output'])
@@ -219,8 +220,9 @@ class TestActiveLearner(unittest.TestCase):
             y_initial=np.random.randint(0, 2, size=(10,))
         )
         learner.fit(np.random.rand(10, 10), np.random.randint(0, 2, size=(10,)))
-        learner.predict(np.random.rand(10, 10))
+        pred = learner.predict(np.random.rand(10, 10))
         learner.predict_proba(np.random.rand(10, 10))
+        confusion_matrix(pred, np.random.randint(0, 2, size=(10,)))
 
 
 class TestCommittee(unittest.TestCase):
