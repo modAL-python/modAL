@@ -37,7 +37,7 @@ learner = ActiveLearner(
 
 print('Accuracy before active learning: %f' % learner.score(iris['data'], iris['target']))
 
-n_queries = 10
+n_queries = 20
 for idx in range(n_queries):
     query_idx, query_instance = learner.query(pool_data)
     learner.teach(

@@ -114,7 +114,7 @@ class TestActiveLearner(unittest.TestCase):
                         predictor=mock.MockClassifier(),
                         X_initial=X_initial, y_initial=y_initial
                     )
-                    learner.add_training_data(X_new, y_new)
+                    learner._add_training_data(X_new, y_new)
                     np.testing.assert_almost_equal(
                         learner._X_training,
                         np.vstack((X_initial, X_new))
@@ -130,7 +130,7 @@ class TestActiveLearner(unittest.TestCase):
                         predictor=mock.MockClassifier(),
                         X_initial=X_initial, y_initial=y_initial
                     )
-                    learner.add_training_data(X_new, y_new)
+                    learner._add_training_data(X_new, y_new)
                     np.testing.assert_equal(
                         learner._y_training,
                         np.concatenate((y_initial, y_new))
@@ -140,18 +140,18 @@ class TestActiveLearner(unittest.TestCase):
                     # 1. len(X_new) != len(y_new)
                     X_new = np.random.rand(n_new_samples, n_features)
                     y_new = np.random.randint(0, 2, size=(2*n_new_samples,))
-                    self.assertRaises(AssertionError, learner.add_training_data, X_new, y_new)
+                    self.assertRaises(AssertionError, learner._add_training_data, X_new, y_new)
                     # 2. X_new has wrong dimensions
                     X_new = np.random.rand(n_new_samples, 2*n_features)
                     y_new = np.random.randint(0, 2, size=(n_new_samples,))
-                    self.assertRaises(ValueError, learner.add_training_data, X_new, y_new)
+                    self.assertRaises(ValueError, learner._add_training_data, X_new, y_new)
 
     def test_calculate_uncertainty(self):
         test_cases = (Test(array, array) for k in range(1, 10) for l in range(1, 10) for array in random_array((k, l), 100))
         for case in test_cases:
             learner = modAL.models.ActiveLearner(mock.MockClassifier(), mock.MockFunction(case.input))
             np.testing.assert_almost_equal(
-                learner.calculate_uncertainty(case.input),
+                learner._calculate_uncertainty(case.input),
                 case.output
             )
 
@@ -246,7 +246,7 @@ class TestCommittee(unittest.TestCase):
                               for learner_idx in range(n_learners)]
             )
             np.testing.assert_almost_equal(
-                committee.calculate_uncertainty(np.random.rand(100, 1)),
+                committee._calculate_uncertainty(np.random.rand(100, 1)),
                 utility
             )
 
