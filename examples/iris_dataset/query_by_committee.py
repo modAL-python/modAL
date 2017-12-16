@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from copy import deepcopy
 from sklearn.decomposition import PCA
 from sklearn.datasets import load_iris
-from sklearn.neural_network import MLPClassifier
+from sklearn.ensemble import RandomForestClassifier
 from modAL.models import ActiveLearner, Committee
 from modAL.disagreement import vote_entropy
 from modAL.query import max_uncertainty
@@ -38,15 +38,19 @@ for member_idx in range(n_members):
 
     # initializing learner
     learner = ActiveLearner(
-        predictor=MLPClassifier(hidden_layer_sizes=(10, 10, 10), max_iter=1000),
+        predictor=RandomForestClassifier(),
         X_initial=X_train, y_initial=y_train
     )
     learner_list.append(learner)
 
 # assembling the Committee
-committee = Committee(learner_list=learner_list, disagreement_measure=vote_entropy, query_strategy=max_uncertainty)
+committee = Committee(
+    learner_list=learner_list,
+    disagreement_measure=vote_entropy,
+    query_strategy=max_uncertainty
+)
 
-n_queries = 5
+n_queries = 10
 for idx in range(n_queries):
     query_idx, query_instance = committee.query(pool_data)
     committee.teach(
@@ -56,3 +60,8 @@ for idx in range(n_queries):
     # remove queried instance from pool
     pool_data = np.delete(pool_data, query_idx, axis=0)
     pool_labels = np.delete(pool_labels, query_idx)
+
+with plt.style.context('seaborn-white'):
+    prediction = committee.predict(iris['data'])
+    plt.scatter(x=pca[:, 0], y=pca[:, 1], c=prediction, cmap='viridis')
+    plt.show()
