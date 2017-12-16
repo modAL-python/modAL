@@ -449,7 +449,7 @@ class Committee:
         proba = np.zeros(shape=(n_samples, n_learners, self.n_classes_))
 
         # checking if the learners in the Committee know the same set of class labels
-        if check_class_labels(*[learner.predictor for learner in self._learner_list]):
+        if check_class_labels(*[learner._predictor for learner in self._learner_list]):
             # known class labels are the same for each learner
             # probability prediction is straightforward
 
@@ -460,7 +460,7 @@ class Committee:
             for learner_idx, learner in enumerate(self._learner_list):
                 proba[:, learner_idx, :] = check_class_proba(
                     proba=learner.predict_proba(X, **predict_proba_kwargs),
-                    known_labels=learner.predictor.classes_,
+                    known_labels=learner._predictor.classes_,
                     all_labels=self.classes_
                 )
 
