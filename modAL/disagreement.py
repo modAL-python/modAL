@@ -32,21 +32,32 @@ def vote_entropy(committee, X, **predict_proba_kwargs):
     """
     n_learners = len(committee)
     votes = committee.vote(X, **predict_proba_kwargs)
-    vote_proba = np.zeros(shape=(X.shape[0], len(committee.classes_)))
+    p_vote = np.zeros(shape=(X.shape[0], len(committee.classes_)))
     entr = np.zeros(shape=(X.shape[0],))
 
     for vote_idx, vote in enumerate(votes):
         vote_counter = Counter(vote)
 
         for class_idx, class_label in enumerate(committee.classes_):
-            vote_proba[vote_idx, class_idx] = vote_counter[class_label]/n_learners
+            p_vote[vote_idx, class_idx] = vote_counter[class_label]/n_learners
 
-        entr[vote_idx] = entropy(vote_proba[vote_idx])
+        entr[vote_idx] = entropy(p_vote[vote_idx])
 
     return entr
 
 
 def vote_uncertainty_entropy(committee, X, **predict_proba_kwargs):
-    proba = committee.predict_proba(X)
+    proba = committee.predict_proba(X, **predict_proba_kwargs)
     entr = np.transpose(entropy(np.transpose(proba)))
     return entr
+
+
+def max_disagreement(committee, X, **predict_proba_kwargs):
+    p_vote = committee.vote_proba(X, **predict_proba_kwargs)
+    p_consensus = np.mean(p_vote, axis=1)
+
+    learner_KL_div = np.zeros(shape=(len(X), len(committee)))
+    for learner_idx in range(len(committee)):
+        learner_KL_div[:, learner_idx] = entropy(np.transpose(p_vote[:, learner_idx, :]), qk=np.transpose(p_consensus))
+
+    return np.max(learner_KL_div, axis=1)

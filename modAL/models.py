@@ -404,6 +404,9 @@ class Committee:
         return self.classes_[max_proba_idx]
 
     def predict_proba(self, X, **predict_proba_kwargs):
+        """
+        Consensus probability of the committee.
+        """
         return np.mean(self.vote_proba(X, **predict_proba_kwargs), axis=1)
 
     def vote(self, X, **predict_kwargs):
