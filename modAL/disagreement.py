@@ -57,7 +57,7 @@ def max_disagreement(committee, X, **predict_proba_kwargs):
     p_consensus = np.mean(p_vote, axis=1)
 
     learner_KL_div = np.zeros(shape=(len(X), len(committee)))
-    for learner_idx in range(len(committee)):
+    for learner_idx, _ in enumerate(committee):
         learner_KL_div[:, learner_idx] = entropy(np.transpose(p_vote[:, learner_idx, :]), qk=np.transpose(p_consensus))
 
     return np.max(learner_KL_div, axis=1)
