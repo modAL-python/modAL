@@ -4,8 +4,8 @@ import numpy as np
 
 import mock
 import modAL.uncertainty
-import modAL.query
 import modAL.models
+import modAL.utils.selection
 import modAL.utils.validation
 
 from itertools import chain
@@ -77,22 +77,22 @@ class TestUncertainties(unittest.TestCase):
 
 class TestQueries(unittest.TestCase):
 
-    def test_max_utility(self):
+    def test_multi_argmax(self):
         for n_pool in range(2, 100):
             for n_instances in range(1, n_pool):
                 utility = np.zeros(n_pool)
                 max_idx = np.random.choice(range(n_pool), size=n_instances, replace=False)
                 utility[max_idx] = 1.0
                 np.testing.assert_equal(
-                    np.sort(modAL.query.max_uncertainty(utility, n_instances)),
+                    np.sort(modAL.utils.selection.multi_argmax(utility, n_instances)),
                     np.sort(max_idx)
                 )
 
-    def test_utility_weighted_random(self):
+    def test_weighted_random(self):
         for n_pool in range(2, 100):
             for n_instances in range(1, n_pool):
                 utility = np.ones(n_pool)
-                query_idx = modAL.query.uncertainty_weighted_random(utility, n_instances)
+                query_idx = modAL.utils.selection.weighted_random(utility, n_instances)
                 # testing for correct number of returned indices
                 np.testing.assert_equal(len(query_idx), n_instances)
                 # testing for uniqueness of each query index

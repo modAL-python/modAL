@@ -7,7 +7,7 @@ from sklearn.utils import check_array
 from modAL.utils.validation import check_class_labels, check_class_proba
 from modAL.uncertainty import classifier_uncertainty
 from modAL.disagreement import vote_entropy
-from modAL.query import max_uncertainty
+from modAL.utils.selection import multi_argmax
 
 
 class ActiveLearner:
@@ -90,7 +90,7 @@ class ActiveLearner:
             self,
             predictor,                                           # scikit-learner estimator object
             uncertainty_measure=classifier_uncertainty,          # callable to measure uncertainty
-            query_strategy=max_uncertainty, 		             # callable to query labels
+            query_strategy=multi_argmax,   		                 # callable to query labels
             X_initial=None, y_initial=None,	                     # initial data if available
             **fit_kwargs                                         # keyword arguments for fitting the initial data
     ):
@@ -330,7 +330,7 @@ class Committee:
             self,
             learner_list,                                        # list of ActiveLearner objects
             disagreement_measure=vote_entropy,                   # callable to measure disagreement
-            query_strategy=max_uncertainty                       # callable to query labels
+            query_strategy=multi_argmax                          # callable to query labels
 
     ):
         """
