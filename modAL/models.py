@@ -279,11 +279,24 @@ class ActiveLearner:
 
     def score(self, X, y, **score_kwargs):
         """
-        Interface for the score method
-        :param X: np.ndarray of the instances to score
-        :param y: np.ndarray of the labels
-        :param score_kwargs: keyword arguments
-        :return: output of the sklearn.base.ClassifierMixin.score method
+        Interface for the score method of the predictor.
+
+        Parameters
+        ----------
+        X: numpy.ndarray of shape (n_samples, n_features)
+            The samples for which prediction accuracy is to be calculated
+
+        y: numpy.ndarray of shape (n_samples, )
+            Ground truth labels for X
+
+        score_kwargs: keyword arguments
+            Keyword arguments to be passed to the .score() method of the
+            classifier
+
+        Returns
+        -------
+        mean_accuracy: numpy.float containing the mean accuracy of the predictor
+
         """
         return self._predictor.score(X, y, **score_kwargs)
 
@@ -334,21 +347,6 @@ class Committee:
     def __len__(self):
         return len(self._learner_list)
 
-    def _set_classes(self):
-        """
-        Checks the known class labels by each learner,
-        merges the labels and returns a mapping which
-        maps the learner's classes to the complete label
-        list
-        """
-
-        # assemble the list of known classes from each learner
-        self.classes_ = np.unique(
-            np.concatenate(tuple(learner._predictor.classes_ for learner in self._learner_list), axis=0),
-            axis=0
-        )
-        self.n_classes_ = len(self.classes_)
-
     def _add_training_data(self, X, y):
         for learner in self._learner_list:
             learner._add_training_data(X, y)
@@ -377,6 +375,21 @@ class Committee:
     def _fit_to_known(self, **fit_kwargs):
         for learner in self._learner_list:
             learner._fit_to_known(**fit_kwargs)
+
+    def _set_classes(self):
+        """
+        Checks the known class labels by each learner,
+        merges the labels and returns a mapping which
+        maps the learner's classes to the complete label
+        list
+        """
+
+        # assemble the list of known classes from each learner
+        self.classes_ = np.unique(
+            np.concatenate(tuple(learner._predictor.classes_ for learner in self._learner_list), axis=0),
+            axis=0
+        )
+        self.n_classes_ = len(self.classes_)
 
     def predict(self, X, **predict_proba_kwargs):
         """
