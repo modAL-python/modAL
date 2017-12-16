@@ -44,3 +44,9 @@ def vote_entropy(committee, X, **predict_proba_kwargs):
         entr[vote_idx] = entropy(vote_proba[vote_idx])
 
     return entr
+
+
+def vote_uncertainty_entropy(committee, X, **predict_proba_kwargs):
+    proba = committee.predict_proba(X)
+    entr = np.transpose(entropy(np.transpose(proba)))
+    return entr
