@@ -8,23 +8,23 @@ from scipy.stats import entropy
 
 def classifier_uncertainty(classifier, X, **predict_proba_kwargs):
     """
-    Classification uncertainty of the classifier for the provided samples
+    Classification uncertainty of the classifier for the provided samples.
 
     Parameters
     ----------
     classifier: sklearn classifier object, for instance sklearn.ensemble.RandomForestClassifier
-        The classifier for which the uncertainty is to be measured
+        The classifier for which the uncertainty is to be measured.
 
     X: numpy.ndarray of shape (n_samples, n_features)
-        The samples for which the uncertainty of classification is to be measured
+        The samples for which the uncertainty of classification is to be measured.
 
     **predict_proba_kwargs: keyword arguments
-        Keyword arguments to be passed for the predict_proba method of the classifier
+        Keyword arguments to be passed for the predict_proba method of the classifier.
 
     Returns
     -------
     uncertainty: numpy.ndarray of shape (n_samples, 1)
-        Classifier uncertainty, which is 1 - P(prediction is correct)
+        Classifier uncertainty, which is 1 - P(prediction is correct).
 
     """
     # calculate uncertainty for each point provided
@@ -37,9 +37,9 @@ def classifier_uncertainty(classifier, X, **predict_proba_kwargs):
 
 def classifier_margin(classifier, X, **predict_proba_kwargs):
     """
-    Classification margin uncertainty of the classifier for the provided samples
+    Classification margin uncertainty of the classifier for the provided samples.
     This uncertainty measure takes the first and second most likely predictions
-    and takes the difference of their probabilities, which is the margin
+    and takes the difference of their probabilities, which is the margin.
 
     Parameters
     ----------
@@ -56,7 +56,7 @@ def classifier_margin(classifier, X, **predict_proba_kwargs):
     -------
     margin: numpy.ndarray of shape (n_samples, 1)
         Margin uncertainty, which is the difference of the probabilities of first
-        and second most likely predictions
+        and second most likely predictions.
 
     """
     classwise_uncertainty = classifier.predict_proba(X, **predict_proba_kwargs)
@@ -72,30 +72,24 @@ def classifier_margin(classifier, X, **predict_proba_kwargs):
 
 def classifier_entropy(classifier, X, **predict_proba_kwargs):
     """
-    Entropy of predictions of the for the provided samples
+    Entropy of predictions of the for the provided samples.
 
     Parameters
     ----------
     classifier: sklearn classifier object, for instance sklearn.ensemble.RandomForestClassifier
-        The classifier for which the prediction entropy is to be measured
+        The classifier for which the prediction entropy is to be measured.
 
     X: numpy.ndarray of shape (n_samples, n_features)
-        The samples for which the prediction entropy is to be measured
+        The samples for which the prediction entropy is to be measured.
 
     **predict_proba_kwargs: keyword arguments
-        Keyword arguments to be passed for the predict_proba method of the classifier
+        Keyword arguments to be passed for the predict_proba method of the classifier.
 
     Returns
     -------
     entr: numpy.ndarray of shape (n_samples, 1)
-        Entropy of the class probabilities
+        Entropy of the class probabilities.
 
     """
     classwise_uncertainty = classifier.predict_proba(X, **predict_proba_kwargs)
-
-    entr = np.zeros(shape=(X.shape[0],))
-
-    for unc_idx, unc in enumerate(classwise_uncertainty):
-        entr[unc_idx] = entropy(unc)
-
-    return entr
+    return np.transpose(entropy(np.transpose(classwise_uncertainty)))
