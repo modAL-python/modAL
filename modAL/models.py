@@ -344,6 +344,10 @@ class Committee:
 
         self._set_classes()
 
+    def __iter__(self):
+        for learner in self._learner_list:
+            yield learner
+
     def __len__(self):
         return len(self._learner_list)
 
