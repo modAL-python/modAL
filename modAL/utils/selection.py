@@ -25,7 +25,7 @@ def multi_argmax(values, n_instances=1):
     """
     assert n_instances <= len(values), 'n_instances must be less or equal than the size of utility'
 
-    max_idx = np.argpartition(-values, n_instances)[:n_instances]
+    max_idx = np.argpartition(-values, n_instances-1)[:n_instances]
     return max_idx
 
 
