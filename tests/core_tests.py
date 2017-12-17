@@ -13,6 +13,7 @@ from itertools import chain
 from collections import namedtuple
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix
+from scipy.stats import entropy
 
 
 Test = namedtuple('Test', ['input', 'output'])
@@ -132,6 +133,10 @@ class TestDisagreements(unittest.TestCase):
                         committee, np.random.rand(n_samples, n_classes)
                     )
 
+                    true_entropy = np.zeros(shape=(n_samples, ))
+                    true_entropy[true_query_idx] = entropy(np.ones(n_classes)/n_classes)
+
+                    np.testing.assert_array_almost_equal(vote_entr, true_entropy)
 
 
 class TestQueries(unittest.TestCase):
