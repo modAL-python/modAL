@@ -35,6 +35,8 @@ class TestUtils(unittest.TestCase):
                 self.assertTrue(modAL.utils.validation.check_class_labels(*learner_list_1))
                 self.assertFalse(modAL.utils.validation.check_class_labels(*shuffled_learners))
 
+    def test_check_class_proba(self):
+        pass
 
 class TestUncertainties(unittest.TestCase):
 

@@ -26,13 +26,13 @@ class MockClassifier:
     def fit(self, *args, **kwargs):
         pass
 
-    def predict(self, X):
+    def predict(self, *args, **kwargs):
         return self.predict_return
 
-    def predict_proba(self, X):
+    def predict_proba(self, *args, **kwargs):
         return self.predict_proba_return
 
-    def score(self, X, y, sample_weight=None):
+    def score(self, *args, **kwargs):
         return self.score_return
 
 
@@ -60,13 +60,13 @@ class MockActiveLearner:
     def fit(self, *args, **kwargs):
         pass
 
-    def predict(self, X):
+    def predict(self, *args, **kwargs):
         return self.predict_return
 
-    def predict_proba(self, X):
+    def predict_proba(self, *args, **kwargs):
         return self.predict_proba_return
 
-    def score(self, X, y, sample_weight=None):
+    def score(self, *args, **kwargs):
         return self.score_return
 
 
@@ -74,8 +74,28 @@ class MockCommittee:
     """
     Mock Committee for testing.
     """
-    def __init__(self, calculate_disagreement_return=None):
+    def __init__(
+            self, calculate_disagreement_return=None,
+            predict_return=None, predict_proba_return=None,
+            vote_return=None, vote_proba_return=None
+    ):
         self.calculate_disagreement_return = calculate_disagreement_return
+        self.predict_return = predict_return
+        self.predict_proba_return = predict_proba_return
+        self.vote_return = vote_return
+        self.vote_proba_return = vote_proba_return
 
-    def _calculate_disagreement(self, X):
+    def _calculate_disagreement(self, *args, **kwargs):
         return self.calculate_disagreement_return
+
+    def predict(self, *args, **kwargs):
+        return self.predict_return
+
+    def predict_proba(self, *args, **kwargs):
+        return self.predict_proba_return
+
+    def vote(self, *args, **kwargs):
+        return self.vote_return
+
+    def vote_proba(self, *args, **kwargs):
+        return self.vote_proba_return
