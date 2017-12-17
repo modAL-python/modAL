@@ -52,7 +52,7 @@ def vote_uncertainty_entropy(committee, X, **predict_proba_kwargs):
     return entr
 
 
-def max_disagreement(committee, X, **predict_proba_kwargs):
+def KL_max_disagreement(committee, X, **predict_proba_kwargs):
     p_vote = committee.vote_proba(X, **predict_proba_kwargs)
     p_consensus = np.mean(p_vote, axis=1)
 

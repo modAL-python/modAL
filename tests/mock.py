@@ -75,15 +75,21 @@ class MockCommittee:
     Mock Committee for testing.
     """
     def __init__(
-            self, calculate_disagreement_return=None,
+            self, n_learners=1, classes_=None,
+            calculate_disagreement_return=None,
             predict_return=None, predict_proba_return=None,
             vote_return=None, vote_proba_return=None
     ):
+        self.n_learners = n_learners
+        self.classes_ = classes_
         self.calculate_disagreement_return = calculate_disagreement_return
         self.predict_return = predict_return
         self.predict_proba_return = predict_proba_return
         self.vote_return = vote_return
         self.vote_proba_return = vote_proba_return
+
+    def __len__(self):
+        return self.n_learners
 
     def _calculate_disagreement(self, *args, **kwargs):
         return self.calculate_disagreement_return

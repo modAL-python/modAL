@@ -3,8 +3,9 @@ import unittest
 import numpy as np
 
 import mock
-import modAL.uncertainty
 import modAL.models
+import modAL.uncertainty
+import modAL.disagreement
 import modAL.utils.selection
 import modAL.utils.validation
 
@@ -37,6 +38,7 @@ class TestUtils(unittest.TestCase):
 
     def test_check_class_proba(self):
         pass
+
 
 class TestUncertainties(unittest.TestCase):
 
@@ -115,6 +117,21 @@ class TestUncertainties(unittest.TestCase):
                         classifier, np.random.rand(n_samples, n_classes)
                     )
                     np.testing.assert_array_equal(query_idx, true_query_idx)
+
+
+class TestDisagreements(unittest.TestCase):
+
+    def test_vote_entropy(self):
+        for n_samples in range(1, 10):
+            for n_classes in range(1, 10):
+                for true_query_idx in range(n_samples):
+                    vote_return = np.zeros(shape=(n_samples, n_classes), dtype=np.int16)
+                    vote_return[true_query_idx] = np.asarray(range(n_classes), dtype=np.int16)
+                    committee = mock.MockCommittee(classes_=np.asarray(range(n_classes)), vote_return=vote_return)
+                    vote_entr = modAL.disagreement.vote_entropy(
+                        committee, np.random.rand(n_samples, n_classes)
+                    )
+
 
 
 class TestQueries(unittest.TestCase):
