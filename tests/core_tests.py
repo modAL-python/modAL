@@ -38,7 +38,7 @@ class TestUtils(unittest.TestCase):
 
 class TestUncertainties(unittest.TestCase):
 
-    def test_uncertainty(self):
+    def test_classifier_uncertainty(self):
         test_cases = (Test(p * np.ones(shape=(k, l)), (1 - p) * np.ones(shape=(k, )))
                       for k in range(1, 100) for l in range(1, 10) for p in np.linspace(0, 1, 11))
         for case in test_cases:
@@ -48,7 +48,7 @@ class TestUncertainties(unittest.TestCase):
                 case.output
             )
 
-    def test_margin(self):
+    def test_classifier_margin(self):
         test_cases_1 = (Test(p * np.ones(shape=(k, l)), np.zeros(shape=(k,)))
                       for k in range(1, 100) for l in range(1, 10) for p in np.linspace(0, 1, 11))
         test_cases_2 = (Test(p * np.tile(np.asarray(range(k))+1.0, l).reshape(l, k),
@@ -61,7 +61,7 @@ class TestUncertainties(unittest.TestCase):
                 case.output
             )
 
-    def test_entropy(self):
+    def test_classifier_entropy(self):
         for n_samples in range(1, 100):
             for n_classes in range(1, 20):
                 proba = np.zeros(shape=(n_samples, n_classes))
@@ -73,6 +73,25 @@ class TestUncertainties(unittest.TestCase):
                     modAL.uncertainty.classifier_entropy(classifier, np.random.rand(n_samples, 1)),
                     np.zeros(shape=(n_samples, ))
                 )
+
+    def test_uncertainty_sampling(self):
+        for n_samples in range(1, 10):
+            for n_classes in range(1, 10):
+                max_proba = np.zeros(n_classes)
+                for true_query_idx in range(n_samples):
+                    predict_proba = np.random.rand(n_samples, n_classes)
+                    predict_proba[true_query_idx] = max_proba
+                    classifier = mock.MockClassifier(predict_proba_return=predict_proba)
+                    query_idx, query_instance = modAL.uncertainty.uncertainty_sampling(
+                        classifier, np.random.rand(n_samples, n_classes)
+                    )
+                    np.testing.assert_array_equal(query_idx, true_query_idx)
+
+    def test_margin_sampling(self):
+        pass
+
+    def test_entropy_sampling(self):
+        pass
 
 
 class TestQueries(unittest.TestCase):
