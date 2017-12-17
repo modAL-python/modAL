@@ -1,9 +1,10 @@
 """
-Uncertainty measures for the active learning models.
+Uncertainty measures and uncertainty based sampling strategies for the active learning models.
 """
 
 import numpy as np
 from scipy.stats import entropy
+from modAL.utils.selection import multi_argmax
 
 
 def classifier_uncertainty(classifier, X, **predict_proba_kwargs):
@@ -93,3 +94,33 @@ def classifier_entropy(classifier, X, **predict_proba_kwargs):
     """
     classwise_uncertainty = classifier.predict_proba(X, **predict_proba_kwargs)
     return np.transpose(entropy(np.transpose(classwise_uncertainty)))
+
+
+def uncertainty_sampling(classifier, X, n_instances=1, **predict_proba_kwargs):
+    """
+    Uncertainty sampling query strategy.
+    """
+    uncertainty = classifier_uncertainty(classifier, X, **predict_proba_kwargs)
+    query_idx = multi_argmax(uncertainty, n_instances=n_instances)
+
+    return query_idx, X[query_idx]
+
+
+def margin_sampling(classifier, X, n_instances=1, **predict_proba_kwargs):
+    """
+    Margin sampling query strategy.
+    """
+    margin = classifier_margin(classifier, X, **predict_proba_kwargs)
+    query_idx = multi_argmax(margin, n_instances=n_instances)
+
+    return query_idx, X[query_idx]
+
+
+def entropy_sampling(classifier, X, n_instances=1, **predict_proba_kwargs):
+    """
+    Entropy sampling query strategy.
+    """
+    entropy = classifier_entropy(classifier, X, **predict_proba_kwargs)
+    query_idx = multi_argmax(entropy, n_instances=n_instances)
+
+    return query_idx, X[query_idx]
