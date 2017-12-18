@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn.datasets import load_iris
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
 from modAL.models import ActiveLearner
 
 # loading the iris dataset
@@ -29,9 +29,8 @@ pool_data = np.delete(iris['data'], train_idx, axis=0)
 pool_labels = np.delete(iris['target'], train_idx)
 
 # active learning
-rfc = RandomForestClassifier()
 learner = ActiveLearner(
-    predictor=rfc,
+    predictor=KNeighborsClassifier(n_neighbors=3),
     X_initial=X_train, y_initial=y_train
 )
 
