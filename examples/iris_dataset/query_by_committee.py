@@ -5,8 +5,6 @@ from sklearn.decomposition import PCA
 from sklearn.datasets import load_iris
 from sklearn.ensemble import RandomForestClassifier
 from modAL.models import ActiveLearner, Committee
-from modAL.disagreement import vote_entropy
-from modAL.query import max_uncertainty
 
 # loading the iris dataset
 iris = load_iris()
@@ -44,11 +42,7 @@ for member_idx in range(n_members):
     learner_list.append(learner)
 
 # assembling the Committee
-committee = Committee(
-    learner_list=learner_list,
-    disagreement_measure=vote_entropy,
-    query_strategy=max_uncertainty
-)
+committee = Committee(learner_list=learner_list)
 
 n_queries = 10
 for idx in range(n_queries):

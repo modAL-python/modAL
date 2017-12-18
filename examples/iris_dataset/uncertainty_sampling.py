@@ -10,7 +10,6 @@ from sklearn.decomposition import PCA
 from sklearn.datasets import load_iris
 from sklearn.ensemble import RandomForestClassifier
 from modAL.models import ActiveLearner
-from modAL.models import uncertainty_sampling
 
 # loading the iris dataset
 iris = load_iris()
@@ -33,7 +32,6 @@ pool_labels = np.delete(iris['target'], train_idx)
 rfc = RandomForestClassifier()
 learner = ActiveLearner(
     predictor=rfc,
-    query_strategy=uncertainty_sampling,
     X_initial=X_train, y_initial=y_train
 )
 
