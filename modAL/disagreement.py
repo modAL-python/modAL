@@ -143,8 +143,11 @@ def QBC_vote_entropy(committee, X, n_instances=1, **disagreement_measure_kwargs)
 
     Returns
     -------
-    query_idx, X[query_idx]: numpy.ndarrays of shape (n_instances, ) and (n_instances, n_features)
-        The indices of the queries and the queried samples themselves.
+    query_idx: numpy.ndarray of shape (n_instances, )
+        The indices of the instances from X_pool chosen to be labelled.
+
+    X_pool[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+        The instances from X_pool chosen to be labelled.
     """
     disagreement = vote_entropy(committee, X, **disagreement_measure_kwargs)
     query_idx = multi_argmax(disagreement, n_instances=n_instances)
@@ -172,8 +175,11 @@ def QBC_consensus_entropy(committee, X, n_instances=1, **disagreement_measure_kw
 
     Returns
     -------
-    query_idx, X[query_idx]: numpy.ndarrays of shape (n_instances, ) and (n_instances, n_features)
-        The indices of the queries and the queried samples themselves.
+    query_idx: numpy.ndarray of shape (n_instances, )
+        The indices of the instances from X_pool chosen to be labelled.
+
+    X_pool[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+        The instances from X_pool chosen to be labelled.
     """
     disagreement = consensus_entropy(committee, X, **disagreement_measure_kwargs)
     query_idx = multi_argmax(disagreement, n_instances=n_instances)
@@ -201,8 +207,11 @@ def QBC_max_disagreement(committee, X, n_instances=1, **disagreement_measure_kwa
 
     Returns
     -------
-    query_idx, X[query_idx]: numpy.ndarrays of shape (n_instances, ) and (n_instances, n_features)
-        The indices of the queries and the queried samples themselves.
+    query_idx: numpy.ndarray of shape (n_instances, )
+        The indices of the instances from X_pool chosen to be labelled.
+
+    X_pool[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+        The instances from X_pool chosen to be labelled.
     """
     disagreement = KL_max_disagreement(committee, X, **disagreement_measure_kwargs)
     query_idx = multi_argmax(disagreement, n_instances=n_instances)

@@ -18,13 +18,9 @@ class ActiveLearner:
     predictor: scikit-learn estimator
         The estimator to be used in the active learning loop.
 
-    uncertainty_measure: function
-        Function providing the uncertainty measure, for instance
-        modAL.uncertainty.classifier_uncertainty.
-
     query_strategy: function
         Function providing the query strategy for the active learning
-        loop, for instance modAL.query.max_uncertainty.
+        loop, for instance modAL.uncertainty.uncertainty_sampling.
 
     training_samples: None or numpy.ndarray of shape (n_samples, n_features)
         Initial training samples, if available.
@@ -110,8 +106,7 @@ class ActiveLearner:
     def _add_training_data(self, X, y):
         """
         Adds the new data and label to the known data, but does
-        not retrain the model. Used internally of in stream based
-        active learning scenarios.
+        not retrain the model.
 
         Parameters
         ----------
@@ -128,7 +123,6 @@ class ActiveLearner:
         have to agree with the training samples which the
         classifier has seen.
         """
-
         X, y = check_array(X), check_array(y, ensure_2d=False)
         assert len(X) == len(y), 'the number of new data points and number of labels must match'
 
@@ -146,15 +140,12 @@ class ActiveLearner:
 
     def _fit_to_known(self, **fit_kwargs):
         """
-        This method fits self.predictor to the training data and labels
-        provided to it so far. Used internally or in stream based active
-        learning scenarios.
+        Fits self._predictor to the training data and labels provided to it so far.
 
         Parameters
         ----------
         fit_kwargs: keyword arguments
             Keyword arguments to be passed to the fit method of the predictor.
-
         """
         self._predictor.fit(self._X_training, self._y_training, **fit_kwargs)
 
@@ -177,8 +168,8 @@ class ActiveLearner:
 
         DANGER ZONE
         -----------
-        Calling this method will make the ActiveLearner forget all training data
-        it has seen!
+        When using scikit-learn estimators, calling this method will make the
+        ActiveLearner forget all training data it has seen!
         """
         self._predictor.fit(X, y, **fit_kwargs)
         self._X_training = X
@@ -193,6 +184,9 @@ class ActiveLearner:
         ----------
         X: numpy.ndarray of shape (n_samples, n_features)
             The samples to be predicted.
+
+        predict_kwargs: keyword arguments
+            Keyword arguments to be passed to the predict method of the classifier.
 
         Returns
         -------
@@ -212,6 +206,10 @@ class ActiveLearner:
             The samples for which the class probabilities are
             to be predicted.
 
+        predict_proba_kwargs: keyword arguments
+            Keyword arguments to be passed to the predict_proba method of the
+            classifier.
+
         Returns
         -------
         proba: numpy.ndarray of shape (n_samples, n_classes)
@@ -221,8 +219,8 @@ class ActiveLearner:
 
     def query(self, X_pool, **query_kwargs):
         """
-        Finds the n_instances most informative point in the data provided, then
-        returns the instances and its indices.
+        Finds the n_instances most informative point in the data provided by calling
+        the query_strategy function. Returns the queried instances and its indices.
 
         Parameters
         ----------
@@ -230,21 +228,17 @@ class ActiveLearner:
             The pool of samples from which the query strategy should choose
             instances to request labels.
 
-        n_instances: integer
-            The number of instances chosen to be labelled by the oracle.
-
-        uncertainty_measure_kwargs: keyword arguments
+        query_kwargs: keyword arguments
             Keyword arguments for the uncertainty measure function
 
         Returns
         -------
-        query_idx: numpy.ndarray of shape (n_instances)
+        query_idx: numpy.ndarray of shape (n_instances, )
             The indices of the instances from X_pool chosen to be labelled.
 
         X_pool[query_idx]: numpy.ndarray of shape (n_instances, n_features)
-            The instances from X_pool choosen to be labelled.
+            The instances from X_pool chosen to be labelled.
         """
-
         check_array(X_pool, ensure_2d=True)
 
         query_idx, query_instances = self.query_strategy(self._predictor, X_pool, **query_kwargs)
@@ -269,14 +263,13 @@ class ActiveLearner:
         Returns
         -------
         mean_accuracy: numpy.float containing the mean accuracy of the predictor
-
         """
         return self._predictor.score(X, y, **score_kwargs)
 
     def teach(self, X, y, **fit_kwargs):
         """
-        This function adds X and y to the known training data
-        and retrains the predictor with the augmented dataset.
+        Adds X and y to the known training data and retrains the predictor
+        with the augmented dataset.
 
         Parameters
         ----------
@@ -323,20 +316,46 @@ class Committee:
         return len(self._learner_list)
 
     def _add_training_data(self, X, y):
+        """
+        Adds the new data and label to the known data for each learner,
+        but does not retrain the model.
+
+        Parameters
+        ----------
+        X: numpy.ndarray of shape (n_samples, n_features)
+            The new samples for which the labels are supplied
+            by the expert.
+
+        y: numpy.ndarray of shape (n_samples, )
+            Labels corresponding to the new instances in X.
+
+        Note
+        ----
+        If the learners have been fitted, the features in X
+        have to agree with the training samples which the
+        classifier has seen.
+        """
         for learner in self._learner_list:
             learner._add_training_data(X, y)
         self._set_classes()
 
     def _fit_to_known(self, **fit_kwargs):
+        """
+        Fits all learners to the training data and labels provided to it so far.
+
+        Parameters
+        ----------
+        fit_kwargs: keyword arguments
+            Keyword arguments to be passed to the fit method of the predictor.
+        """
         for learner in self._learner_list:
             learner._fit_to_known(**fit_kwargs)
 
     def _set_classes(self):
         """
-        Checks the known class labels by each learner,
-        merges the labels and returns a mapping which
-        maps the learner's classes to the complete label
-        list
+        Checks the known class labels by each learner, merges the labels and
+        returns a mapping which maps the learner's classes to the complete label
+        list.
         """
 
         # assemble the list of known classes from each learner
@@ -348,8 +367,22 @@ class Committee:
 
     def predict(self, X, **predict_proba_kwargs):
         """
-        Predicts the class of the samples by picking
-        the average least uncertain prediction.
+        Predicts the class of the samples by picking the consensus prediction.
+
+        Parameters
+        ----------
+        X: numpy.ndarray of shape (n_samples, n_features)
+            The samples to be predicted.
+
+        predict_proba_kwargs: keyword arguments
+            Keyword arguments to be passed to the predict_proba method of the
+            Committee.
+
+        Returns
+        -------
+        prediction: numpy.ndarray of shape (n_samples, )
+            The predicted class labels for X.
+
         """
         # getting average certainties
         proba = self.predict_proba(X, **predict_proba_kwargs)
@@ -360,18 +393,44 @@ class Committee:
 
     def predict_proba(self, X, **predict_proba_kwargs):
         """
-        Consensus probability of the committee.
+        Consensus probabilities of the Committee.
+
+        Parameters
+        ----------
+        X: numpy.ndarray of shape (n_samples, n_features)
+            The samples for which the class probabilities are
+            to be predicted.
+
+        predict_proba_kwargs: keyword arguments
+            Keyword arguments to be passed to the predict_proba method of the
+            Committee.
+
+        Returns
+        -------
+        proba: numpy.ndarray of shape (n_samples, n_classes)
+            Class probabilities for X.
         """
         return np.mean(self.vote_proba(X, **predict_proba_kwargs), axis=1)
 
     def vote(self, X, **predict_kwargs):
         """
-        Predicts the labels for the supplied data
-        :param X: numpy.ndarray containing the instances to be predicted
-        :param predict_kwargs: keyword arguments to be passed for the learners predict method
-        :return: numpy.ndarray of shape (n_samples, 1) containing the predictions of all learners
-        """
+        Predicts the labels for the supplied data for each learner in
+        the Committee.
 
+        Parameters
+        ----------
+        X: numpy.ndarray of shape (n_samples, n_features)
+            The samples to cast votes.
+
+        predict_kwargs: keyword arguments
+            Keyword arguments to be passed for the learners .predict() method.
+
+        Returns
+        -------
+        vote: numpy.ndarray of shape (n_samples, n_learners)
+            The predicted class probability for each learner in the Committee
+            and each sample in X.
+        """
         check_array(X, ensure_2d=True)
         prediction = np.zeros(shape=(X.shape[0], len(self._learner_list)))
 
@@ -387,15 +446,15 @@ class Committee:
         Parameters
         ----------
         X: numpy.ndarray of shape (n_samples, n_features)
-            The samples to be predicted by all learners
+            The samples for which class probabilities are to be calculated.
 
-        predict_proba_kwargs: dict of keyword arguments
+        predict_proba_kwargs: keyword arguments
+            Keyword arguments for the .predict_proba() method of the learners.
 
         Returns
         -------
-        proba: numpy.ndarray of shape (n_samples, n_learners, n_classes)
-            Contains the probabilities of each class for each learner and
-            each instance
+        vote_proba: numpy.ndarray of shape (n_samples, n_learners, n_classes)
+            Probabilities of each class for each learner and each instance.
 
         """
 
@@ -426,11 +485,25 @@ class Committee:
 
     def query(self, X_pool, **query_kwargs):
         """
-        Finds the most informative point in the data provided, then
-        returns the instance and its index
-        :param X_pool: numpy.ndarray, the pool from which the query is selected
-        :return: tuple(query_idx, data[query_idx]), where query_idx is the index of the instance
-                 to be queried
+        Finds the n_instances most informative point in the data provided by calling
+        the query_strategy function. Returns the queried instances and its indices.
+
+        Parameters
+        ----------
+        X_pool: numpy.ndarray of shape (n_samples, n_features)
+            The pool of samples from which the query strategy should choose
+            instances to request labels.
+
+        query_kwargs: keyword arguments
+            Keyword arguments for the uncertainty measure function
+
+        Returns
+        -------
+        query_idx: numpy.ndarray of shape (n_instances, )
+            The indices of the instances from X_pool chosen to be labelled.
+
+        X_pool[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+            The instances from X_pool chosen to be labelled.
         """
         check_array(X_pool, ensure_2d=True)
 
@@ -438,6 +511,23 @@ class Committee:
         return query_idx, X_pool[query_idx]
 
     def teach(self, X, y, **fit_kwargs):
+        """
+        Adds X and y to the known training data for each learner
+        and retrains the Committee with the augmented dataset.
+
+        Parameters
+        ----------
+        X: numpy.ndarray of shape (n_samples, n_features)
+            The new samples for which the labels are supplied
+            by the expert.
+
+        y: numpy.ndarray of shape (n_samples, )
+            Labels corresponding to the new instances in X.
+
+        fit_kwargs: keyword arguments
+            Keyword arguments to be passed to the fit method
+            of the predictor.
+        """
         self._add_training_data(X, y)
         self._fit_to_known(**fit_kwargs)
 
