@@ -313,7 +313,7 @@ class TestActiveLearner(unittest.TestCase):
         confusion_matrix(pred, np.random.randint(0, 2, size=(10,)))
 
 
-'''class TestCommittee(unittest.TestCase):
+class TestCommittee(unittest.TestCase):
 
     def test_set_classes(self):
         for n_classes in range(1, 10):
@@ -323,21 +323,6 @@ class TestActiveLearner(unittest.TestCase):
             np.testing.assert_equal(
                 committee.classes_,
                 np.unique(range(n_classes))
-            )
-
-    def test_calculate_uncertainty(self):
-        for n_learners in range(1, 200):
-            utility = np.random.rand(100, n_learners)
-            committee = modAL.models.Committee(
-                learner_list=[mock.MockActiveLearner(
-                                    mock.MockClassifier(classes_=np.asarray([0])),
-                                    calculate_utility_return=utility[:, learner_idx].reshape(-1)
-                              )
-                              for learner_idx in range(n_learners)]
-            )
-            np.testing.assert_almost_equal(
-                committee._calculate_uncertainty(np.random.rand(100, 1)),
-                utility
             )
 
     def test_predict(self):
@@ -355,7 +340,7 @@ class TestActiveLearner(unittest.TestCase):
                     committee.vote(np.random.rand(n_instances, 5)),
                     prediction
                 )
-'''
+
 
 if __name__ == '__main__':
     unittest.main()
