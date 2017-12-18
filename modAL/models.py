@@ -6,8 +6,7 @@ import numpy as np
 from sklearn.utils import check_array
 from modAL.utils.validation import check_class_labels, check_class_proba
 from modAL.uncertainty import uncertainty_sampling
-from modAL.disagreement import vote_entropy
-from modAL.utils.selection import multi_argmax
+from modAL.disagreement import QBC_entropy
 
 
 class ActiveLearner:
@@ -301,8 +300,7 @@ class Committee:
     def __init__(
             self,
             learner_list,                                        # list of ActiveLearner objects
-            disagreement_measure=vote_entropy,                   # callable to measure disagreement
-            query_strategy=multi_argmax                          # callable to query labels
+            query_strategy=QBC_entropy                           # callable to query labels
 
     ):
         """
@@ -311,7 +309,6 @@ class Committee:
         assert type(learner_list) == list, 'learners must be supplied in a list'
 
         self._learner_list = learner_list
-        self.disagreement_measure = disagreement_measure
         self.query_strategy = query_strategy
 
         self._set_classes()
@@ -327,26 +324,6 @@ class Committee:
         for learner in self._learner_list:
             learner._add_training_data(X, y)
         self._set_classes()
-
-    def _calculate_disagreement(self, X, **disagreement_measure_kwargs):
-        return self.disagreement_measure(self, X, **disagreement_measure_kwargs)
-
-    def _calculate_uncertainty(self, X, **utility_function_kwargs):
-        """
-        Calculates the uncertainties for every learner in the Committee and returns it
-        in the form of a numpy.ndarray
-        :param X: numpy.ndarray, data points for which the utilities should be measures
-        :return: numpy.ndarray of utilities
-        """
-
-        check_array(X, ensure_2d=True)
-        uncertainties = np.zeros(shape=(X.shape[0], len(self._learner_list)))
-
-        for learner_idx, learner in enumerate(self._learner_list):
-            learner_utility = learner._calculate_uncertainty(X, **utility_function_kwargs)
-            uncertainties[:, learner_idx] = learner_utility
-
-        return uncertainties
 
     def _fit_to_known(self, **fit_kwargs):
         for learner in self._learner_list:
@@ -445,7 +422,7 @@ class Committee:
 
         return proba
 
-    def query(self, X_pool, n_instances=1, **disagreement_measure_kwargs):
+    def query(self, X_pool, **query_kwargs):
         """
         Finds the most informative point in the data provided, then
         returns the instance and its index
@@ -455,8 +432,7 @@ class Committee:
         """
         check_array(X_pool, ensure_2d=True)
 
-        disagreement = self._calculate_disagreement(X_pool, **disagreement_measure_kwargs)
-        query_idx = self.query_strategy(disagreement, n_instances)
+        query_idx, query_instances = self.query_strategy(self, X_pool, **query_kwargs)
         return query_idx, X_pool[query_idx]
 
     def teach(self, X, y, **fit_kwargs):
