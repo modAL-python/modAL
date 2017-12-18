@@ -5,7 +5,7 @@ Core models for active learning algorithms.
 import numpy as np
 from sklearn.utils import check_array
 from modAL.utils.validation import check_class_labels, check_class_proba
-from modAL.uncertainty import classifier_uncertainty
+from modAL.uncertainty import uncertainty_sampling
 from modAL.disagreement import vote_entropy
 from modAL.utils.selection import multi_argmax
 
@@ -89,16 +89,13 @@ class ActiveLearner:
     def __init__(
             self,
             predictor,                                           # scikit-learner estimator object
-            uncertainty_measure=classifier_uncertainty,          # callable to measure uncertainty
-            query_strategy=multi_argmax,   		                 # callable to query labels
+            query_strategy=uncertainty_sampling,	             # callable to query labels
             X_initial=None, y_initial=None,	                     # initial data if available
             **fit_kwargs                                         # keyword arguments for fitting the initial data
     ):
-        assert callable(uncertainty_measure), 'utility_function must be callable'
         assert callable(query_strategy), 'query_function must be callable'
 
         self._predictor = predictor
-        self.uncertainty_measure = uncertainty_measure
         self.query_strategy = query_strategy
 
         if type(X_initial) == type(None) and type(y_initial) == type(None):
@@ -145,30 +142,6 @@ class ActiveLearner:
         else:
             self._X_training = X
             self._y_training = y
-
-    def _calculate_uncertainty(self, X, **uncertainty_measure_kwargs):
-        """
-        This method calls the uncertainty measure function provided
-        for ActiveLearner upon initialization on the samples passed
-        to it. It is used to measure uncertainty for each data point.
-
-        Parameters
-        ----------
-        X: numpy.ndarray of shape (n_samples, n_features)
-            The samples for which the uncertainty of prediction is
-            to be calculated.
-
-        uncertainty_measure_kwargs: keyword arguments
-            Keyword arguments to be passed to the uncertainty measure
-            function.
-
-        Returns
-        -------
-        uncertainty: numpy.ndarray of shape (n_samples, )
-            Contains the uncertainties for the predictions on sample X
-        """
-        check_array(X)
-        return self.uncertainty_measure(self._predictor, X, **uncertainty_measure_kwargs)
 
     def _fit_to_known(self, **fit_kwargs):
         """
@@ -245,7 +218,7 @@ class ActiveLearner:
         """
         return self._predictor.predict_proba(X, **predict_proba_kwargs)
 
-    def query(self, X_pool, n_instances=1, **uncertainty_measure_kwargs):
+    def query(self, X_pool, **query_kwargs):
         """
         Finds the n_instances most informative point in the data provided, then
         returns the instances and its indices.
@@ -273,9 +246,8 @@ class ActiveLearner:
 
         check_array(X_pool, ensure_2d=True)
 
-        uncertainties = self._calculate_uncertainty(X_pool, **uncertainty_measure_kwargs)
-        query_idx = self.query_strategy(uncertainties, n_instances)
-        return query_idx, X_pool[query_idx]
+        query_idx, query_instances = self.query_strategy(self._predictor, X_pool, **query_kwargs)
+        return query_idx, query_instances
 
     def score(self, X, y, **score_kwargs):
         """
