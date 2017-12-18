@@ -91,6 +91,10 @@ class MockCommittee:
     def __len__(self):
         return self.n_learners
 
+    def __iter__(self):
+        for x in range(self.n_learners):
+            yield x
+
     def _calculate_disagreement(self, *args, **kwargs):
         return self.calculate_disagreement_return
 
