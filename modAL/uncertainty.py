@@ -27,6 +27,9 @@ def classifier_uncertainty(classifier, X, **predict_proba_kwargs):
     uncertainty: numpy.ndarray of shape (n_samples, 1)
         Classifier uncertainty, which is 1 - P(prediction is correct).
 
+    References
+    ----------
+    Settles, Burr: Active Learning, (Morgan & Claypool Publishers), equation no. (2.1)
     """
     # calculate uncertainty for each point provided
     classwise_uncertainty = classifier.predict_proba(X, **predict_proba_kwargs)
@@ -59,6 +62,9 @@ def classifier_margin(classifier, X, **predict_proba_kwargs):
         Margin uncertainty, which is the difference of the probabilities of first
         and second most likely predictions.
 
+    References
+    ----------
+    Settles, Burr: Active Learning, (Morgan & Claypool Publishers), equation no. (2.2)
     """
     classwise_uncertainty = classifier.predict_proba(X, **predict_proba_kwargs)
 
@@ -91,6 +97,9 @@ def classifier_entropy(classifier, X, **predict_proba_kwargs):
     entr: numpy.ndarray of shape (n_samples, 1)
         Entropy of the class probabilities.
 
+    References
+    ----------
+    Settles, Burr: Active Learning, (Morgan & Claypool Publishers), equation no. (2.3)
     """
     classwise_uncertainty = classifier.predict_proba(X, **predict_proba_kwargs)
     return np.transpose(entropy(np.transpose(classwise_uncertainty)))

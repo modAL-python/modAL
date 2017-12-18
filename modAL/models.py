@@ -6,7 +6,7 @@ import numpy as np
 from sklearn.utils import check_array
 from modAL.utils.validation import check_class_labels, check_class_proba
 from modAL.uncertainty import uncertainty_sampling
-from modAL.disagreement import QBC_entropy
+from modAL.disagreement import QBC_vote_entropy
 
 
 class ActiveLearner:
@@ -75,14 +75,16 @@ class ActiveLearner:
     ...     X_initial=X_training, y_initial=y_training
     ... )
     >>>
-    >>> # the active learning loop
-    >>> n_queries = 20
-    >>> for idx in range(n_queries):
-    ...     query_idx, query_sample = learner.query(iris['data'])
-    ...     learner.teach(
-    ...         X=iris['data'][query_idx].reshape(1, -1),
-    ...         y=iris['target'][query_idx].reshape(1, )
-    ...     )
+    >>> # querying for labels
+    >>> query_idx, query_sample = learner.query(iris['data'])
+    >>>
+    >>> # ... acquiring new labels from the Oracle...
+    >>>
+    >>> # teaching newly labelled examples
+    >>> learner.teach(
+    ...     X=iris['data'][query_idx].reshape(1, -1),
+    ...     y=iris['target'][query_idx].reshape(1, )
+    ... )
 
     """
     def __init__(
@@ -300,7 +302,7 @@ class Committee:
     def __init__(
             self,
             learner_list,                                        # list of ActiveLearner objects
-            query_strategy=QBC_entropy                           # callable to query labels
+            query_strategy=QBC_vote_entropy                           # callable to query labels
 
     ):
         """

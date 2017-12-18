@@ -136,7 +136,7 @@ class TestDisagreements(unittest.TestCase):
                     true_entropy[true_query_idx] = entropy(np.ones(n_classes)/n_classes)
                     np.testing.assert_array_almost_equal(vote_entr, true_entropy)
 
-    def test_uncertainty_entropy(self):
+    def test_consensus_entropy(self):
         for n_samples in range(1, 10):
             for n_classes in range(2, 10):
                 for true_query_idx in range(n_samples):
@@ -144,7 +144,7 @@ class TestDisagreements(unittest.TestCase):
                     proba[:, 0] = 1.0
                     proba[true_query_idx] = np.ones(n_classes)/n_classes
                     committee = mock.MockCommittee(predict_proba_return=proba)
-                    uncertainty_entr = modAL.disagreement.vote_uncertainty_entropy(
+                    uncertainty_entr = modAL.disagreement.consensus_entropy(
                         committee, np.random.rand(n_samples, n_classes)
                     )
                     true_entropy = np.zeros(shape=(n_samples,))

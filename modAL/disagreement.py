@@ -30,6 +30,10 @@ def vote_entropy(committee, X, **predict_proba_kwargs):
     -------
     entr: numpy.ndarray of shape (n_samples, )
         Vote entropy of the Committee for the samples in X.
+
+    References
+    ----------
+    Settles, Burr: Active Learning, (Morgan & Claypool Publishers), equation no. (3.1)
     """
     n_learners = len(committee)
     votes = committee.vote(X, **predict_proba_kwargs)
@@ -47,13 +51,68 @@ def vote_entropy(committee, X, **predict_proba_kwargs):
     return entr
 
 
-def vote_uncertainty_entropy(committee, X, **predict_proba_kwargs):
+def consensus_entropy(committee, X, **predict_proba_kwargs):
+    """
+    Calculates the consensus entropy for the Committee. First it computes the class
+    probabilties of X for each learner in the Committee, then calculates the consensus
+    probability distribution by averaging the individual class probabilities for each
+    learner. The entropy of the consensus probability distribution is the vote entropy
+    of the Committee, which is returned.
+
+    Parameters
+    ----------
+    committee: modAL.models.Committee object
+        The Committee instance for which the vote uncertainty entropy is to be calculated.
+
+    X: numpy.ndarray of shape (n_samples, n_features)
+        The data for which the vote uncertainty entropy is to be calculated.
+
+    predict_proba_kwargs: keyword arguments
+        Keyword arguments for the predict_proba method of the Committee.
+
+    Returns
+    -------
+    entr: numpy.ndarray of shape (n_samples, )
+        Vote uncertainty entropy of the Committee for the samples in X.
+
+    References
+    ----------
+    Settles, Burr: Active Learning, (Morgan & Claypool Publishers), equation no. (3.2)
+    """
     proba = committee.predict_proba(X, **predict_proba_kwargs)
     entr = np.transpose(entropy(np.transpose(proba)))
     return entr
 
 
 def KL_max_disagreement(committee, X, **predict_proba_kwargs):
+    """
+    Calculates the max disagreement for the Committee. First it computes the class probabilties
+    of X for each learner in the Committee, then calculates the consensus probability
+    distribution by averaging the individual class probabilities for each learner. Then each
+    learner's class probabilities are compared to the consensus distribution in the sense of
+    Kullback-Leibler divergence. The max disagreement for a given sample is the argmax of the
+    KL divergences of the learners from the consensus probability.
+
+    Parameters
+    ----------
+    committee: modAL.models.Committee object
+        The Committee instance for which the max disagreement is to be calculated.
+
+    X: numpy.ndarray of shape (n_samples, n_features)
+        The data for which the max disagreement is to be calculated.
+
+    predict_proba_kwargs: keyword arguments
+        Keyword arguments for the predict_proba method of the Committee.
+
+    Returns
+    -------
+    entr: numpy.ndarray of shape (n_samples, )
+        Max disagreement of the Committee for the samples in X.
+
+    References
+    ----------
+    Settles, Burr: Active Learning, (Morgan & Claypool Publishers), equation no. (3.3)
+    """
     p_vote = committee.vote_proba(X, **predict_proba_kwargs)
     p_consensus = np.mean(p_vote, axis=1)
 
@@ -64,22 +123,88 @@ def KL_max_disagreement(committee, X, **predict_proba_kwargs):
     return np.max(learner_KL_div, axis=1)
 
 
-def QBC_entropy(committee, X, n_instances=1, **predict_proba_kwargs):
-    disagreement = vote_entropy(committee, X, **predict_proba_kwargs)
+def QBC_vote_entropy(committee, X, n_instances=1, **disagreement_measure_kwargs):
+    """
+    Query by Committee entropy sampling strategy.
+
+    Parameters
+    ----------
+    committee: Committee object
+        The committee for which the labels are to be queried.
+
+    X: numpy.ndarray of shape (n_samples, n_features)
+        The pool of samples to query from.
+
+    n_instances: int
+        Number of samples to be queried.
+
+    disagreement_measure_kwargs:
+        Keyword arguments to be passed for the disagreement measure function.
+
+    Returns
+    -------
+    query_idx, X[query_idx]: numpy.ndarrays of shape (n_instances, ) and (n_instances, n_features)
+        The indices of the queries and the queried samples themselves.
+    """
+    disagreement = vote_entropy(committee, X, **disagreement_measure_kwargs)
     query_idx = multi_argmax(disagreement, n_instances=n_instances)
 
     return query_idx, X[query_idx]
 
 
-def QBC_uncertainty_entropy(committee, X, n_instances=1, **predict_proba_kwargs):
-    disagreement = vote_uncertainty_entropy(committee, X, **predict_proba_kwargs)
+def QBC_consensus_entropy(committee, X, n_instances=1, **disagreement_measure_kwargs):
+    """
+    Query by Committee consensus entropy sampling strategy.
+
+    Parameters
+    ----------
+    committee: Committee object
+        The committee for which the labels are to be queried.
+
+    X: numpy.ndarray of shape (n_samples, n_features)
+        The pool of samples to query from.
+
+    n_instances: int
+        Number of samples to be queried.
+
+    disagreement_measure_kwargs:
+        Keyword arguments to be passed for the disagreement measure function.
+
+    Returns
+    -------
+    query_idx, X[query_idx]: numpy.ndarrays of shape (n_instances, ) and (n_instances, n_features)
+        The indices of the queries and the queried samples themselves.
+    """
+    disagreement = consensus_entropy(committee, X, **disagreement_measure_kwargs)
     query_idx = multi_argmax(disagreement, n_instances=n_instances)
 
     return query_idx, X[query_idx]
 
 
-def QBC_max_disagreement(committee, X, n_instances=1, **predict_proba_kwargs):
-    disagreement = KL_max_disagreement(committee, X, **predict_proba_kwargs)
+def QBC_max_disagreement(committee, X, n_instances=1, **disagreement_measure_kwargs):
+    """
+    Query by Committee maximum disagreement sampling strategy.
+
+    Parameters
+    ----------
+    committee: Committee object
+        The committee for which the labels are to be queried.
+
+    X: numpy.ndarray of shape (n_samples, n_features)
+        The pool of samples to query from.
+
+    n_instances: int
+        Number of samples to be queried.
+
+    disagreement_measure_kwargs:
+        Keyword arguments to be passed for the disagreement measure function.
+
+    Returns
+    -------
+    query_idx, X[query_idx]: numpy.ndarrays of shape (n_instances, ) and (n_instances, n_features)
+        The indices of the queries and the queried samples themselves.
+    """
+    disagreement = KL_max_disagreement(committee, X, **disagreement_measure_kwargs)
     query_idx = multi_argmax(disagreement, n_instances=n_instances)
 
     return query_idx, X[query_idx]
