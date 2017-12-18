@@ -151,6 +151,27 @@ class TestDisagreements(unittest.TestCase):
                     true_entropy[true_query_idx] = entropy(np.ones(n_classes) / n_classes)
                     np.testing.assert_array_almost_equal(uncertainty_entr, true_entropy)
 
+    def test_KL_max_disagreement(self):
+        for n_samples in range(1, 10):
+            for n_classes in range(2, 10):
+                for n_learners in range (2, 10):
+                    vote_proba = np.zeros(shape=(n_samples, n_learners, n_classes))
+                    vote_proba[:, :, 0] = 1.0
+                    committee = mock.MockCommittee(
+                        n_learners=n_learners, classes_=range(n_classes),
+                        vote_proba_return=vote_proba
+                    )
+
+                    true_KL_disagreement = np.zeros(shape=(n_samples, ))
+
+                    try:
+                        np.testing.assert_array_almost_equal(
+                            true_KL_disagreement,
+                            modAL.disagreement.KL_max_disagreement(committee, np.random.rand(n_samples, 1))
+                        )
+                    except:
+                        modAL.disagreement.KL_max_disagreement(committee, np.random.rand(n_samples, 1))
+
 
 class TestQueries(unittest.TestCase):
 
