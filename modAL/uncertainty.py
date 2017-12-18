@@ -96,31 +96,88 @@ def classifier_entropy(classifier, X, **predict_proba_kwargs):
     return np.transpose(entropy(np.transpose(classwise_uncertainty)))
 
 
-def uncertainty_sampling(classifier, X, n_instances=1, **predict_proba_kwargs):
+def uncertainty_sampling(classifier, X, n_instances=1, **uncertainty_measure_kwargs):
     """
     Uncertainty sampling query strategy.
+
+    Parameters
+    ----------
+    classifier: sklearn classifier object, for instance sklearn.ensemble.RandomForestClassifier
+        The classifier for which the labels are to be queried.
+
+    X: numpy.ndarray of shape (n_samples, n_features)
+        The pool of samples to query from.
+
+    n_instances: int
+        Number of samples to be queried.
+
+    uncertainty_measure_kwargs:
+        Keyword arguments to be passed for the uncertainty measure function.
+
+    Returns
+    -------
+    query_idx, X[query_idx]: numpy.ndarrays of shape (n_instances, ) and (n_instances, n_features)
+        The indices of the queries and the queried samples themselves.
     """
-    uncertainty = classifier_uncertainty(classifier, X, **predict_proba_kwargs)
+    uncertainty = classifier_uncertainty(classifier, X, **uncertainty_measure_kwargs)
     query_idx = multi_argmax(uncertainty, n_instances=n_instances)
 
     return query_idx, X[query_idx]
 
 
-def margin_sampling(classifier, X, n_instances=1, **predict_proba_kwargs):
+def margin_sampling(classifier, X, n_instances=1, **uncertainty_measure_kwargs):
     """
     Margin sampling query strategy.
+
+    Parameters
+    ----------
+    classifier: sklearn classifier object, for instance sklearn.ensemble.RandomForestClassifier
+        The classifier for which the labels are to be queried.
+
+    X: numpy.ndarray of shape (n_samples, n_features)
+        The pool of samples to query from.
+
+    n_instances: int
+        Number of samples to be queried.
+
+    uncertainty_measure_kwargs:
+        Keyword arguments to be passed for the uncertainty measure function.
+
+    Returns
+    -------
+    query_idx, X[query_idx]: numpy.ndarrays of shape (n_instances, ) and (n_instances, n_features)
+        The indices of the queries and the queried samples themselves.
     """
-    margin = classifier_margin(classifier, X, **predict_proba_kwargs)
+    margin = classifier_margin(classifier, X, **uncertainty_measure_kwargs)
     query_idx = multi_argmax(margin, n_instances=n_instances)
 
     return query_idx, X[query_idx]
 
 
-def entropy_sampling(classifier, X, n_instances=1, **predict_proba_kwargs):
+def entropy_sampling(classifier, X, n_instances=1, **uncertainty_measure_kwargs):
     """
     Entropy sampling query strategy.
+
+    Parameters
+    ----------
+    classifier: sklearn classifier object, for instance sklearn.ensemble.RandomForestClassifier
+        The classifier for which the labels are to be queried.
+
+    X: numpy.ndarray of shape (n_samples, n_features)
+        The pool of samples to query from.
+
+    n_instances: int
+        Number of samples to be queried.
+
+    uncertainty_measure_kwargs:
+        Keyword arguments to be passed for the uncertainty measure function.
+
+    Returns
+    -------
+    query_idx, X[query_idx]: numpy.ndarrays of shape (n_instances, ) and (n_instances, n_features)
+        The indices of the queries and the queried samples themselves.
     """
-    entropy = classifier_entropy(classifier, X, **predict_proba_kwargs)
+    entropy = classifier_entropy(classifier, X, **uncertainty_measure_kwargs)
     query_idx = multi_argmax(entropy, n_instances=n_instances)
 
     return query_idx, X[query_idx]
