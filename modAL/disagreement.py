@@ -5,6 +5,7 @@ Disagreement measures for the Committee model.
 import numpy as np
 from collections import Counter
 from scipy.stats import entropy
+from modAL.utils.selection import multi_argmax
 
 
 def vote_entropy(committee, X, **predict_proba_kwargs):
@@ -61,3 +62,24 @@ def KL_max_disagreement(committee, X, **predict_proba_kwargs):
         learner_KL_div[:, learner_idx] = entropy(np.transpose(p_vote[:, learner_idx, :]), qk=np.transpose(p_consensus))
 
     return np.max(learner_KL_div, axis=1)
+
+
+def QBC_entropy(committee, X, n_instances=1, **predict_proba_kwargs):
+    disagreement = vote_entropy(committee, X, **predict_proba_kwargs)
+    query_idx = multi_argmax(disagreement, n_instances=n_instances)
+
+    return query_idx, X[query_idx]
+
+
+def QBC_uncertainty_entropy(committee, X, n_instances=1, **predict_proba_kwargs):
+    disagreement = vote_uncertainty_entropy(committee, X, **predict_proba_kwargs)
+    query_idx = multi_argmax(disagreement, n_instances=n_instances)
+
+    return query_idx, X[query_idx]
+
+
+def QBC_max_disagreement(committee, X, n_instances=1, **predict_proba_kwargs):
+    disagreement = KL_max_disagreement(committee, X, **predict_proba_kwargs)
+    query_idx = multi_argmax(disagreement, n_instances=n_instances)
+
+    return query_idx, X[query_idx]
