@@ -72,7 +72,7 @@ def classifier_margin(classifier, X, **predict_proba_kwargs):
         return np.zeros(shape=(classwise_uncertainty.shape[0],))
 
     part = np.partition(-classwise_uncertainty, 1, axis=1)
-    margin = -part[:, 0] + part[:, 1]
+    margin = part[:, 0] - part[:, 1]
 
     return margin
 
@@ -107,7 +107,7 @@ def classifier_entropy(classifier, X, **predict_proba_kwargs):
 
 def uncertainty_sampling(classifier, X, n_instances=1, **uncertainty_measure_kwargs):
     """
-    Uncertainty sampling query strategy.
+    Uncertainty sampling query strategy. Selects the least sure instances for labelling.
 
     Parameters
     ----------
@@ -139,7 +139,8 @@ def uncertainty_sampling(classifier, X, n_instances=1, **uncertainty_measure_kwa
 
 def margin_sampling(classifier, X, n_instances=1, **uncertainty_measure_kwargs):
     """
-    Margin sampling query strategy.
+    Margin sampling query strategy. Selects the instances where the difference between
+    the first most likely and second most likely classes are the smallest.
 
     Parameters
     ----------
@@ -171,7 +172,8 @@ def margin_sampling(classifier, X, n_instances=1, **uncertainty_measure_kwargs):
 
 def entropy_sampling(classifier, X, n_instances=1, **uncertainty_measure_kwargs):
     """
-    Entropy sampling query strategy.
+    Entropy sampling query strategy. Selects the instances where the class probabilities
+    have the largest entropy.
 
     Parameters
     ----------
