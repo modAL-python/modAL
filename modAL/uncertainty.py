@@ -19,17 +19,17 @@ def classifier_uncertainty(classifier, X, **predict_proba_kwargs):
     X: numpy.ndarray of shape (n_samples, n_features)
         The samples for which the uncertainty of classification is to be measured.
 
-    **predict_proba_kwargs: keyword arguments
+    predict_proba_kwargs: keyword arguments
         Keyword arguments to be passed for the predict_proba method of the classifier.
 
     Returns
     -------
-    uncertainty: numpy.ndarray of shape (n_samples, 1)
+    uncertainty: numpy.ndarray of shape (n_samples, )
         Classifier uncertainty, which is 1 - P(prediction is correct).
 
     References
     ----------
-    Settles, Burr: Active Learning, (Morgan & Claypool Publishers), equation no. (2.1)
+    [1] Settles, Burr: Active Learning, (Morgan & Claypool Publishers), equation no. (2.1)
     """
     # calculate uncertainty for each point provided
     classwise_uncertainty = classifier.predict_proba(X, **predict_proba_kwargs)
@@ -53,18 +53,18 @@ def classifier_margin(classifier, X, **predict_proba_kwargs):
     X: numpy.ndarray of shape (n_samples, n_features)
         The samples for which the uncertainty of classification is to be measured
 
-    **predict_proba_kwargs: keyword arguments
+    predict_proba_kwargs: keyword arguments
         Keyword arguments to be passed for the predict_proba method of the classifier
 
     Returns
     -------
-    margin: numpy.ndarray of shape (n_samples, 1)
+    margin: numpy.ndarray of shape (n_samples, )
         Margin uncertainty, which is the difference of the probabilities of first
         and second most likely predictions.
 
     References
     ----------
-    Settles, Burr: Active Learning, (Morgan & Claypool Publishers), equation no. (2.2)
+    [1] Settles, Burr: Active Learning, (Morgan & Claypool Publishers), equation no. (2.2)
     """
     classwise_uncertainty = classifier.predict_proba(X, **predict_proba_kwargs)
 
@@ -89,17 +89,17 @@ def classifier_entropy(classifier, X, **predict_proba_kwargs):
     X: numpy.ndarray of shape (n_samples, n_features)
         The samples for which the prediction entropy is to be measured.
 
-    **predict_proba_kwargs: keyword arguments
+    predict_proba_kwargs: keyword arguments
         Keyword arguments to be passed for the predict_proba method of the classifier.
 
     Returns
     -------
-    entr: numpy.ndarray of shape (n_samples, 1)
+    entr: numpy.ndarray of shape (n_samples, )
         Entropy of the class probabilities.
 
     References
     ----------
-    Settles, Burr: Active Learning, (Morgan & Claypool Publishers), equation no. (2.3)
+    [1] Settles, Burr: Active Learning, (Morgan & Claypool Publishers), equation no. (2.3)
     """
     classwise_uncertainty = classifier.predict_proba(X, **predict_proba_kwargs)
     return np.transpose(entropy(np.transpose(classwise_uncertainty)))
@@ -120,7 +120,7 @@ def uncertainty_sampling(classifier, X, n_instances=1, **uncertainty_measure_kwa
     n_instances: int
         Number of samples to be queried.
 
-    uncertainty_measure_kwargs:
+    uncertainty_measure_kwargs: keyword arguments
         Keyword arguments to be passed for the uncertainty measure function.
 
     Returns
@@ -153,7 +153,7 @@ def margin_sampling(classifier, X, n_instances=1, **uncertainty_measure_kwargs):
     n_instances: int
         Number of samples to be queried.
 
-    uncertainty_measure_kwargs:
+    uncertainty_measure_kwargs: keyword arguments
         Keyword arguments to be passed for the uncertainty measure function.
 
     Returns
@@ -186,7 +186,7 @@ def entropy_sampling(classifier, X, n_instances=1, **uncertainty_measure_kwargs)
     n_instances: int
         Number of samples to be queried.
 
-    uncertainty_measure_kwargs:
+    uncertainty_measure_kwargs: keyword arguments
         Keyword arguments to be passed for the uncertainty measure function.
 
     Returns

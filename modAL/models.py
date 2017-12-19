@@ -6,7 +6,7 @@ import numpy as np
 from sklearn.utils import check_array
 from modAL.utils.validation import check_class_labels, check_class_proba
 from modAL.uncertainty import uncertainty_sampling
-from modAL.disagreement import QBC_vote_entropy
+from modAL.disagreement import vote_entropy_sampling
 
 
 class ActiveLearner:
@@ -74,7 +74,7 @@ class ActiveLearner:
     >>> # querying for labels
     >>> query_idx, query_sample = learner.query(iris['data'])
     >>>
-    >>> # ... acquiring new labels from the Oracle...
+    >>> # ...obtaining new labels from the Oracle...
     >>>
     >>> # teaching newly labelled examples
     >>> learner.teach(
@@ -295,7 +295,7 @@ class Committee:
     def __init__(
             self,
             learner_list,                                        # list of ActiveLearner objects
-            query_strategy=QBC_vote_entropy                           # callable to query labels
+            query_strategy=vote_entropy_sampling                      # callable to query labels
 
     ):
         """

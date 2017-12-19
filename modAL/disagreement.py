@@ -123,7 +123,7 @@ def KL_max_disagreement(committee, X, **predict_proba_kwargs):
     return np.max(learner_KL_div, axis=1)
 
 
-def QBC_vote_entropy(committee, X, n_instances=1, **disagreement_measure_kwargs):
+def vote_entropy_sampling(committee, X, n_instances=1, **disagreement_measure_kwargs):
     """
     Query by Committee entropy sampling strategy.
 
@@ -155,7 +155,7 @@ def QBC_vote_entropy(committee, X, n_instances=1, **disagreement_measure_kwargs)
     return query_idx, X[query_idx]
 
 
-def QBC_consensus_entropy(committee, X, n_instances=1, **disagreement_measure_kwargs):
+def consensus_entropy_sampling(committee, X, n_instances=1, **disagreement_measure_kwargs):
     """
     Query by Committee consensus entropy sampling strategy.
 
@@ -187,7 +187,7 @@ def QBC_consensus_entropy(committee, X, n_instances=1, **disagreement_measure_kw
     return query_idx, X[query_idx]
 
 
-def QBC_max_disagreement(committee, X, n_instances=1, **disagreement_measure_kwargs):
+def max_disagreement_sampling(committee, X, n_instances=1, **disagreement_measure_kwargs):
     """
     Query by Committee maximum disagreement sampling strategy.
 
