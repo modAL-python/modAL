@@ -217,14 +217,14 @@ class ActiveLearner:
         """
         return self._predictor.predict_proba(X, **predict_proba_kwargs)
 
-    def query(self, X_pool, **query_kwargs):
+    def query(self, X, **query_kwargs):
         """
         Finds the n_instances most informative point in the data provided by calling
         the query_strategy function. Returns the queried instances and its indices.
 
         Parameters
         ----------
-        X_pool: numpy.ndarray of shape (n_samples, n_features)
+        X: numpy.ndarray of shape (n_samples, n_features)
             The pool of samples from which the query strategy should choose
             instances to request labels.
 
@@ -236,12 +236,12 @@ class ActiveLearner:
         query_idx: numpy.ndarray of shape (n_instances, )
             The indices of the instances from X_pool chosen to be labelled.
 
-        X_pool[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+        X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
             The instances from X_pool chosen to be labelled.
         """
-        check_array(X_pool, ensure_2d=True)
+        check_array(X, ensure_2d=True)
 
-        query_idx, query_instances = self.query_strategy(self._predictor, X_pool, **query_kwargs)
+        query_idx, query_instances = self.query_strategy(self._predictor, X, **query_kwargs)
         return query_idx, query_instances
 
     def score(self, X, y, **score_kwargs):
@@ -412,14 +412,14 @@ class Committee:
         """
         return np.mean(self.vote_proba(X, **predict_proba_kwargs), axis=1)
 
-    def query(self, X_pool, **query_kwargs):
+    def query(self, X, **query_kwargs):
         """
         Finds the n_instances most informative point in the data provided by calling
         the query_strategy function. Returns the queried instances and its indices.
 
         Parameters
         ----------
-        X_pool: numpy.ndarray of shape (n_samples, n_features)
+        X: numpy.ndarray of shape (n_samples, n_features)
             The pool of samples from which the query strategy should choose
             instances to request labels.
 
@@ -431,13 +431,13 @@ class Committee:
         query_idx: numpy.ndarray of shape (n_instances, )
             The indices of the instances from X_pool chosen to be labelled.
 
-        X_pool[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+        X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
             The instances from X_pool chosen to be labelled.
         """
-        check_array(X_pool, ensure_2d=True)
+        check_array(X, ensure_2d=True)
 
-        query_idx, query_instances = self.query_strategy(self, X_pool, **query_kwargs)
-        return query_idx, X_pool[query_idx]
+        query_idx, query_instances = self.query_strategy(self, X, **query_kwargs)
+        return query_idx, X[query_idx]
 
     def teach(self, X, y, **fit_kwargs):
         """
