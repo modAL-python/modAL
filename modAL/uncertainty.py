@@ -1,5 +1,10 @@
 """
-Uncertainty measures and uncertainty based sampling strategies for the active learning models.
+====================
+Uncertainty sampling
+====================
+---------------------------------------------------------------------------------------------
+Uncertainty measures and uncertainty based sampling strategies for the active learning models
+---------------------------------------------------------------------------------------------
 """
 
 import numpy as np

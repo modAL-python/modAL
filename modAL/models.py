@@ -295,7 +295,7 @@ class Committee:
     def __init__(
             self,
             learner_list,                                        # list of ActiveLearner objects
-            query_strategy=vote_entropy_sampling                      # callable to query labels
+            query_strategy=vote_entropy_sampling                 # callable to query labels
 
     ):
         """
@@ -412,6 +412,54 @@ class Committee:
         """
         return np.mean(self.vote_proba(X, **predict_proba_kwargs), axis=1)
 
+    def query(self, X_pool, **query_kwargs):
+        """
+        Finds the n_instances most informative point in the data provided by calling
+        the query_strategy function. Returns the queried instances and its indices.
+
+        Parameters
+        ----------
+        X_pool: numpy.ndarray of shape (n_samples, n_features)
+            The pool of samples from which the query strategy should choose
+            instances to request labels.
+
+        query_kwargs: keyword arguments
+            Keyword arguments for the uncertainty measure function
+
+        Returns
+        -------
+        query_idx: numpy.ndarray of shape (n_instances, )
+            The indices of the instances from X_pool chosen to be labelled.
+
+        X_pool[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+            The instances from X_pool chosen to be labelled.
+        """
+        check_array(X_pool, ensure_2d=True)
+
+        query_idx, query_instances = self.query_strategy(self, X_pool, **query_kwargs)
+        return query_idx, X_pool[query_idx]
+
+    def teach(self, X, y, **fit_kwargs):
+        """
+        Adds X and y to the known training data for each learner
+        and retrains the Committee with the augmented dataset.
+
+        Parameters
+        ----------
+        X: numpy.ndarray of shape (n_samples, n_features)
+            The new samples for which the labels are supplied
+            by the expert.
+
+        y: numpy.ndarray of shape (n_samples, )
+            Labels corresponding to the new instances in X.
+
+        fit_kwargs: keyword arguments
+            Keyword arguments to be passed to the fit method
+            of the predictor.
+        """
+        self._add_training_data(X, y)
+        self._fit_to_known(**fit_kwargs)
+
     def vote(self, X, **predict_kwargs):
         """
         Predicts the labels for the supplied data for each learner in
@@ -482,54 +530,6 @@ class Committee:
                 )
 
         return proba
-
-    def query(self, X_pool, **query_kwargs):
-        """
-        Finds the n_instances most informative point in the data provided by calling
-        the query_strategy function. Returns the queried instances and its indices.
-
-        Parameters
-        ----------
-        X_pool: numpy.ndarray of shape (n_samples, n_features)
-            The pool of samples from which the query strategy should choose
-            instances to request labels.
-
-        query_kwargs: keyword arguments
-            Keyword arguments for the uncertainty measure function
-
-        Returns
-        -------
-        query_idx: numpy.ndarray of shape (n_instances, )
-            The indices of the instances from X_pool chosen to be labelled.
-
-        X_pool[query_idx]: numpy.ndarray of shape (n_instances, n_features)
-            The instances from X_pool chosen to be labelled.
-        """
-        check_array(X_pool, ensure_2d=True)
-
-        query_idx, query_instances = self.query_strategy(self, X_pool, **query_kwargs)
-        return query_idx, X_pool[query_idx]
-
-    def teach(self, X, y, **fit_kwargs):
-        """
-        Adds X and y to the known training data for each learner
-        and retrains the Committee with the augmented dataset.
-
-        Parameters
-        ----------
-        X: numpy.ndarray of shape (n_samples, n_features)
-            The new samples for which the labels are supplied
-            by the expert.
-
-        y: numpy.ndarray of shape (n_samples, )
-            Labels corresponding to the new instances in X.
-
-        fit_kwargs: keyword arguments
-            Keyword arguments to be passed to the fit method
-            of the predictor.
-        """
-        self._add_training_data(X, y)
-        self._fit_to_known(**fit_kwargs)
 
 
 if __name__ == '__main__':

@@ -1,5 +1,10 @@
 """
-Disagreement measures for the Committee model.
+=====================
+Disagreement sampling
+=====================
+-------------------------------------------------------------------------------------
+Disagreement measures and disagreement based query strategies for the Committee model
+-------------------------------------------------------------------------------------
 """
 
 import numpy as np
@@ -125,7 +130,7 @@ def KL_max_disagreement(committee, X, **predict_proba_kwargs):
 
 def vote_entropy_sampling(committee, X, n_instances=1, **disagreement_measure_kwargs):
     """
-    Query by Committee entropy sampling strategy.
+    Vote entropy sampling strategy.
 
     Parameters
     ----------
@@ -157,7 +162,7 @@ def vote_entropy_sampling(committee, X, n_instances=1, **disagreement_measure_kw
 
 def consensus_entropy_sampling(committee, X, n_instances=1, **disagreement_measure_kwargs):
     """
-    Query by Committee consensus entropy sampling strategy.
+    Consensus entropy sampling strategy.
 
     Parameters
     ----------
@@ -189,7 +194,7 @@ def consensus_entropy_sampling(committee, X, n_instances=1, **disagreement_measu
 
 def max_disagreement_sampling(committee, X, n_instances=1, **disagreement_measure_kwargs):
     """
-    Query by Committee maximum disagreement sampling strategy.
+    Maximum disagreement sampling strategy.
 
     Parameters
     ----------
