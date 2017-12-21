@@ -291,6 +291,61 @@ class ActiveLearner:
 class Committee:
     """
     This class is an abstract model of a committee-based active learning algorithm.
+
+    Parameters
+    ----------
+    learner_list: list
+        A list of ActiveLearners forming the Committee.
+
+    query_strategy: function
+        Query strategy function. Committee supports disagreement-based query strategies
+        from modAL.disagreement, but uncertainty-based strategies from modAL.uncertainty
+        are also supported.
+
+    Attributes
+    ----------
+    classes_: numpy.ndarray of shape (n_classes, )
+        Class labels known by the Committee.
+
+    n_classes_: int
+        Number of classes known by the Committee
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from sklearn.datasets import load_iris
+    >>> from sklearn.neighbors import KNeighborsClassifier
+    >>> from sklearn.ensemble import RandomForestClassifier
+    >>> from modAL.models import ActiveLearner, Committee
+    >>>
+    >>> iris = load_iris()
+    >>>
+    >>> # initialize ActiveLearners
+    >>> learner_1 = ActiveLearner(
+    ...     predictor=RandomForestClassifier(),
+    ...     X_initial=iris['data'][[0, 50, 100]], y_initial=iris['target'][[0, 50, 100]]
+    ... )
+    >>> learner_2 = ActiveLearner(
+    ...     predictor=KNeighborsClassifier(n_neighbors=3),
+    ...     X_initial=iris['data'][[1, 51, 101]], y_initial=iris['target'][[1, 51, 101]]
+    ... )
+    >>>
+    >>> # initialize the Committee
+    >>> committee = Committee(
+    ...     learner_list=[learner_1, learner_2]
+    ... )
+    >>>
+    >>> # querying for labels
+    >>> query_idx, query_sample = committee.query(iris['data'])
+    >>>
+    >>> # ...obtaining new labels from the Oracle...
+    >>>
+    >>> # teaching newly labelled examples
+    >>> committee.teach(
+    ...     X=iris['data'][query_idx].reshape(1, -1),
+    ...     y=iris['target'][query_idx].reshape(1, )
+    ... )
+
     """
     def __init__(
             self,
