@@ -77,7 +77,7 @@ def classifier_margin(classifier, X, **predict_proba_kwargs):
         return np.zeros(shape=(classwise_uncertainty.shape[0],))
 
     part = np.partition(-classwise_uncertainty, 1, axis=1)
-    margin = part[:, 0] - part[:, 1]
+    margin = - part[:, 0] + part[:, 1]
 
     return margin
 
@@ -170,7 +170,7 @@ def margin_sampling(classifier, X, n_instances=1, **uncertainty_measure_kwargs):
         The instances from X_pool chosen to be labelled.
     """
     margin = classifier_margin(classifier, X, **uncertainty_measure_kwargs)
-    query_idx = multi_argmax(margin, n_instances=n_instances)
+    query_idx = multi_argmax(-margin, n_instances=n_instances)
 
     return query_idx, X[query_idx]
 

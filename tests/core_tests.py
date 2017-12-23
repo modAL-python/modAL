@@ -54,10 +54,10 @@ class TestUncertainties(unittest.TestCase):
             )
 
     def test_classifier_margin(self):
-        test_cases_1 = (Test(p * np.ones(shape=(k, l)), -np.zeros(shape=(k,)))
+        test_cases_1 = (Test(p * np.ones(shape=(k, l)), np.zeros(shape=(k,)))
                       for k in range(1, 100) for l in range(1, 10) for p in np.linspace(0, 1, 11))
         test_cases_2 = (Test(p * np.tile(np.asarray(range(k))+1.0, l).reshape(l, k),
-                             -p * np.ones(shape=(l, ))*int(k!=1))
+                             p * np.ones(shape=(l, ))*int(k!=1))
                         for k in range(1, 10) for l in range(1, 100) for p in np.linspace(0, 1, 11))
         for case in chain(test_cases_1, test_cases_2):
             mock_classifier = mock.MockClassifier(predict_proba_return=case.input)

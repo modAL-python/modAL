@@ -353,9 +353,6 @@ class Committee:
             query_strategy=vote_entropy_sampling                 # callable to query labels
 
     ):
-        """
-        :param learner_list: list of ActiveLearners
-        """
         assert type(learner_list) == list, 'learners must be supplied in a list'
 
         self._learner_list = learner_list
