@@ -150,6 +150,10 @@ class ActiveLearner:
 
         Parameters
         ----------
+        bootstrap: boolean
+            If True, the method trains the model on a set bootstrapped from the
+            known training instances.
+
         fit_kwargs: keyword arguments
             Keyword arguments to be passed to the fit method of the predictor.
         """
@@ -173,6 +177,10 @@ class ActiveLearner:
 
         y: numpy.ndarray of shape (n_samples, )
             The corresponding labels.
+
+        bootstrap: boolean
+            If true, trains the estimator on a set bootstrapped from X. Useful for building
+            Committee models with bagging.
 
         fit_kwargs: keyword arguments
             Keyword arguments to be passed to the fit method of the predictor.
@@ -291,6 +299,10 @@ class ActiveLearner:
         y: numpy.ndarray of shape (n_samples, )
             Labels corresponding to the new instances in X.
 
+        bootstrap: boolean
+            If True, training is done on a bootstrapped dataset. Useful for building
+            Committee models with bagging.
+
         fit_kwargs: keyword arguments
             Keyword arguments to be passed to the fit method
             of the predictor.
@@ -408,6 +420,10 @@ class Committee:
 
         Parameters
         ----------
+        bootstrap: boolean
+            If True, each estimator is trained on a bootstrapped dataset. Useful when
+            using bagging to build the ensemble.
+
         fit_kwargs: keyword arguments
             Keyword arguments to be passed to the fit method of the predictor.
         """
@@ -515,6 +531,10 @@ class Committee:
 
         y: numpy.ndarray of shape (n_samples, )
             Labels corresponding to the new instances in X.
+
+        bootstrap: boolean
+            If True, trains each learner on a bootstrapped set. Useful
+            when building the ensemble by bagging.
 
         fit_kwargs: keyword arguments
             Keyword arguments to be passed to the fit method
