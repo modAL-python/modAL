@@ -31,7 +31,8 @@ pool_labels = np.delete(iris['target'], train_idx)
 # active learning
 learner = ActiveLearner(
     predictor=KNeighborsClassifier(n_neighbors=3),
-    X_initial=X_train, y_initial=y_train
+    X_initial=X_train, y_initial=y_train,
+    bootstrap_init=True
 )
 
 print('Accuracy before active learning: %f' % learner.score(iris['data'], iris['target']))

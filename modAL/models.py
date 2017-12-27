@@ -22,11 +22,16 @@ class ActiveLearner:
         Function providing the query strategy for the active learning
         loop, for instance modAL.uncertainty.uncertainty_sampling.
 
-    training_samples: None or numpy.ndarray of shape (n_samples, n_features)
+    X_initial: None or numpy.ndarray of shape (n_samples, n_features)
         Initial training samples, if available.
 
-    training_labels: None or numpy.ndarray of shape (n_samples, )
+    y_initial: None or numpy.ndarray of shape (n_samples, )
         Initial training labels corresponding to initial training samples
+
+    bootstrap_init: boolean
+        If initial training data is available, bootstrapping can be done
+        during the first training. Useful when building Committee models
+        with bagging.
 
     fit_kwargs: keyword arguments for the fit method
 
@@ -88,6 +93,7 @@ class ActiveLearner:
             predictor,                                           # scikit-learner estimator object
             query_strategy=uncertainty_sampling,	             # callable to query labels
             X_initial=None, y_initial=None,	                     # initial data if available
+            bootstrap_init=False,                                # first training with bootstrapping
             **fit_kwargs                                         # keyword arguments for fitting the initial data
     ):
         assert callable(query_strategy), 'query_function must be callable'
@@ -101,7 +107,7 @@ class ActiveLearner:
         elif type(X_initial) != type(None) and type(y_initial) != type(None):
             self._X_training = check_array(X_initial)
             self._y_training = check_array(y_initial, ensure_2d=False)
-            self._fit_to_known(**fit_kwargs)
+            self._fit_to_known(bootstrap=bootstrap_init, **fit_kwargs)
 
     def _add_training_data(self, X, y):
         """
@@ -138,7 +144,7 @@ class ActiveLearner:
             self._X_training = X
             self._y_training = y
 
-    def _fit_to_known(self, **fit_kwargs):
+    def _fit_to_known(self, bootstrap=False, **fit_kwargs):
         """
         Fits self._predictor to the training data and labels provided to it so far.
 
@@ -147,7 +153,12 @@ class ActiveLearner:
         fit_kwargs: keyword arguments
             Keyword arguments to be passed to the fit method of the predictor.
         """
-        self._predictor.fit(self._X_training, self._y_training, **fit_kwargs)
+        if not bootstrap:
+            self._predictor.fit(self._X_training, self._y_training, **fit_kwargs)
+        else:
+            n_instances = len(self._X_training)
+            bootstrap_idx = np.random.choice(range(n_instances), n_instances, replace=True)
+            self._predictor.fit(self._X_training[bootstrap_idx], self._y_training[bootstrap_idx], **fit_kwargs)
 
     def fit(self, X, y, **fit_kwargs):
         """
