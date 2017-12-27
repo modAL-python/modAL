@@ -60,7 +60,6 @@ class ActiveLearner:
 
     Examples
     --------
-    >>> import numpy as np
     >>> from sklearn.datasets import load_iris
     >>> from sklearn.ensemble import RandomForestClassifier
     >>> from modAL.models import ActiveLearner
@@ -86,7 +85,6 @@ class ActiveLearner:
     ...     X=iris['data'][query_idx].reshape(1, -1),
     ...     y=iris['target'][query_idx].reshape(1, )
     ... )
-
     """
     def __init__(
             self,
@@ -335,7 +333,6 @@ class Committee:
 
     Examples
     --------
-    >>> import numpy as np
     >>> from sklearn.datasets import load_iris
     >>> from sklearn.neighbors import KNeighborsClassifier
     >>> from sklearn.ensemble import RandomForestClassifier
@@ -368,7 +365,6 @@ class Committee:
     ...     X=iris['data'][query_idx].reshape(1, -1),
     ...     y=iris['target'][query_idx].reshape(1, )
     ... )
-
     """
     def __init__(
             self,
@@ -554,7 +550,7 @@ class Committee:
         fit_kwargs: keyword arguments
             Keyword arguments to be passed to the fit method of the predictor.
         """
-        self._fit_to_known(bagging=True)
+        self._fit_to_known(bagging=True, **fit_kwargs)
 
     def teach(self, X, y, bootstrap=False, **fit_kwargs):
         """
