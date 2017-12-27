@@ -402,7 +402,7 @@ class Committee:
             learner._add_training_data(X, y)
         self._set_classes()
 
-    def _fit_to_known(self, **fit_kwargs):
+    def _fit_to_known(self, bootstrap=False, **fit_kwargs):
         """
         Fits all learners to the training data and labels provided to it so far.
 
@@ -412,7 +412,7 @@ class Committee:
             Keyword arguments to be passed to the fit method of the predictor.
         """
         for learner in self._learner_list:
-            learner._fit_to_known(**fit_kwargs)
+            learner._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
     def _set_classes(self):
         """
