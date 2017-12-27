@@ -277,7 +277,7 @@ class ActiveLearner:
         """
         return self._predictor.score(X, y, **score_kwargs)
 
-    def teach(self, X, y, **fit_kwargs):
+    def teach(self, X, y, bootstrap=False, **fit_kwargs):
         """
         Adds X and y to the known training data and retrains the predictor
         with the augmented dataset.
@@ -296,7 +296,7 @@ class ActiveLearner:
             of the predictor.
         """
         self._add_training_data(X, y)
-        self._fit_to_known(**fit_kwargs)
+        self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
 
 class Committee:
