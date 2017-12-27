@@ -502,7 +502,7 @@ class Committee:
         query_idx, query_instances = self.query_strategy(self, X, **query_kwargs)
         return query_idx, X[query_idx]
 
-    def teach(self, X, y, **fit_kwargs):
+    def teach(self, X, y, bootstrap=False, **fit_kwargs):
         """
         Adds X and y to the known training data for each learner
         and retrains the Committee with the augmented dataset.
@@ -521,7 +521,7 @@ class Committee:
             of the predictor.
         """
         self._add_training_data(X, y)
-        self._fit_to_known(**fit_kwargs)
+        self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
     def vote(self, X, **predict_kwargs):
         """
