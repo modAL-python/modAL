@@ -160,7 +160,7 @@ class ActiveLearner:
             bootstrap_idx = np.random.choice(range(n_instances), n_instances, replace=True)
             self._predictor.fit(self._X_training[bootstrap_idx], self._y_training[bootstrap_idx], **fit_kwargs)
 
-    def fit(self, X, y, **fit_kwargs):
+    def fit(self, X, y, bootstrap=False, **fit_kwargs):
         """
         Interface for the fit method of the predictor. Fits the predictor
         to the supplied data, then stores it internally for the active
@@ -182,9 +182,9 @@ class ActiveLearner:
         When using scikit-learn estimators, calling this method will make the
         ActiveLearner forget all training data it has seen!
         """
-        self._predictor.fit(X, y, **fit_kwargs)
         self._X_training = X
         self._y_training = y
+        self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
     def predict(self, X, **predict_kwargs):
         """
