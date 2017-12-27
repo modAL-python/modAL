@@ -444,6 +444,25 @@ class Committee:
         )
         self.n_classes_ = len(self.classes_)
 
+    def bagging(self, X, y, **fit_kwargs):
+        """
+        Fits every learner in the Committee to a randomly sampled (with replacement) subset of X.
+
+        Parameters
+        ----------
+        X: numpy.ndarray of shape (n_samples, n_features)
+            The samples to be fitted.
+
+        y: numpy.ndarray of shape (n_samples, )
+            The corresponding labels.
+
+        fit_kwargs: keyword arguments
+            Keyword arguments to be passed to the fit method of the predictor.
+
+        """
+        for learner in self._learner_list:
+            learner.fit(X, y, bootstrap=True, **fit_kwargs)
+
     def predict(self, X, **predict_proba_kwargs):
         """
         Predicts the class of the samples by picking the consensus prediction.
