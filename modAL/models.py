@@ -414,13 +414,13 @@ class Committee:
             learner._add_training_data(X, y)
         self._set_classes()
 
-    def _fit_to_known(self, bootstrap=False, **fit_kwargs):
+    def _fit_to_known(self, bagging=False, **fit_kwargs):
         """
         Fits all learners to the training data and labels provided to it so far.
 
         Parameters
         ----------
-        bootstrap: boolean
+        bagging: boolean
             If True, each estimator is trained on a bootstrapped dataset. Useful when
             using bagging to build the ensemble.
 
@@ -428,7 +428,7 @@ class Committee:
             Keyword arguments to be passed to the fit method of the predictor.
         """
         for learner in self._learner_list:
-            learner._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
+            learner._fit_to_known(bootstrap=bagging, **fit_kwargs)
 
     def _set_classes(self):
         """
@@ -444,9 +444,12 @@ class Committee:
         )
         self.n_classes_ = len(self.classes_)
 
-    def bagging(self, X, y, **fit_kwargs):
+    def bag(self, X, y, **fit_kwargs):
         """
         Fits every learner in the Committee to a randomly sampled (with replacement) subset of X.
+        Calling this method makes the learner forget the data it has seen up until this point and
+        replaces it with X! If you would like to perform bootstrapping on each learner using the
+        data it has seen, use the method .rebag()!
 
         Parameters
         ----------
@@ -459,6 +462,10 @@ class Committee:
         fit_kwargs: keyword arguments
             Keyword arguments to be passed to the fit method of the predictor.
 
+        DANGER ZONE
+        -----------
+        Calling this method makes the learner forget the data it has seen up until this point and
+        replaces it with X!
         """
         for learner in self._learner_list:
             learner.fit(X, y, bootstrap=True, **fit_kwargs)
@@ -537,6 +544,18 @@ class Committee:
         query_idx, query_instances = self.query_strategy(self, X, **query_kwargs)
         return query_idx, X[query_idx]
 
+    def rebag(self, **fit_kwargs):
+        """
+        Refits every learner with a dataset bootstrapped from its training instances. Contrary to
+        .bag(), it bootstraps the training data for each learner based on its own examples.
+
+        Parameters
+        ----------
+        fit_kwargs: keyword arguments
+            Keyword arguments to be passed to the fit method of the predictor.
+        """
+        self._fit_to_known(bagging=True)
+
     def teach(self, X, y, bootstrap=False, **fit_kwargs):
         """
         Adds X and y to the known training data for each learner
@@ -560,7 +579,7 @@ class Committee:
             of the predictor.
         """
         self._add_training_data(X, y)
-        self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
+        self._fit_to_known(bagging=bootstrap, **fit_kwargs)
 
     def vote(self, X, **predict_kwargs):
         """
