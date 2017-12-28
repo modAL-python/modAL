@@ -45,7 +45,6 @@ with plt.style.context('seaborn-white'):
 n_queries = 10
 for idx in range(n_queries):
     query_idx, query_instance = regressor.query(X)
-    print(query_idx)
     regressor.teach(X[query_idx].reshape(1, -1), y[query_idx].reshape(1, -1))
 
 # plotting after active learning
