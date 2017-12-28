@@ -31,7 +31,7 @@ def create_keras_model():
 
 
 """
-Data munching
+Data wrangling
 1. Reading data from Keras
 2. Assembling initial training data for ActiveLearner
 3. Generating the pool
@@ -61,7 +61,7 @@ y_initial = y_train[initial_idx]
 x_train = np.delete(x_train, initial_idx, axis=0)
 y_train = np.delete(y_train, initial_idx, axis=0)
 # sample random elements from x_train
-pool_size = 1000
+pool_size = 10000
 pool_idx = np.random.choice(range(len(x_train)), pool_size)
 x_pool = x_train[pool_idx]
 y_pool = y_train[pool_idx]
@@ -83,7 +83,7 @@ learner = ActiveLearner(
 # the active learning loop
 n_queries = 10
 for idx in range(n_queries):
-    query_idx, query_instance = learner.query(x_pool, n_instances=50, verbose=0)
+    query_idx, query_instance = learner.query(x_pool, n_instances=200, verbose=0)
     learner.teach(
         X=x_pool[query_idx], y=y_pool[query_idx],
         verbose=0
@@ -92,4 +92,5 @@ for idx in range(n_queries):
     x_pool = np.delete(x_pool, query_idx, axis=0)
     y_pool = np.delete(y_pool, query_idx, axis=0)
 
+# the final accuracy score
 print(learner.score(x_test, y_test, verbose=0))

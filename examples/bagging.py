@@ -23,7 +23,7 @@ for i, j in product(range(im_width), range(im_height)):
 with plt.style.context('seaborn-white'):
     plt.figure(figsize=(10, 10))
     plt.imshow(data)
-    plt.title('The shapes to predict')
+    plt.title('The shapes to learn')
     plt.show()
 
 # create the pool from the image
