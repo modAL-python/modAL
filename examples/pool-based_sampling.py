@@ -1,5 +1,5 @@
 """
-In this example the performance of the active classification is demonstrated on the iris dataset.
+In this example the use of ActiveLearner is demonstrated on the iris dataset in a pool-based sampling setting.
 For more information on the iris dataset, see https://en.wikipedia.org/wiki/Iris_flower_data_set
 For its scikit-learn interface, see http://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_iris.html
 """
