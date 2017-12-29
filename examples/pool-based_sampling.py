@@ -16,7 +16,8 @@ iris = load_iris()
 # visualizing the classes
 with plt.style.context('seaborn-white'):
     pca = PCA(n_components=2).fit_transform(iris['data'])
-    plt.scatter(x=pca[:, 0], y=pca[:, 1], c=iris['target'], cmap='viridis')
+    plt.figure(figsize=(7, 7))
+    plt.scatter(x=pca[:, 0], y=pca[:, 1], c=iris['target'], cmap='viridis', s=50)
     plt.title('The iris dataset')
     plt.show()
 
@@ -37,8 +38,9 @@ learner = ActiveLearner(
 
 # visualizing initial prediction
 with plt.style.context('seaborn-white'):
+    plt.figure(figsize=(7, 7))
     prediction = learner.predict(iris['data'])
-    plt.scatter(x=pca[:, 0], y=pca[:, 1], c=prediction, cmap='viridis')
+    plt.scatter(x=pca[:, 0], y=pca[:, 1], c=prediction, cmap='viridis', s=50)
     plt.title('Initial accuracy: %f' % learner.score(iris['data'], iris['target']))
     plt.show()
 
@@ -57,9 +59,10 @@ for idx in range(n_queries):
     y_pool = np.delete(y_pool, query_idx)
     print('Accuracy after query no. %d: %f' % (idx+1, learner.score(iris['data'], iris['target'])))
 
-# plotting initial prediction
+# plotting final prediction
 with plt.style.context('seaborn-white'):
+    plt.figure(figsize=(7, 7))
     prediction = learner.predict(iris['data'])
-    plt.scatter(x=pca[:, 0], y=pca[:, 1], c=prediction, cmap='viridis')
+    plt.scatter(x=pca[:, 0], y=pca[:, 1], c=prediction, cmap='viridis', s=50)
     plt.title('Classification accuracy after %i queries: %f' % (n_queries, learner.score(iris['data'], iris['target'])))
     plt.show()
