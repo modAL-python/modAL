@@ -24,31 +24,39 @@ with plt.style.context('seaborn-white'):
 train_idx = [0, 50, 100]
 X_train = iris['data'][train_idx]
 y_train = iris['target'][train_idx]
-# creating a reduced copy of the data with the known instances removed
-pool_data = np.delete(iris['data'], train_idx, axis=0)
-pool_labels = np.delete(iris['target'], train_idx)
 
-# active learning
+# generating the pool
+X_pool = np.delete(iris['data'], train_idx, axis=0)
+y_pool = np.delete(iris['target'], train_idx)
+
+# initializing the active learner
 learner = ActiveLearner(
     predictor=KNeighborsClassifier(n_neighbors=3),
-    X_initial=X_train, y_initial=y_train,
-    bootstrap_init=True
+    X_initial=X_train, y_initial=y_train
 )
+
+# visualizing initial prediction
+with plt.style.context('seaborn-white'):
+    prediction = learner.predict(iris['data'])
+    plt.scatter(x=pca[:, 0], y=pca[:, 1], c=prediction, cmap='viridis')
+    plt.title('Initial accuracy: %f' % learner.score(iris['data'], iris['target']))
+    plt.show()
 
 print('Accuracy before active learning: %f' % learner.score(iris['data'], iris['target']))
 
 n_queries = 20
 for idx in range(n_queries):
-    query_idx, query_instance = learner.query(pool_data)
+    query_idx, query_instance = learner.query(X_pool)
     learner.teach(
-        X=pool_data[query_idx].reshape(1, -1),
-        y=pool_labels[query_idx].reshape(1, )
+        X=X_pool[query_idx].reshape(1, -1),
+        y=y_pool[query_idx].reshape(1, )
     )
     # remove queried instance from pool
-    pool_data = np.delete(pool_data, query_idx, axis=0)
-    pool_labels = np.delete(pool_labels, query_idx)
+    X_pool = np.delete(X_pool, query_idx, axis=0)
+    y_pool = np.delete(y_pool, query_idx)
     print('Accuracy after query no. %d: %f' % (idx+1, learner.score(iris['data'], iris['target'])))
 
+# plotting initial prediction
 with plt.style.context('seaborn-white'):
     prediction = learner.predict(iris['data'])
     plt.scatter(x=pca[:, 0], y=pca[:, 1], c=prediction, cmap='viridis')
