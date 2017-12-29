@@ -8,16 +8,18 @@ from modAL.models import ActiveLearner, Committee
 
 # loading the iris dataset
 iris = load_iris()
+
 # visualizing the classes
 with plt.style.context('seaborn-white'):
+    plt.figure(figsize=(7, 7))
     pca = PCA(n_components=2).fit_transform(iris['data'])
-    plt.scatter(x=pca[:, 0], y=pca[:, 1], c=iris['target'], cmap='viridis')
+    plt.scatter(x=pca[:, 0], y=pca[:, 1], c=iris['target'], cmap='viridis', s=50)
     plt.title('The iris dataset')
     plt.show()
 
 # generate the pool
-pool_data = deepcopy(iris['data'])
-pool_labels = deepcopy(iris['target'])
+X_pool = deepcopy(iris['data'])
+y_pool = deepcopy(iris['target'])
 
 # initializing Committee members
 n_members = 2
@@ -26,13 +28,13 @@ learner_list = list()
 for member_idx in range(n_members):
     # initial training data
     n_initial = 5
-    train_idx = np.random.choice(range(pool_data.shape[0]), size=n_initial, replace=False)
-    X_train = pool_data[train_idx]
-    y_train = pool_labels[train_idx]
+    train_idx = np.random.choice(range(X_pool.shape[0]), size=n_initial, replace=False)
+    X_train = X_pool[train_idx]
+    y_train = y_pool[train_idx]
 
     # creating a reduced copy of the data with the known instances removed
-    pool_data = np.delete(pool_data, train_idx, axis=0)
-    pool_labels = np.delete(pool_labels, train_idx)
+    X_pool = np.delete(X_pool, train_idx, axis=0)
+    y_pool = np.delete(y_pool, train_idx)
 
     # initializing learner
     learner = ActiveLearner(
@@ -41,21 +43,51 @@ for member_idx in range(n_members):
     )
     learner_list.append(learner)
 
-# assembling the Committee
+# assembling the committee
 committee = Committee(learner_list=learner_list)
 
+# visualizing the initial predictions
+with plt.style.context('seaborn-white'):
+    plt.figure(figsize=(n_members*7, 7))
+    for learner_idx, learner in enumerate(committee):
+        plt.subplot(1, n_members, learner_idx + 1)
+        plt.scatter(x=pca[:, 0], y=pca[:, 1], c=learner.predict(iris['data']), cmap='viridis', s=50)
+        plt.title('Learner no. %d initial predictions' % (learner_idx + 1))
+    plt.show()
+
+# visualizing the Committee's predictions per learner
+with plt.style.context('seaborn-white'):
+    plt.figure(figsize=(7, 7))
+    prediction = committee.predict(iris['data'])
+    plt.scatter(x=pca[:, 0], y=pca[:, 1], c=prediction, cmap='viridis', s=50)
+    plt.title('Committee initial predictions')
+    plt.show()
+
+# query by committee
 n_queries = 10
 for idx in range(n_queries):
-    query_idx, query_instance = committee.query(pool_data)
+    query_idx, query_instance = committee.query(X_pool)
     committee.teach(
-        X=pool_data[query_idx].reshape(1, -1),
-        y=pool_labels[query_idx].reshape(1, )
+        X=X_pool[query_idx].reshape(1, -1),
+        y=y_pool[query_idx].reshape(1, )
     )
     # remove queried instance from pool
-    pool_data = np.delete(pool_data, query_idx, axis=0)
-    pool_labels = np.delete(pool_labels, query_idx)
+    X_pool = np.delete(X_pool, query_idx, axis=0)
+    y_pool = np.delete(y_pool, query_idx)
 
+# visualizing the final predictions per learner
 with plt.style.context('seaborn-white'):
+    plt.figure(figsize=(n_members*7, 7))
+    for learner_idx, learner in enumerate(committee):
+        plt.subplot(1, n_members, learner_idx + 1)
+        plt.scatter(x=pca[:, 0], y=pca[:, 1], c=learner.predict(iris['data']), cmap='viridis', s=50)
+        plt.title('Learner no. %d predictions after %d queries' % (learner_idx + 1, n_queries))
+    plt.show()
+
+# visualizing the Committee's predictions
+with plt.style.context('seaborn-white'):
+    plt.figure(figsize=(7, 7))
     prediction = committee.predict(iris['data'])
-    plt.scatter(x=pca[:, 0], y=pca[:, 1], c=prediction, cmap='viridis')
+    plt.scatter(x=pca[:, 0], y=pca[:, 1], c=prediction, cmap='viridis', s=50)
+    plt.title('Committee predictions after %d queries' % n_queries)
     plt.show()
