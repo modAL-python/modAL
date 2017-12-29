@@ -12,12 +12,11 @@ from keras.wrappers.scikit_learn import KerasClassifier
 from modAL.models import ActiveLearner
 
 
+# build function for the Keras' scikit-learn API
 def create_keras_model():
     """
     This function compiles and returns a Keras model.
-    Should be passed for the KerasClassifier in the
-    Keras scikit-learn API.
-    :return: Keras model
+    Should be passed to KerasClassifier in the Keras scikit-learn API.
     """
     model = Sequential()
     model.add(Dense(512, activation='relu', input_shape=(784, )))
@@ -30,6 +29,9 @@ def create_keras_model():
     return model
 
 
+# create the classifier
+classifier = KerasClassifier(create_keras_model)
+
 """
 Data wrangling
 1. Reading data from Keras
@@ -38,59 +40,45 @@ Data wrangling
 """
 
 # read training data
-(x_train, y_train), (x_test, y_test) = mnist.load_data()
-x_train = x_train.reshape(60000, 784).astype('float32')/255
-x_test = x_test.reshape(10000, 784).astype('float32')/255
+(X_train, y_train), (X_test, y_test) = mnist.load_data()
+X_train = X_train.reshape(60000, 784).astype('float32') / 255
+X_test = X_test.reshape(10000, 784).astype('float32') / 255
 y_train = keras.utils.to_categorical(y_train, 10)
 y_test = keras.utils.to_categorical(y_test, 10)
 
-# select the first example from each category
-initial_idx = list()
-for label in range(10):
-    for elem_idx, elem in enumerate(x_train):
-        if y_train[elem_idx][label] == 1.0:
-            initial_idx.append(elem_idx)
-            break
-
 # assemble initial data
-x_initial = x_train[initial_idx]
+n_initial = 1000
+initial_idx = np.random.choice(range(len(X_train)), size=n_initial, replace=False)
+X_initial = X_train[initial_idx]
 y_initial = y_train[initial_idx]
 
 # generate the pool
 # remove the initial data from the training dataset
-x_train = np.delete(x_train, initial_idx, axis=0)
-y_train = np.delete(y_train, initial_idx, axis=0)
-# sample random elements from x_train
-pool_size = 10000
-pool_idx = np.random.choice(range(len(x_train)), pool_size)
-x_pool = x_train[pool_idx]
-y_pool = y_train[pool_idx]
+X_pool = np.delete(X_train, initial_idx, axis=0)
+y_pool = np.delete(y_train, initial_idx, axis=0)
 
 """
 Training the ActiveLearner
 """
 
-# create the classifier
-classifier = KerasClassifier(create_keras_model)
-
 # initialize ActiveLearner
 learner = ActiveLearner(
     predictor=classifier,
-    X_initial=x_initial, y_initial=y_initial,
+    X_initial=X_initial, y_initial=y_initial,
     verbose=0
 )
 
 # the active learning loop
 n_queries = 10
 for idx in range(n_queries):
-    query_idx, query_instance = learner.query(x_pool, n_instances=200, verbose=0)
+    query_idx, query_instance = learner.query(X_pool, n_instances=200, verbose=0)
     learner.teach(
-        X=x_pool[query_idx], y=y_pool[query_idx],
+        X=X_pool[query_idx], y=y_pool[query_idx],
         verbose=0
     )
     # remove queried instance from pool
-    x_pool = np.delete(x_pool, query_idx, axis=0)
+    X_pool = np.delete(X_pool, query_idx, axis=0)
     y_pool = np.delete(y_pool, query_idx, axis=0)
 
 # the final accuracy score
-print(learner.score(x_test, y_test, verbose=0))
+print(learner.score(X_test, y_test, verbose=0))
