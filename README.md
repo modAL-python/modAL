@@ -76,7 +76,7 @@ learner = ActiveLearner(
     X_initial=X_train, y_initial=y_train
 )
 ```
-For more details on how to implement your custom strategies, visit the page [Extending modAL](https://github.com/cosmic-cortex/modAL/wiki/Extending-modAL)!
+For more details on how to implement your custom strategies, visit the page [Extending modAL](Extending-modAL)!
 
 ### Working examples<a name="working-examples"></a>
 To see modAL in *real* action, visit the examples section!  
