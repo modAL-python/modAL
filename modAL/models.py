@@ -406,13 +406,13 @@ class Committee:
             learner._add_training_data(X, y)
         self._set_classes()
 
-    def _fit_to_known(self, bagging=False, **fit_kwargs):
+    def _fit_to_known(self, bootstrap=False, **fit_kwargs):
         """
         Fits all learners to the training data and labels provided to it so far.
 
         Parameters
         ----------
-        bagging: boolean
+        bootstrap: boolean
             If True, each estimator is trained on a bootstrapped dataset. Useful when
             using bagging to build the ensemble.
 
@@ -420,7 +420,7 @@ class Committee:
             Keyword arguments to be passed to the fit method of the predictor.
         """
         for learner in self._learner_list:
-            learner._fit_to_known(bootstrap=bagging, **fit_kwargs)
+            learner._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
     def _set_classes(self):
         """
@@ -546,9 +546,9 @@ class Committee:
         fit_kwargs: keyword arguments
             Keyword arguments to be passed to the fit method of the predictor.
         """
-        self._fit_to_known(bagging=True, **fit_kwargs)
+        self._fit_to_known(bootstrap=True, **fit_kwargs)
 
-    def teach(self, X, y, bagging=False, **fit_kwargs):
+    def teach(self, X, y, bootstrap=False, **fit_kwargs):
         """
         Adds X and y to the known training data for each learner
         and retrains the Committee with the augmented dataset.
@@ -562,7 +562,7 @@ class Committee:
         y: numpy.ndarray of shape (n_samples, )
             Labels corresponding to the new instances in X.
 
-        bagging: boolean
+        bootstrap: boolean
             If True, trains each learner on a bootstrapped set. Useful
             when building the ensemble by bagging.
 
@@ -571,7 +571,7 @@ class Committee:
             of the predictor.
         """
         self._add_training_data(X, y)
-        self._fit_to_known(bagging=bagging, **fit_kwargs)
+        self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
     def vote(self, X, **predict_kwargs):
         """
