@@ -45,7 +45,7 @@ with plt.style.context('seaborn-white'):
     plt.fill_between(x, pred.reshape(-1, )-std, pred.reshape(-1, )+std, alpha=0.2)
     plt.scatter(X, y, c='k')
     plt.title('Initial estimation based on %d points' % n_initial)
-    plt.savefig('gp-initial.png')
+    plt.show()
 
 # active learning
 n_queries = 10
@@ -62,4 +62,4 @@ with plt.style.context('seaborn-white'):
     plt.fill_between(x, pred.reshape(-1, )-std, pred.reshape(-1, )+std, alpha=0.2)
     plt.scatter(X, y, c='k')
     plt.title('Estimation after %d queries' % n_queries)
-    plt.savefig('gp-final.png')
+    plt.show()
