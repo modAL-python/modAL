@@ -80,12 +80,12 @@ For more details on how to implement your custom strategies, visit the page [Ext
 
 ### Working examples<a name="working-examples"></a>
 To see modAL in *real* action, visit the examples section!  
-[Pool-based sampling](Pool-based-sampling)  
-[Stream-based sampling](Stream-based-sampling)  
-[Active regression](Active-regression)  
-[Query by committee](Query-by-committee)  
-[Bootstrapping and bagging](Bootstrapping-and-bagging)  
-[Keras integration](Keras-integration)
+[Pool-based sampling](https://github.com/cosmic-cortex/modAL/wiki/Pool-based-sampling)  
+[Stream-based sampling](https://github.com/cosmic-cortex/modAL/wiki/Stream-based-sampling)  
+[Active regression](https://github.com/cosmic-cortex/modAL/wiki/Active-regression)  
+[Query by committee](https://github.com/cosmic-cortex/modAL/wiki/Query-by-committee)  
+[Bootstrapping and bagging](https://github.com/cosmic-cortex/modAL/wiki/Bootstrapping-and-bagging)  
+[Keras integration](https://github.com/cosmic-cortex/modAL/wiki/Keras-integration)
 
 ## About the developer<a name="about-the-developer">
 modAL is developed by me, [Tivadar Danka](https://www.tivadardanka.com). I have a PhD in pure mathematics, but I fell in love with biology and machine learning after I finished with my PhD. I have changed fields and now I work in the [Bioimage Analysis and Machine Learning Group of Peter Horvath](http://group.szbk.u-szeged.hu/sysbiol/horvath-peter-lab-index.html), where I am working to develop active learning strategies for intelligent sample analysis in biology. During my work I realized that in Python, creating and prototyping active learning workflows can be made really easy and fast with scikit-learn, so I ended up developing a general framework for this. The result is modAL :) If you have any questions, requests or suggestions, you can contact me at <a href="mailto:85a5187a@opayq.com">85a5187a@opayq.com</a>! I hope you'll find modAL useful!
