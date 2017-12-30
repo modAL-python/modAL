@@ -40,20 +40,16 @@ class ActiveLearner:
     predictor: scikit-learn estimator
         The estimator to be used in the active learning loop.
 
-    uncertainty_measure: function
-        Function providing the uncertainty measure, for instance
-        modAL.uncertainty.classifier_uncertainty.
-
     query_strategy: function
         Function providing the query strategy for the active learning
         loop, for instance modAL.query.max_uncertainty.
 
-    _training_samples: None numpy.ndarray of shape (n_samples, n_features)
+    _X_training: None numpy.ndarray of shape (n_samples, n_features)
         If the model hasn't been fitted yet: None
         If the model has been fitted already: numpy.ndarray containing the
         samples which the model has been trained on
 
-    _training_labels: None or numpy.ndarray of shape (n_samples, )
+    _y_training: None or numpy.ndarray of shape (n_samples, )
         If the model hasn't been fitted yet: None
         If the model has been fitted already: numpy.ndarray containing the
         labels corresponding to _training_samples
@@ -552,7 +548,7 @@ class Committee:
         """
         self._fit_to_known(bagging=True, **fit_kwargs)
 
-    def teach(self, X, y, bootstrap=False, **fit_kwargs):
+    def teach(self, X, y, bagging=False, **fit_kwargs):
         """
         Adds X and y to the known training data for each learner
         and retrains the Committee with the augmented dataset.
@@ -566,7 +562,7 @@ class Committee:
         y: numpy.ndarray of shape (n_samples, )
             Labels corresponding to the new instances in X.
 
-        bootstrap: boolean
+        bagging: boolean
             If True, trains each learner on a bootstrapped set. Useful
             when building the ensemble by bagging.
 
@@ -575,7 +571,7 @@ class Committee:
             of the predictor.
         """
         self._add_training_data(X, y)
-        self._fit_to_known(bagging=bootstrap, **fit_kwargs)
+        self._fit_to_known(bagging=bagging, **fit_kwargs)
 
     def vote(self, X, **predict_kwargs):
         """
