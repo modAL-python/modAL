@@ -436,9 +436,9 @@ class Committee:
         )
         self.n_classes_ = len(self.classes_)
 
-    def bag(self, X, y, **fit_kwargs):
+    def fit(self, X, y, **fit_kwargs):
         """
-        Fits every learner in the Committee to a randomly sampled (with replacement) subset of X.
+        Fits every learner in the Committee to a subset sampled with replacement from X.
         Calling this method makes the learner forget the data it has seen up until this point and
         replaces it with X! If you would like to perform bootstrapping on each learner using the
         data it has seen, use the method .rebag()!
@@ -460,7 +460,7 @@ class Committee:
         replaces it with X!
         """
         for learner in self._learner_list:
-            learner.fit(X, y, bootstrap=True, **fit_kwargs)
+            learner.fit(X, y, **fit_kwargs)
 
     def predict(self, X, **predict_proba_kwargs):
         """

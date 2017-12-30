@@ -34,8 +34,8 @@ X_pool = np.transpose(
 # map the intensity values against the grid
 y_pool = np.asarray([data[P[0], P[1]] for P in X_pool])
 
-# initial training data: 100 random pixels
-initial_idx = np.random.choice(range(len(X_pool)), size=100)
+# initial training data: 1000 random pixels
+initial_idx = np.random.choice(range(len(X_pool)), size=1000)
 
 # initializing the learners
 n_learners = 3
@@ -76,5 +76,18 @@ with plt.style.context('seaborn-white'):
     for learner_idx, learner in enumerate(committee):
         plt.subplot(1, n_learners, learner_idx+1)
         plt.imshow(learner.predict(X_pool).reshape(im_height, im_width))
-        plt.title('Learner no. %d' % learner_idx)
+        plt.title('Learner no. %d after rebagging' % (learner_idx + 1))
+    plt.show()
+
+# refitting the model with bagging on a different set of data
+new_idx = np.random.choice(range(len(X_pool)), size=100)
+committee.fit(X_pool[new_idx], y_pool[new_idx], bootstrap=True)
+
+# visualizing the learners in the retrained Committee
+with plt.style.context('seaborn-white'):
+    plt.figure(figsize=(7*n_learners, 7))
+    for learner_idx, learner in enumerate(committee):
+        plt.subplot(1, n_learners, learner_idx+1)
+        plt.imshow(learner.predict(X_pool).reshape(im_height, im_width))
+        plt.title('Learner no. %d after refitting' % (learner_idx + 1))
     plt.show()
