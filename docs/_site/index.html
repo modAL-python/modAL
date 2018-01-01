@@ -11,7 +11,7 @@
 
   <title>
     
-      modAL &middot; modAL
+       &middot; Tivadar Danka
     
   </title>
 
@@ -36,138 +36,39 @@
   <div class="container sidebar-sticky">
     <div class="sidebar-about">
       <h1>
-        <a href="index">
-          modAL
+        <a href="">
+          Tivadar Danka
         </a>
       </h1>
-      <p class="lead">A modular active learning framework for Python3</p>
+      <p class="lead"></p>
     </div>
 
     <nav class="sidebar-nav">
-      <b>Overview</b>
-        <a class="sidebar-nav-item" href="index">modAL in a nutshell</a>
-        <a class="sidebar-nav-item" href="Installation">Installation</a>
-      <b>Models</b>
-        <a class="sidebar-nav-item" href="ActiveLearner">ActiveLearner</a>
-        <a class="sidebar-nav-item" href="Committee">Committee</a>
-      <b>Query strategies</b>
-        <a class="sidebar-nav-item" href="Uncertainty-sampling">Uncertainty sampling</a>
-        <a class="sidebar-nav-item" href="Disagreement-sampling">Disagreement sampling</a>
-        <a class="sidebar-nav-item" href="Extending-modAL">Extending modAL</a>
-      <b>Examples</b>
-        <a class="sidebar-nav-item" href="Pool-based-sampling">Pool-based sampling</a>
-        <a class="sidebar-nav-item" href="Stream-based-sampling">Stream-based sampling</a>
-        <a class="sidebar-nav-item" href="Active-regression">Active regression</a>
-        <a class="sidebar-nav-item" href="Query-by-committee">Query by committee</a>
-        <a class="sidebar-nav-item" href="Bootstrapping-and-bagging">Bootstrapping and bagging</a>
-        <a class="sidebar-nav-item" href="Keras-integration">Keras integration</a>
-      <b>API reference</b>
-        <a class="sidebar-nav-item" href="Models-API">modAL.models</a>
-        <a class="sidebar-nav-item" href="Uncertainty-sampling-API">modAL.uncertainty</a>
-        <a class="sidebar-nav-item" href="Disagreement-sampling-API">modAL.disagreement</a>
+      <a class="sidebar-nav-item" href="">Home</a>
+
+      
+
+      
+      
+        
+      
+        
+      
+
+      <a class="sidebar-nav-item" href="/archive/v.zip">Download</a>
+      <a class="sidebar-nav-item" href="">GitHub project</a>
+      <span class="sidebar-nav-item">Currently v</span>
     </nav>
 
-    <p>&copy; <a href="https://github.com/poole/hyde">Theme</a> by Mark Otto</p>
+    <p>&copy; 2018. All rights reserved.</p>
   </div>
 </div>
 
 
     <div class="content container">
       <div class="page">
-  <h1 id="modal">modAL</h1>
-<p>Modular Active Learning framework for Python3</p>
-
-<h2 id="page-contents">Page contents</h2>
-<ul>
-  <li><a href="#introduction">Introduction</a></li>
-  <li><a href="#active-learning">Active learning from bird’s-eye view</a></li>
-  <li><a href="#modAL-in-action">modAL in action</a>
-    <ul>
-      <li><a href="#initialization">From zero to one in a few lines of code</a></li>
-      <li><a href="#replacing-parts">Replacing parts quickly</a></li>
-      <li><a href="#replacing-parts-with-your-own-solutions">Replacing parts with your own solutions</a></li>
-      <li><a href="#working-examples">Working examples</a></li>
-    </ul>
-  </li>
-  <li><a href="#about-the-developer">About the developer</a></li>
-</ul>
-
-<h1 id="introduction">Introduction<a name="introduction"></a></h1>
-<p>ModAL is an active learning framework for Python3, designed with <em>modularity, flexibility</em> and <em>extensibility</em> in mind. Built on top of scikit-learn, it allows you to rapidly create active learning workflows with nearly complete freedom. What is more, you can easily replace parts with your custom built solutions, allowing you to design novel algorithms with ease.</p>
-
-<h1 id="active-learning-from-birds-eye-view">Active learning from bird’s-eye view<a name="active-learning"></a></h1>
-<p>Let’s take a look at a general active learning workflow!</p>
-
-<p><img src="img/active_learning.png" alt="" /></p>
-
-<p>The key components of any workflow are the <strong>model</strong> you choose, the <strong>uncertainty</strong> measure you use and the <strong>query</strong> strategy you apply to request labels. With modAL, instead of choosing from a small set of built-in components, you have the freedom to seamlessly integrate scikit-learn or Keras models into your algorithm and you can easily tailor your custom query strategies and uncertainty measures.</p>
-
-<h1 id="modal-in-action">modAL in action<a name="modAL-in-action"></a></h1>
-<p>Let’s see what modAL can do for you!</p>
-
-<h2 id="from-zero-to-one-in-a-few-lines-of-code">From zero to one in a few lines of code<a name="initialization"></a></h2>
-<p>Active learning with a scikit-learn classifier, for instance RandomForestClassifier, can be as simple as the following.</p>
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">modAL.models</span> <span class="kn">import</span> <span class="n">ActiveLearner</span>
-<span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="kn">import</span> <span class="n">RandomForestClassifier</span>
-
-<span class="c"># initializing the learner</span>
-<span class="n">learner</span> <span class="o">=</span> <span class="n">ActiveLearner</span><span class="p">(</span>
-    <span class="n">predictor</span><span class="o">=</span><span class="n">RandomForestClassifier</span><span class="p">(),</span>
-    <span class="n">X_initial</span><span class="o">=</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_initial</span><span class="o">=</span><span class="n">y_train</span>
-<span class="p">)</span>
-
-<span class="c"># query for labels</span>
-<span class="n">query_idx</span><span class="p">,</span> <span class="n">query_inst</span> <span class="o">=</span> <span class="n">learner</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">X_pool</span><span class="p">)</span>
-
-<span class="c"># ...obtaining new labels from the Oracle...</span>
-
-<span class="c"># supply label for queried instance</span>
-<span class="n">learner</span><span class="o">.</span><span class="n">teach</span><span class="p">(</span><span class="n">X_pool</span><span class="p">[</span><span class="n">query_idx</span><span class="p">],</span> <span class="n">y_new</span><span class="p">)</span>
-</code></pre></div></div>
-
-<h2 id="replacing-parts-quickly">Replacing parts quickly<a name="replacing-parts"></a></h2>
-<p>If you would like to use different uncertainty measures and query strategies than the default uncertainty sampling, you can either replace them with several built-in strategies or you can design your own by following a few very simple design principles. For instance, replacing the default uncertainty measure to classification entropy looks the following.</p>
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">modAL.models</span> <span class="kn">import</span> <span class="n">ActiveLearner</span>
-<span class="kn">from</span> <span class="nn">modAL.uncertainty</span> <span class="kn">import</span> <span class="n">entropy_sampling</span>
-<span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="kn">import</span> <span class="n">RandomForestClassifier</span>
-
-<span class="n">learner</span> <span class="o">=</span> <span class="n">ActiveLearner</span><span class="p">(</span>
-    <span class="n">predictor</span><span class="o">=</span><span class="n">RandomForestClassifier</span><span class="p">(),</span>
-    <span class="n">query_strategy</span><span class="o">=</span><span class="n">entropy_sampling</span><span class="p">,</span>
-    <span class="n">X_initial</span><span class="o">=</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_initial</span><span class="o">=</span><span class="n">y_train</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<h2 id="replacing-parts-with-your-own-solutions">Replacing parts with your own solutions<a name="replacing-parts-with-your-own-solutions"></a></h2>
-<p>modAL was designed to make it easy for you to implement your own query strategy. For example, implementing and using a simple random sampling strategy is as easy as the following.</p>
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
-
-<span class="k">def</span> <span class="nf">random_sampling</span><span class="p">(</span><span class="n">classifier</span><span class="p">,</span> <span class="n">X_pool</span><span class="p">):</span>
-    <span class="n">n_samples</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">X_pool</span><span class="p">)</span>
-    <span class="n">query_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n_samples</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">query_idx</span><span class="p">,</span> <span class="n">X_pool</span><span class="p">[</span><span class="n">query_idx</span><span class="p">]</span>
-
-<span class="n">learner</span> <span class="o">=</span> <span class="n">ActiveLearner</span><span class="p">(</span>
-    <span class="n">predictor</span><span class="o">=</span><span class="n">RandomForestClassifier</span><span class="p">(),</span>
-    <span class="n">query_strategy</span><span class="o">=</span><span class="n">random_sampling</span><span class="p">,</span>
-    <span class="n">X_initial</span><span class="o">=</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_initial</span><span class="o">=</span><span class="n">y_train</span>
-<span class="p">)</span>
-</code></pre></div></div>
-<p>For more details on how to implement your custom strategies, visit the page <a href="Extending-modAL">Extending modAL</a>!</p>
-
-<h2 id="working-examples">Working examples<a name="working-examples"></a></h2>
-<p>To see modAL in <em>real</em> action, visit the examples section!</p>
-<ul>
-  <li><a href="Pool-based-sampling">Pool-based sampling</a></li>
-  <li><a href="Stream-based-sampling">Stream-based sampling</a></li>
-  <li><a href="Active-regression">Active regression</a></li>
-  <li><a href="Query-by-committee">Query by committee</a></li>
-  <li><a href="Bootstrapping-and-bagging">Bootstrapping and bagging</a></li>
-  <li><a href="Keras-integration">Keras integration</a></li>
-</ul>
-
-<h1 id="about-the-developer">About the developer<a name="about-the-developer"></a></h1>
-<p>modAL is developed by me, <a href="https://www.tivadardanka.com">Tivadar Danka</a>. I have a PhD in pure mathematics, but I fell in love with biology and machine learning after I finished with my PhD. I have changed fields and now I work in the <a href="http://group.szbk.u-szeged.hu/sysbiol/horvath-peter-lab-index.html">Bioimage Analysis and Machine Learning Group of Peter Horvath</a>, where I am working to develop active learning strategies for intelligent sample analysis in biology. During my work I realized that in Python, creating and prototyping active learning workflows can be made really easy and fast with scikit-learn, so I ended up developing a general framework for this. The result is modAL :) If you have any questions, requests or suggestions, you can contact me at <a href="mailto:85a5187a@opayq.com">85a5187a@opayq.com</a>! I hope you’ll find modAL useful!</p>
+  <h1 class="page-title"></h1>
+  <p><strong>stay tuned</strong></p>
 
 </div>
 
