@@ -1,6 +1,5 @@
 # Dependencies
-markdown:         redcarpet
-highlighter:      pygments
+highlighter: rouge
 
 # Setup
 title: modAL

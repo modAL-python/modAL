@@ -4,5 +4,3 @@
 *#
 __pycache__
 examples/misc.py
-docs/_site/
-docs/Gemfile.lock

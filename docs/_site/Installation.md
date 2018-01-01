@@ -1,0 +1,3 @@
+# Coming soon...
+
+Stay tuned! modAL will be available as an installable package soon!

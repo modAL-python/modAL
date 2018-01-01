@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  <!-- Enable responsiveness on mobile devices-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <title>
+    
+      The Committee class &middot; modAL
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="public/css/poole.css">
+  <link rel="stylesheet" href="public/css/syntax.css">
+  <link rel="stylesheet" href="public/css/hyde.css">
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
+
+  <!-- Icons -->
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="public/apple-touch-icon-144-precomposed.png">
+                                 <link rel="shortcut icon" href="public/favicon.ico">
+
+  <!-- RSS -->
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="/atom.xml">
+</head>
+
+
+  <body>
+
+    <div class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <h1>
+        <a href="index">
+          modAL
+        </a>
+      </h1>
+      <p class="lead">A modular active learning framework for Python3</p>
+    </div>
+
+    <nav class="sidebar-nav">
+      <b>Overview</b>
+        <a class="sidebar-nav-item" href="index">modAL in a nutshell</a>
+        <a class="sidebar-nav-item" href="Installation">Installation</a>
+      <b>Models</b>
+        <a class="sidebar-nav-item" href="ActiveLearner">ActiveLearner</a>
+        <a class="sidebar-nav-item" href="Committee">Committee</a>
+      <b>Query strategies</b>
+        <a class="sidebar-nav-item" href="Uncertainty-sampling">Uncertainty sampling</a>
+        <a class="sidebar-nav-item" href="Disagreement-sampling">Disagreement sampling</a>
+        <a class="sidebar-nav-item" href="Extending-modAL">Extending modAL</a>
+      <b>Examples</b>
+        <a class="sidebar-nav-item" href="Pool-based-sampling">Pool-based sampling</a>
+        <a class="sidebar-nav-item" href="Stream-based-sampling">Stream-based sampling</a>
+        <a class="sidebar-nav-item" href="Active-regression">Active regression</a>
+        <a class="sidebar-nav-item" href="Query-by-committee">Query by committee</a>
+        <a class="sidebar-nav-item" href="Bootstrapping-and-bagging">Bootstrapping and bagging</a>
+        <a class="sidebar-nav-item" href="Keras-integration">Keras integration</a>
+      <b>API reference</b>
+        <a class="sidebar-nav-item" href="Models-API">modAL.models</a>
+        <a class="sidebar-nav-item" href="Uncertainty-sampling-API">modAL.uncertainty</a>
+        <a class="sidebar-nav-item" href="Disagreement-sampling-API">modAL.disagreement</a>
+    </nav>
+
+    <p>&copy; <a href="https://github.com/poole/hyde">Theme</a> by Mark Otto</p>
+  </div>
+</div>
+
+
+    <div class="content container">
+      <div class="page">
+  <h1 id="the-committee-class">The Committee class</h1>
+
+<p>One of the popular active learning strategies is the <em>Query by Committee</em>, where we keep several hypotheses (i.e. trained classifiers) about the data, and we select our queries by measuring the disagreement of the hypotheses. In modAL, this model is implemented in the Committee class.</p>
+
+<h2 id="page-contents">Page contents</h2>
+<ul>
+  <li><a href="#initialization">Initialization</a></li>
+  <li><a href="#iterating">Iterating through the learners of the Committee</a></li>
+  <li><a href="#training-querying">Training and querying for labels</a></li>
+  <li><a href="#bagging">Bagging</a></li>
+  <li><a href="#query-strategies">Query strategies</a></li>
+  <li><a href="#voting-predicting">Voting and predicting</a></li>
+</ul>
+
+<h2 id="initialization">Initialization<a name="initialization"></a></h2>
+<p>To create a Committee object, you need to provide two things: a list of <em>ActiveLearner</em> objects and a <em>query strategy function</em>. (A list of <em>scikit-learn estimators</em> won’t suffice, because each learner needs to keep track of the training examples it has seen.) For instance, you can do the following.</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">modAL.models</span> <span class="kn">import</span> <span class="n">Committee</span>
+<span class="kn">from</span> <span class="nn">modAL.disagreement</span> <span class="kn">import</span> <span class="n">vote_entropy_sampling</span>
+
+<span class="c"># a list of ActiveLearners:</span>
+<span class="n">learners</span> <span class="o">=</span> <span class="p">[</span><span class="n">learner_1</span><span class="p">,</span> <span class="n">learner_2</span><span class="p">]</span>
+
+<span class="n">committee</span> <span class="o">=</span> <span class="n">Committee</span><span class="p">(</span>
+    <span class="n">learner_list</span><span class="o">=</span><span class="n">learners</span><span class="p">,</span>
+    <span class="n">query_strategy</span><span class="o">=</span><span class="n">vote_entropy_sampling</span>
+<span class="p">)</span>
+</code></pre></div></div>
+<p>You can find the disagreement-based query strategies in <code class="highlighter-rouge">modAL.disagreement</code>, although a Committee works with uncertainty sampling strategies also. (Using a Committee with uncertainty sampling can be useful, for instance if you would like to build an active regression model and you need an ensemble of regressors to estimate uncertainty.)</p>
+
+<h2 id="iterating-through-the-learners-of-the-committee">Iterating through the learners of the Committee<a name="iterating"></a></h2>
+<p>Since Committee is iterable, feel free to use a <code class="highlighter-rouge">for</code> loop just as you would in any other case:</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">learner</span> <span class="ow">in</span> <span class="n">committee</span><span class="p">:</span>
+    <span class="c"># ...do something with the learner...</span>
+</code></pre></div></div>
+<p><code class="highlighter-rouge">len(committee)</code> also works, it returns the number of learners in the Committee.</p>
+
+<h2 id="training-and-querying-for-labels">Training and querying for labels<a name="training-querying"></a></h2>
+<p>Training and querying for labels work exactly the same as for the ActiveLearner. To teach new examples for the Committee, you should use the <code class="highlighter-rouge">.teach(X, y)</code> method, where <code class="highlighter-rouge">X</code> contains the new training examples and <code class="highlighter-rouge">y</code> contains the corresponding labels or values. This teaches the new training example for all learners in the Committee, hopefully improving performance.</p>
+
+<p>To select the best instances to label, use the <code class="highlighter-rouge">.query(X)</code> method, just like for the ActiveLearner. It simply calls the query strategy function you specified, which measures the utility for each sample and selects the ones having the highest utility.</p>
+
+<h2 id="bagging">Bagging<a name="bagging"></a></h2>
+<p>When building ensemble models such as in the Query by Committee setting, bagging can be useful and can improve performance. In Committee, this can be done with the methods <code class="highlighter-rouge">.bag(X, y)</code> and <code class="highlighter-rouge">.rebag()</code>. The difference between them is that <code class="highlighter-rouge">.bag(X, y)</code> makes each learner forget the data it has seen until this point and replaces it with <code class="highlighter-rouge">X</code> and <code class="highlighter-rouge">y</code>, while <code class="highlighter-rouge">.rebag()</code> refits each learner in the Committee by bootstrapping its training instances but leaving them as they were.</p>
+
+<p>Bagging is also available during teaching new examples by passing <code class="highlighter-rouge">bootstrap=True</code> for the <code class="highlighter-rouge">.teach()</code> method. Just like this:</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">committee</span><span class="o">.</span><span class="n">teach</span><span class="p">(</span><span class="n">X_new</span><span class="p">,</span> <span class="n">y_new</span><span class="p">,</span> <span class="n">bootstrap</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</code></pre></div></div>
+<p>First, this stores the new training examples and labels in each learner, then fits them using a bootstrapped subset of the known examples for the learner.</p>
+
+<h2 id="query-strategies">Query strategies<a name="query-strategies"></a></h2>
+<p>Currently, there are three built-in query by committee strategies in modAL: <em>max vote entropy</em>, <em>max uncertainty entropy</em> and <em>max disagreement</em>. They are located in the <code class="highlighter-rouge">modAL.disagreement</code> module. You can find an <a href="Disagreement-sampling">informal tutorial here</a>. For technical details, see the <a href="Disagreement-sampling-API">API reference for disagreement sampling</a>.</p>
+
+<h2 id="voting-and-predicting">Voting and predicting<a name="voting-predicting"></a></h2>
+<p>Although the API for predicting is the same for Committee than the ActiveLearner class, they are working slightly differently under the hood.</p>
+
+<p>To obtain the predictions and class probabilities <em>for each learner</em> in the Committee, you should use the <code class="highlighter-rouge">.vote(X)</code> and <code class="highlighter-rouge">.vote_proba(X)</code> methods, where <code class="highlighter-rouge">X</code> contains the samples to be predicted.
+<code class="highlighter-rouge">.vote(X)</code> returns a numpy array of shape [n_samples, n_learners] containing the class predictions according to each learner, while <code class="highlighter-rouge">.vote_proba(X)</code> returns a numpy array of shape [n_samples, n_learners, n_classes] containing the class probabilities for each learner. You don’t need to worry about different learners seeing a different set of class labels, Committee is smart about that.</p>
+
+<p>To get the predictions and class probabilities of the Committee itself, you shall use the <code class="highlighter-rouge">.predict(X)</code> and <code class="highlighter-rouge">.predict_proba()</code> methods, they are used like their <code class="highlighter-rouge">scikit-learn</code> relatives. <code class="highlighter-rouge">.predict_proba()</code> returns the class probability averaged across each learner (the so-called <em>consensus probabilities</em>), while <code class="highlighter-rouge">.predict()</code> selects the most likely label based on the consensus probabilities.</p>
+
+</div>
+
+    </div>
+
+  </body>
+</html>

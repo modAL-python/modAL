@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  <!-- Enable responsiveness on mobile devices-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <title>
+    
+      Query by committee &middot; modAL
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="public/css/poole.css">
+  <link rel="stylesheet" href="public/css/syntax.css">
+  <link rel="stylesheet" href="public/css/hyde.css">
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
+
+  <!-- Icons -->
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="public/apple-touch-icon-144-precomposed.png">
+                                 <link rel="shortcut icon" href="public/favicon.ico">
+
+  <!-- RSS -->
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="/atom.xml">
+</head>
+
+
+  <body>
+
+    <div class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <h1>
+        <a href="index">
+          modAL
+        </a>
+      </h1>
+      <p class="lead">A modular active learning framework for Python3</p>
+    </div>
+
+    <nav class="sidebar-nav">
+      <b>Overview</b>
+        <a class="sidebar-nav-item" href="index">modAL in a nutshell</a>
+        <a class="sidebar-nav-item" href="Installation">Installation</a>
+      <b>Models</b>
+        <a class="sidebar-nav-item" href="ActiveLearner">ActiveLearner</a>
+        <a class="sidebar-nav-item" href="Committee">Committee</a>
+      <b>Query strategies</b>
+        <a class="sidebar-nav-item" href="Uncertainty-sampling">Uncertainty sampling</a>
+        <a class="sidebar-nav-item" href="Disagreement-sampling">Disagreement sampling</a>
+        <a class="sidebar-nav-item" href="Extending-modAL">Extending modAL</a>
+      <b>Examples</b>
+        <a class="sidebar-nav-item" href="Pool-based-sampling">Pool-based sampling</a>
+        <a class="sidebar-nav-item" href="Stream-based-sampling">Stream-based sampling</a>
+        <a class="sidebar-nav-item" href="Active-regression">Active regression</a>
+        <a class="sidebar-nav-item" href="Query-by-committee">Query by committee</a>
+        <a class="sidebar-nav-item" href="Bootstrapping-and-bagging">Bootstrapping and bagging</a>
+        <a class="sidebar-nav-item" href="Keras-integration">Keras integration</a>
+      <b>API reference</b>
+        <a class="sidebar-nav-item" href="Models-API">modAL.models</a>
+        <a class="sidebar-nav-item" href="Uncertainty-sampling-API">modAL.uncertainty</a>
+        <a class="sidebar-nav-item" href="Disagreement-sampling-API">modAL.disagreement</a>
+    </nav>
+
+    <p>&copy; <a href="https://github.com/poole/hyde">Theme</a> by Mark Otto</p>
+  </div>
+</div>
+
+
+    <div class="content container">
+      <div class="page">
+  <h1 id="query-by-committee">Query by committee</h1>
+<p><em>Query by committee</em> is another popular active learning strategy, which alleviates many disadvantages of uncertainty sampling. For instance, uncertainty sampling tends to be biased towards the actual learner and it may miss important examples which are not in the sight of the estimator. This is fixed by keeping several hypotheses at the same time, selecting queries where disagreement occurs between them. In this example, we shall see how this works in the simplest case, using the iris dataset.</p>
+
+<p>The executable script for this example is <a href="https://github.com/cosmic-cortex/modAL/blob/master/examples/query_by_committee.py">available here!</a></p>
+
+<h2 id="the-dataset">The dataset</h2>
+<p>We are going to use the iris dataset for this example. For more information on the iris dataset, see <a href="https://en.wikipedia.org/wiki/Iris_flower_data_set">its wikipedia page</a>. For its scikit-learn interface, see <a href="http://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_iris.html">the scikit-learn documentation</a>.</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># loading the iris dataset</span>
+<span class="n">iris</span> <span class="o">=</span> <span class="n">load_iris</span><span class="p">()</span>
+
+<span class="c"># generate the pool</span>
+<span class="n">X_pool</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">iris</span><span class="p">[</span><span class="s">'data'</span><span class="p">])</span>
+<span class="n">y_pool</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">iris</span><span class="p">[</span><span class="s">'target'</span><span class="p">])</span>
+</code></pre></div></div>
+
+<p>If you perform a PCA on the iris dataset, here is how it looks like:</p>
+
+<p><img src="/img/qbc-iris_pca.png" alt="pbs-iris_PCA" /></p>
+
+<h2 id="initializing-the-committee">Initializing the Committee</h2>
+<p>In this example, we are going to use the <code class="highlighter-rouge">Committee</code> class from <code class="highlighter-rouge">modAL.models</code>. Its interface is almost exactly identical to the <code class="highlighter-rouge">ActiveLearner</code>. Upon initialization, <code class="highlighter-rouge">Committee</code> requires a list of active learners.</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># initializing Committee members</span>
+<span class="n">n_members</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">learner_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">member_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_members</span><span class="p">):</span>
+    <span class="c"># initial training data</span>
+    <span class="n">n_initial</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">train_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">X_pool</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">size</span><span class="o">=</span><span class="n">n_initial</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="n">X_train</span> <span class="o">=</span> <span class="n">X_pool</span><span class="p">[</span><span class="n">train_idx</span><span class="p">]</span>
+    <span class="n">y_train</span> <span class="o">=</span> <span class="n">y_pool</span><span class="p">[</span><span class="n">train_idx</span><span class="p">]</span>
+
+    <span class="c"># creating a reduced copy of the data with the known instances removed</span>
+    <span class="n">X_pool</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">X_pool</span><span class="p">,</span> <span class="n">train_idx</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">y_pool</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">y_pool</span><span class="p">,</span> <span class="n">train_idx</span><span class="p">)</span>
+
+    <span class="c"># initializing learner</span>
+    <span class="n">learner</span> <span class="o">=</span> <span class="n">ActiveLearner</span><span class="p">(</span>
+        <span class="n">predictor</span><span class="o">=</span><span class="n">RandomForestClassifier</span><span class="p">(),</span>
+        <span class="n">X_initial</span><span class="o">=</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_initial</span><span class="o">=</span><span class="n">y_train</span>
+    <span class="p">)</span>
+    <span class="n">learner_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">learner</span><span class="p">)</span>
+
+<span class="c"># assembling the committee</span>
+<span class="n">committee</span> <span class="o">=</span> <span class="n">Committee</span><span class="p">(</span><span class="n">learner_list</span><span class="o">=</span><span class="n">learner_list</span><span class="p">)</span>
+</code></pre></div></div>
+<p>As you can see, the various hypotheses (which are taking the form of ActiveLearners) can be quite different.</p>
+
+<p><img src="/img/qbc-initial_learners.png" alt="qbc-initial_learners" /></p>
+
+<p>Prediction is done by averaging the class probabilities for each learner and chosing the most likely class.</p>
+
+<p><img src="/img/qbc-initial_committee.png" alt="qbc-initial_committee" /></p>
+
+<h2 id="active-learning">Active learning</h2>
+<p>The active learning loop is the same as for the <code class="highlighter-rouge">ActiveLearner</code>.</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># query by committee</span>
+<span class="n">n_queries</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_queries</span><span class="p">):</span>
+    <span class="n">query_idx</span><span class="p">,</span> <span class="n">query_instance</span> <span class="o">=</span> <span class="n">committee</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">X_pool</span><span class="p">)</span>
+    <span class="n">committee</span><span class="o">.</span><span class="n">teach</span><span class="p">(</span>
+        <span class="n">X</span><span class="o">=</span><span class="n">X_pool</span><span class="p">[</span><span class="n">query_idx</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+        <span class="n">y</span><span class="o">=</span><span class="n">y_pool</span><span class="p">[</span><span class="n">query_idx</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="c"># remove queried instance from pool</span>
+    <span class="n">X_pool</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">X_pool</span><span class="p">,</span> <span class="n">query_idx</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">y_pool</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">y_pool</span><span class="p">,</span> <span class="n">query_idx</span><span class="p">)</span>
+</code></pre></div></div>
+<p>After a few queries, the hypotheses straighten out their disagreements and they reach consensus. Prediction accuracy is greatly improved in this case.</p>
+
+<p><img src="/img/qbc-final_learners.png" alt="qbc-final_learners" /></p>
+
+<p><img src="/img/qbc-final_committee.png" alt="qbc-final_committee" /></p>
+
+
+</div>
+
+    </div>
+
+  </body>
+</html>
