@@ -2,9 +2,9 @@
 When you present unlabelled examples to an active learner, it finds you the most *useful* example and presents it for you to be labelled. This is done by first calculating the *usefulness* of prediction (whatever it means) for each example and select an instance based on the usefulness. The thing is, there are several ways to measure this. They are based upon the classification uncertainty, hence they are called *uncertainty measures*. In modAL, currently you can select from three built-in measures: *classification uncertainty*, *classification margin* and *classification entropy*. In the following, these are shortly reviewed. For more details, see Section 2.3 of the awesome book *Active learning* by Burr Settles.
 
 ## Page contents
-[Classification uncertainty](#uncertainty)  
-[Classification margin](#margin)  
-[Classification entropy](#entropy)  
+- [Classification uncertainty](#uncertainty)  
+- [Classification margin](#margin)  
+- [Classification entropy](#entropy)  
 
 ## Classification uncertainty<a name="uncertainty"></a>
 The simplest measure is the uncertainty of classification defined by

@@ -3,15 +3,14 @@ Similarly to modAL.uncertainty, this module contains two type of functions: disa
 
 ## Page contents
 
-[Query by Committee strategies](#query-by-commmittee)  
-* [Vote entropy sampling](#vote-entropy-sampling)  
-* [Consensus entropy sampling](#consensus-entropy-sampling)  
-* [Maximum disagreement sampling](#maximum-disagreement-sampling)  
-
-[Disagreement measures](#disagreement-measures)  
-* [Vote entropy](#vote-entropy)  
-* [Consensus entropy](#consensus-entropy)  
-* [Maximum disagreement](#maximum-disagreement)  
+- [Query by Committee strategies](#query-by-commmittee)
+  - [Vote entropy sampling](#vote-entropy-sampling)
+  - [Consensus entropy sampling](#consensus-entropy-sampling)
+  - [Maximum disagreement sampling](#maximum-disagreement-sampling)
+- [Disagreement measures](#disagreement-measures)
+  - [Vote entropy](#vote-entropy)
+  - [Consensus entropy](#consensus-entropy)
+  - [Maximum disagreement](#maximum-disagreement)
 
 # Query by Committee strategies<a name="query-by-committee"></a>
 

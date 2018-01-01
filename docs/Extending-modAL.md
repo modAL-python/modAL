@@ -2,8 +2,8 @@
 modAL was designed for researchers, allowing quick and efficient prototyping. For this purpose, modAL makes it easy for you to use your customly designed parts, for instance query strategies or new classifier algorithms.
 
 ## Page contents
-[Writing your own query strategy](#query-strategy)  
-[Using your custom estimators](#custom-estimators)
+- [Writing your own query strategy](#query-strategy)  
+- [Using your custom estimators](#custom-estimators)
 
 ## Writing your own query strategy<a name="query-strategy"></a>
 In modAL, a query strategy for active learning is implemented as a function, taking an estimator with a bunch of data and turning it into a data point from the data you supplied to it. Exactly like in the following.

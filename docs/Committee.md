@@ -3,12 +3,12 @@
 One of the popular active learning strategies is the *Query by Committee*, where we keep several hypotheses (i.e. trained classifiers) about the data, and we select our queries by measuring the disagreement of the hypotheses. In modAL, this model is implemented in the Committee class.
 
 ## Page contents
-[Initialization](#initialization)  
-[Iterating through the learners of the Committee](#iterating)  
-[Training and querying for labels](#training-querying)  
-[Bagging](#bagging)  
-[Query strategies](#query-strategies)  
-[Voting and predicting](#voting-predicting)
+- [Initialization](#initialization)  
+- [Iterating through the learners of the Committee](#iterating)  
+- [Training and querying for labels](#training-querying)  
+- [Bagging](#bagging)  
+- [Query strategies](#query-strategies)  
+- [Voting and predicting](#voting-predicting)
 
 ## Initialization<a name="initialization"></a>
 To create a Committee object, you need to provide two things: a list of *ActiveLearner* objects and a *query strategy function*. (A list of *scikit-learn estimators* won't suffice, because each learner needs to keep track of the training examples it has seen.) For instance, you can do the following.
@@ -42,9 +42,9 @@ To select the best instances to label, use the ```.query(X)``` method, just like
 ## Bagging<a name="bagging"></a>
 When building ensemble models such as in the Query by Committee setting, bagging can be useful and can improve performance. In Committee, this can be done with the methods ```.bag(X, y)``` and ```.rebag()```. The difference between them is that ```.bag(X, y)``` makes each learner forget the data it has seen until this point and replaces it with ```X``` and ```y```, while ```.rebag()``` refits each learner in the Committee by bootstrapping its training instances but leaving them as they were.
 
-Bagging is also available during teaching new examples by passing ```bagging=True``` for the ```.teach()``` method. Just like this:
+Bagging is also available during teaching new examples by passing ```bootstrap=True``` for the ```.teach()``` method. Just like this:
 ```python
-committee.teach(X_new, y_new, bagging=True)
+committee.teach(X_new, y_new, bootstrap=True)
 ```
 First, this stores the new training examples and labels in each learner, then fits them using a bootstrapped subset of the known examples for the learner.
 

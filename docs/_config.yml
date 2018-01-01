@@ -1,1 +1,9 @@
-theme: jekyll-theme-minimal
+# Dependencies
+markdown:         redcarpet
+highlighter:      pygments
+
+# Setup
+title: modAL
+author: Tivadar Danka
+twitter_username: tivadardanka
+github_username: cosmic-cortex

@@ -2,15 +2,14 @@
 The module contains two type of functions: uncertainty measures and sampling strategies. Uncertainty measures take a classifier and an array of samples as input and they return an array of corresponding uncertainties. Sampling strategies take the same input but they return the samples to be labelled by the Oracle.
 
 ## Page contents
-[Query strategies](#query-strategies)  
-* [Uncertainty sampling](#uncertainty-sampling)  
-* [Margin sampling](#margin-sampling)  
-* [Entropy sampling](#entropy-sampling)
-
-[Uncertainty measures](#uncertainty-measures)  
-* [Classifier uncertainty](#classifier-uncertainty)  
-* [Classifier margin](#classifier-margin)  
-* [Classifier entropy](#classifier-entropy)  
+- [Query strategies](#query-strategies)
+  - [Uncertainty sampling](#uncertainty-sampling)
+  - [Margin sampling](#margin-sampling)
+  - [Entropy sampling](#entropy-sampling)
+- [Uncertainty measures](#uncertainty-measures)
+  - [Classifier uncertainty](#classifier-uncertainty)
+  - [Classifier margin](#classifier-margin)
+  - [Classifier entropy](#classifier-entropy)
 
 # Query strategies<a name="query-strategies"></a>
 

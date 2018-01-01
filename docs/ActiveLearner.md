@@ -2,12 +2,12 @@
 In modAL, the base active learning model is the ActiveLearner class. In this short tutorial, we are going to see how to use it and what are its basic functionalities.
 
 ## Page contents
-[Initialization](#initialization)  
-[Training](#training)  
-[Bootstrapping](#bootstrapping)  
-[Querying for labels](#querying)  
-[Query strategies](#query-strategies)  
-[Prediction and scoring](#prediction)  
+- [Initialization](#initialization)  
+- [Training](#training)  
+- [Bootstrapping](#bootstrapping)  
+- [Querying for labels](#querying)  
+- [Query strategies](#query-strategies)  
+- [Prediction and scoring](#prediction)  
 
 ## Initialization<a name="initialization"></a>
 To create an ActiveLearner object, you need to provide two things: a *scikit-learn estimator object* and a *query strategy function*. Regarding the latter, you can find built-ins in ```modAL.uncertainty```, but you can also implement your own. For instance, you can just simply do the following.

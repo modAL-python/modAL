@@ -3,23 +3,22 @@ Currently, modAL supports two popular active learning models: *uncertainty based
 
 ## Page contents
 
-[ActiveLearner](#ActiveLearner)
-* [ActiveLearner.fit(X, y, bootstrap=False)](#ActiveLearner.fit)  
-* [ActiveLearner.predict(X)](#ActiveLearner.predict)  
-* [ActiveLearner.predict_proba(X)](#ActiveLearner.predict_proba)  
-* [ActiveLearner.query(X)](#ActiveLearner.query)  
-* [ActiveLearner.score(X, y)](#ActiveLearner.score)  
-* [ActiveLearner.teach(X, y, bootstrap=False)](#ActiveLearner.teach)
-
-[Committee](#Committee)
-* [Committee.fit(X, y)](#Committee.fit)  
-* [Committee.predict(X)](#Committee.predict)  
-* [Committee.predict_proba(X)](#Committee.predict_proba)  
-* [Committee.query(X)](#Committee.query)  
-* [Committee.rebag()](#Committee.bag)  
-* [Committee.teach(X, y, bootstrap=False)](#Committee.teach)  
-* [Committee.vote(X)](#Committee.vote)  
-* [Committee.vote_proba(X)](#Committee.vote_proba)
+- [ActiveLearner](#ActiveLearner)
+  - [ActiveLearner.fit(X, y, bootstrap=False)](#ActiveLearner.fit)
+  - [ActiveLearner.predict(X)](#ActiveLearner.predict)
+  - [ActiveLearner.predict_proba(X)](#ActiveLearner.predict_proba)
+  - [ActiveLearner.query(X)](#ActiveLearner.query)
+  - [ActiveLearner.score(X, y)](#ActiveLearner.score)
+  - [ActiveLearner.teach(X, y, bootstrap=False)](#ActiveLearner.teach)
+- [Committee](#Committee)
+  - [Committee.fit(X, y)](#Committee.fit)
+  - [Committee.predict(X)](#Committee.predict)
+  - [Committee.predict_proba(X)](#Committee.predict_proba)
+  - [Committee.query(X)](#Committee.query)
+  - [Committee.rebag()](#Committee.bag)
+  - [Committee.teach(X, y, bootstrap=False)](#Committee.teach)
+  - [Committee.vote(X)](#Committee.vote)
+  - [Committee.vote_proba(X)](#Committee.vote_proba)
 
 # ActiveLearner<a name="ActiveLearner"></a>
 This class is an abstract model of a general active learning algorithm.
@@ -38,7 +37,7 @@ This class is an abstract model of a general active learning algorithm.
 *y_initial*: None or numpy.ndarray of shape (n_samples, )  
     Initial training labels corresponding to initial training samples
 
-*bootstrap_init*: boolean
+*bootstrap_init*: boolean  
     If initial training data is available, bootstrapping can be done
     during the first training. Useful when building Committee models
     with bagging.
@@ -105,7 +104,7 @@ learning loop.
 *y*: numpy.ndarray of shape (n_samples, )  
     The corresponding labels.
 
-*bootstrap*: boolean
+*bootstrap*: boolean  
     If true, trains the estimator on a set bootstrapped from X. Useful for building
     Committee models with bagging.
 
@@ -194,7 +193,7 @@ with the augmented dataset.
 *y*: numpy.ndarray of shape (n_samples, )  
     Labels corresponding to the new instances in X.
 
-*bootstrap*: boolean
+*bootstrap*: boolean  
     If True, training is done on a bootstrapped dataset. Useful for building
     Committee models with bagging.
 
@@ -348,7 +347,7 @@ and retrains the Committee with the augmented dataset.
 *y*: numpy.ndarray of shape (n_samples, )  
     Labels corresponding to the new instances in X.
 
-*bootstrap*: boolean
+*bootstrap*: boolean  
     If True, trains each learner on a bootstrapped set. Useful
     when building the ensemble by bagging.
 
