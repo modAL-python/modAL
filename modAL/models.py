@@ -318,6 +318,144 @@ class BaseCommittee(ABC):
         self._learner_list = learner_list
         self.query_strategy = query_strategy
 
+    def _add_training_data(self, X, y):
+        """
+        Adds the new data and label to the known data for each learner,
+        but does not retrain the model.
+
+        Parameters
+        ----------
+        X: numpy.ndarray of shape (n_samples, n_features)
+            The new samples for which the labels are supplied
+            by the expert.
+
+        y: numpy.ndarray of shape (n_samples, )
+            Labels corresponding to the new instances in X.
+
+        Note
+        ----
+        If the learners have been fitted, the features in X
+        have to agree with the training samples which the
+        classifier has seen.
+        """
+        for learner in self._learner_list:
+            learner._add_training_data(X, y)
+        self._set_classes()
+
+    def _fit_to_known(self, bootstrap=False, **fit_kwargs):
+        """
+        Fits all learners to the training data and labels provided to it so far.
+
+        Parameters
+        ----------
+        bootstrap: boolean
+            If True, each estimator is trained on a bootstrapped dataset. Useful when
+            using bagging to build the ensemble.
+
+        fit_kwargs: keyword arguments
+            Keyword arguments to be passed to the fit method of the predictor.
+        """
+        for learner in self._learner_list:
+            learner._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
+
+    def fit(self, X, y, **fit_kwargs):
+        """
+        Fits every learner in the Committee to a subset sampled with replacement from X.
+        Calling this method makes the learner forget the data it has seen up until this point and
+        replaces it with X! If you would like to perform bootstrapping on each learner using the
+        data it has seen, use the method .rebag()!
+
+        Parameters
+        ----------
+        X: numpy.ndarray of shape (n_samples, n_features)
+            The samples to be fitted.
+
+        y: numpy.ndarray of shape (n_samples, )
+            The corresponding labels.
+
+        fit_kwargs: keyword arguments
+            Keyword arguments to be passed to the fit method of the predictor.
+
+        DANGER ZONE
+        -----------
+        Calling this method makes the learner forget the data it has seen up until this point and
+        replaces it with X!
+        """
+        for learner in self._learner_list:
+            learner.fit(X, y, **fit_kwargs)
+
+    def query(self, X, **query_kwargs):
+        """
+        Finds the n_instances most informative point in the data provided by calling
+        the query_strategy function. Returns the queried instances and its indices.
+
+        Parameters
+        ----------
+        X: numpy.ndarray of shape (n_samples, n_features)
+            The pool of samples from which the query strategy should choose
+            instances to request labels.
+
+        query_kwargs: keyword arguments
+            Keyword arguments for the uncertainty measure function
+
+        Returns
+        -------
+        query_idx: numpy.ndarray of shape (n_instances, )
+            The indices of the instances from X_pool chosen to be labelled.
+
+        X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+            The instances from X_pool chosen to be labelled.
+        """
+        check_array(X, ensure_2d=True)
+
+        query_idx, query_instances = self.query_strategy(self, X, **query_kwargs)
+        return query_idx, X[query_idx]
+
+    def rebag(self, **fit_kwargs):
+        """
+        Refits every learner with a dataset bootstrapped from its training instances. Contrary to
+        .bag(), it bootstraps the training data for each learner based on its own examples.
+
+        Parameters
+        ----------
+        fit_kwargs: keyword arguments
+            Keyword arguments to be passed to the fit method of the predictor.
+        """
+        self._fit_to_known(bootstrap=True, **fit_kwargs)
+
+    def teach(self, X, y, bootstrap=False, **fit_kwargs):
+        """
+        Adds X and y to the known training data for each learner
+        and retrains the Committee with the augmented dataset.
+
+        Parameters
+        ----------
+        X: numpy.ndarray of shape (n_samples, n_features)
+            The new samples for which the labels are supplied
+            by the expert.
+
+        y: numpy.ndarray of shape (n_samples, )
+            Labels corresponding to the new instances in X.
+
+        bootstrap: boolean
+            If True, trains each learner on a bootstrapped set. Useful
+            when building the ensemble by bagging.
+
+        fit_kwargs: keyword arguments
+            Keyword arguments to be passed to the fit method
+            of the predictor.
+        """
+        self._add_training_data(X, y)
+        self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
+
+    @abstractmethod
+    def predict(self, X):
+        pass
+
+    @abstractmethod
+    def vote(self, X):
+        pass
+
 
 class Committee(BaseCommittee):
     """
@@ -394,46 +532,6 @@ class Committee(BaseCommittee):
     def __len__(self):
         return len(self._learner_list)
 
-    def _add_training_data(self, X, y):
-        """
-        Adds the new data and label to the known data for each learner,
-        but does not retrain the model.
-
-        Parameters
-        ----------
-        X: numpy.ndarray of shape (n_samples, n_features)
-            The new samples for which the labels are supplied
-            by the expert.
-
-        y: numpy.ndarray of shape (n_samples, )
-            Labels corresponding to the new instances in X.
-
-        Note
-        ----
-        If the learners have been fitted, the features in X
-        have to agree with the training samples which the
-        classifier has seen.
-        """
-        for learner in self._learner_list:
-            learner._add_training_data(X, y)
-        self._set_classes()
-
-    def _fit_to_known(self, bootstrap=False, **fit_kwargs):
-        """
-        Fits all learners to the training data and labels provided to it so far.
-
-        Parameters
-        ----------
-        bootstrap: boolean
-            If True, each estimator is trained on a bootstrapped dataset. Useful when
-            using bagging to build the ensemble.
-
-        fit_kwargs: keyword arguments
-            Keyword arguments to be passed to the fit method of the predictor.
-        """
-        for learner in self._learner_list:
-            learner._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
-
     def _set_classes(self):
         """
         Checks the known class labels by each learner, merges the labels and
@@ -447,32 +545,6 @@ class Committee(BaseCommittee):
             axis=0
         )
         self.n_classes_ = len(self.classes_)
-
-    def fit(self, X, y, **fit_kwargs):
-        """
-        Fits every learner in the Committee to a subset sampled with replacement from X.
-        Calling this method makes the learner forget the data it has seen up until this point and
-        replaces it with X! If you would like to perform bootstrapping on each learner using the
-        data it has seen, use the method .rebag()!
-
-        Parameters
-        ----------
-        X: numpy.ndarray of shape (n_samples, n_features)
-            The samples to be fitted.
-
-        y: numpy.ndarray of shape (n_samples, )
-            The corresponding labels.
-
-        fit_kwargs: keyword arguments
-            Keyword arguments to be passed to the fit method of the predictor.
-
-        DANGER ZONE
-        -----------
-        Calling this method makes the learner forget the data it has seen up until this point and
-        replaces it with X!
-        """
-        for learner in self._learner_list:
-            learner.fit(X, y, **fit_kwargs)
 
     def predict(self, X, **predict_proba_kwargs):
         """
@@ -520,70 +592,6 @@ class Committee(BaseCommittee):
             Class probabilities for X.
         """
         return np.mean(self.vote_proba(X, **predict_proba_kwargs), axis=1)
-
-    def query(self, X, **query_kwargs):
-        """
-        Finds the n_instances most informative point in the data provided by calling
-        the query_strategy function. Returns the queried instances and its indices.
-
-        Parameters
-        ----------
-        X: numpy.ndarray of shape (n_samples, n_features)
-            The pool of samples from which the query strategy should choose
-            instances to request labels.
-
-        query_kwargs: keyword arguments
-            Keyword arguments for the uncertainty measure function
-
-        Returns
-        -------
-        query_idx: numpy.ndarray of shape (n_instances, )
-            The indices of the instances from X_pool chosen to be labelled.
-
-        X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
-            The instances from X_pool chosen to be labelled.
-        """
-        check_array(X, ensure_2d=True)
-
-        query_idx, query_instances = self.query_strategy(self, X, **query_kwargs)
-        return query_idx, X[query_idx]
-
-    def rebag(self, **fit_kwargs):
-        """
-        Refits every learner with a dataset bootstrapped from its training instances. Contrary to
-        .bag(), it bootstraps the training data for each learner based on its own examples.
-
-        Parameters
-        ----------
-        fit_kwargs: keyword arguments
-            Keyword arguments to be passed to the fit method of the predictor.
-        """
-        self._fit_to_known(bootstrap=True, **fit_kwargs)
-
-    def teach(self, X, y, bootstrap=False, **fit_kwargs):
-        """
-        Adds X and y to the known training data for each learner
-        and retrains the Committee with the augmented dataset.
-
-        Parameters
-        ----------
-        X: numpy.ndarray of shape (n_samples, n_features)
-            The new samples for which the labels are supplied
-            by the expert.
-
-        y: numpy.ndarray of shape (n_samples, )
-            Labels corresponding to the new instances in X.
-
-        bootstrap: boolean
-            If True, trains each learner on a bootstrapped set. Useful
-            when building the ensemble by bagging.
-
-        fit_kwargs: keyword arguments
-            Keyword arguments to be passed to the fit method
-            of the predictor.
-        """
-        self._add_training_data(X, y)
-        self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
     def vote(self, X, **predict_kwargs):
         """
