@@ -342,5 +342,14 @@ class TestCommittee(unittest.TestCase):
                 )
 
 
+class TestCommitteeRegressor(unittest.TestCase):
+
+    def test_predict(self):
+        pass
+
+    def test_vote(self):
+        pass
+    
+
 if __name__ == '__main__':
     unittest.main()

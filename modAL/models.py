@@ -563,7 +563,6 @@ class Committee(BaseCommittee):
         -------
         prediction: numpy.ndarray of shape (n_samples, )
             The predicted class labels for X.
-
         """
         # getting average certainties
         proba = self.predict_proba(X, **predict_proba_kwargs)
@@ -609,7 +608,7 @@ class Committee(BaseCommittee):
         Returns
         -------
         vote: numpy.ndarray of shape (n_samples, n_learners)
-            The predicted class probability for each learner in the Committee
+            The predicted class for each learner in the Committee
             and each sample in X.
         """
         check_array(X, ensure_2d=True)
@@ -663,6 +662,44 @@ class Committee(BaseCommittee):
                 )
 
         return proba
+
+
+class CommitteeRegressor(BaseCommittee):
+    """
+    Committee model for regressors.
+    """
+    def predict(self, X, return_std=False, **predict_kwargs):
+        vote = self.vote(X, **predict_kwargs)
+        if not return_std:
+            return np.mean(vote, axis=0)
+        else:
+            return np.mean(vote, axis=0), np.std(vote, axis=0)
+
+    def vote(self, X, **predict_kwargs):
+        """
+        Predicts the values for the supplied data for each regressor in the
+        CommitteeRegressor.
+
+        Parameters
+        ----------
+        X: numpy.ndarray of shape (n_samples, n_features)
+            The samples to cast votes.
+
+        predict_kwargs: keyword arguments
+            Keyword arguments to be passed for the learners .predict() method.
+
+        Returns
+        -------
+        vote: numpy.ndarray of shape (n_samples, n_learners)
+            The predicted value for each regressor in the Committee and each sample in X.
+        """
+        check_array(X, ensure_2d=True)
+        prediction = np.zeros(shape=(X.shape[0], len(self._learner_list)))
+
+        for learner_idx, learner in enumerate(self._learner_list):
+            prediction[:, learner_idx] = learner.predict(X, **predict_kwargs)
+
+        return prediction
 
 
 if __name__ == '__main__':
