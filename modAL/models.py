@@ -3,6 +3,7 @@ Core models for active learning algorithms.
 """
 
 import numpy as np
+from abc import ABC, abstractmethod
 from sklearn.utils import check_array
 from modAL.utils.validation import check_class_labels, check_class_proba
 from modAL.uncertainty import uncertainty_sampling
@@ -305,7 +306,20 @@ class ActiveLearner:
         self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
 
-class Committee:
+class BaseCommittee(ABC):
+    def __init__(
+            self,
+            learner_list,                                        # list of ActiveLearner objects
+            query_strategy=vote_entropy_sampling                 # callable to query labels
+
+    ):
+        assert type(learner_list) == list, 'learners must be supplied in a list'
+
+        self._learner_list = learner_list
+        self.query_strategy = query_strategy
+
+
+class Committee(BaseCommittee):
     """
     This class is an abstract model of a committee-based active learning algorithm.
 
@@ -370,9 +384,7 @@ class Committee:
     ):
         assert type(learner_list) == list, 'learners must be supplied in a list'
 
-        self._learner_list = learner_list
-        self.query_strategy = query_strategy
-
+        super().__init__(learner_list, query_strategy)
         self._set_classes()
 
     def __iter__(self):
