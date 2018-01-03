@@ -348,8 +348,14 @@ class TestCommitteeRegressor(unittest.TestCase):
         pass
 
     def test_vote(self):
-        pass
-    
+        for n_members in range(1, 20):
+            for n_instances in range(1, 100):
+                for vote_output in random_array((n_instances, n_members), 10):
+                    # assembling the Committee
+                    learner_list = [mock.MockActiveLearner(predict_return=vote_output[:, member_idx])
+                                    for member_idx in range(n_members)]
+                    modAL.models.Committee(learner_list=learner_list)
+
 
 if __name__ == '__main__':
     unittest.main()
