@@ -694,10 +694,10 @@ class CommitteeRegressor(BaseCommittee):
             The predicted value for each regressor in the Committee and each sample in X.
         """
         check_array(X, ensure_2d=True)
-        prediction = np.zeros(shape=(X.shape[0], len(self._learner_list)))
+        prediction = list()
 
-        for learner_idx, learner in enumerate(self._learner_list):
-            prediction[:, learner_idx] = learner.predict(X, **predict_kwargs)
+        for learner in self._learner_list:
+            prediction.append(learner.predict(X, **predict_kwargs))
 
         return prediction
 
