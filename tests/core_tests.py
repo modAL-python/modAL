@@ -369,26 +369,27 @@ class TestCommitteeRegressor(unittest.TestCase):
     def test_predict(self):
         for n_members in range(1, 10):
             for n_instances in range(1, 100):
-                vote = [np.random.rand(n_instances) for _ in range(n_members)]
+                vote = np.random.rand(n_instances, n_members)
                 # assembling the Committee
-                learner_list = [mock.MockActiveLearner(predict_return=vote[member_idx])
+                learner_list = [mock.MockActiveLearner(predict_return=vote[:, member_idx])
                                 for member_idx in range(n_members)]
                 committee = modAL.models.CommitteeRegressor(learner_list=learner_list)
                 np.testing.assert_array_almost_equal(
                     committee.predict(np.random.rand(n_instances).reshape(-1, 1), return_std=False),
-                    np.mean(vote, axis=0)
+                    np.mean(vote, axis=1)
                 )
                 np.testing.assert_array_almost_equal(
                     committee.predict(np.random.rand(n_instances).reshape(-1, 1), return_std=True),
-                    (np.mean(vote, axis=0), np.std(vote, axis=0))
+                    (np.mean(vote, axis=1), np.std(vote, axis=1))
                 )
+
 
     def test_vote(self):
         for n_members in range(1, 10):
             for n_instances in range(1, 100):
-                vote_output = [np.random.rand(n_instances) for _ in range(n_members)]
+                vote_output = np.random.rand(n_instances, n_members)
                 # assembling the Committee
-                learner_list = [mock.MockActiveLearner(predict_return=vote_output[member_idx])
+                learner_list = [mock.MockActiveLearner(predict_return=vote_output[:, member_idx])
                                 for member_idx in range(n_members)]
                 committee = modAL.models.CommitteeRegressor(learner_list=learner_list)
                 np.testing.assert_array_almost_equal(

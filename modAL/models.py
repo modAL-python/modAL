@@ -753,9 +753,9 @@ class CommitteeRegressor(BaseCommittee):
         """
         vote = self.vote(X, **predict_kwargs)
         if not return_std:
-            return np.mean(vote, axis=0)
+            return np.mean(vote, axis=1)
         else:
-            return np.mean(vote, axis=0), np.std(vote, axis=0)
+            return np.mean(vote, axis=1), np.std(vote, axis=1)
 
     def vote(self, X, **predict_kwargs):
         """
@@ -771,14 +771,14 @@ class CommitteeRegressor(BaseCommittee):
 
         Returns
         -------
-        vote: numpy.ndarray of shape (n_samples, n_learners)
-            The predicted value for each regressor in the Committee and each sample in X.
+        vote: numpy.ndarray of shape (n_samples, n_regressors)
+            The predicted value for each regressor in the CommitteeRegressor and each sample in X.
         """
         check_array(X, ensure_2d=True)
-        prediction = list()
+        prediction = np.zeros(shape=(len(X), len(self._learner_list)))
 
-        for learner in self:
-            prediction.append(learner.predict(X, **predict_kwargs))
+        for learner_idx, learner in enumerate(self._learner_list):
+            prediction[:, learner_idx] = learner.predict(X, **predict_kwargs).reshape(-1, )
 
         return prediction
 
