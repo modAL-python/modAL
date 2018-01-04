@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from sklearn.utils import check_array
 from modAL.utils.validation import check_class_labels, check_class_proba
 from modAL.uncertainty import uncertainty_sampling
-from modAL.disagreement import vote_entropy_sampling
+from modAL.disagreement import vote_entropy_sampling, regressor_std_sampling
 
 
 class ActiveLearner:
@@ -310,7 +310,7 @@ class BaseCommittee(ABC):
     def __init__(
             self,
             learner_list,                                        # list of ActiveLearner objects
-            query_strategy=vote_entropy_sampling                 # callable to query labels
+            query_strategy                                       # callable to query labels
 
     ):
         assert type(learner_list) == list, 'learners must be supplied in a list'
@@ -724,6 +724,16 @@ class CommitteeRegressor(BaseCommittee):
     ...     query_idx, query_instance = committee.query(X.reshape(-1, 1))
     ...     committee.teach(X[query_idx].reshape(-1, 1), y[query_idx].reshape(-1, 1))
     """
+    def __init__(
+            self,
+            learner_list,                                        # list of ActiveLearner objects
+            query_strategy=regressor_std_sampling                # callable to query labels
+
+    ):
+        assert type(learner_list) == list, 'learners must be supplied in a list'
+
+        super().__init__(learner_list, query_strategy)
+
     def predict(self, X, return_std=False, **predict_kwargs):
         """
         Predicts the values of the samples by averaging the prediction of each regressor.
