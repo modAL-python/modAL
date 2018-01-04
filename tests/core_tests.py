@@ -352,9 +352,16 @@ class TestCommitteeRegressor(unittest.TestCase):
             for n_instances in range(1, 100):
                 for vote_output in random_array((n_instances, n_members), 10):
                     # assembling the Committee
-                    learner_list = [mock.MockActiveLearner(predict_return=vote_output[:, member_idx])
+                    learner_list = [mock.MockActiveLearner(
+                                        predict_return=vote_output[:, member_idx],
+                                        predictor=mock.MockClassifier(classes_=[0])
+                                    )
                                     for member_idx in range(n_members)]
-                    modAL.models.Committee(learner_list=learner_list)
+                    committee = modAL.models.Committee(learner_list=learner_list)
+                    np.testing.assert_array_almost_equal(
+                        committee.vote(np.random.rand(n_instances).reshape(-1, 1)),
+                        vote_output
+                    )
 
 
 if __name__ == '__main__':
