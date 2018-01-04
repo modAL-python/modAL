@@ -224,7 +224,8 @@ def max_disagreement_sampling(committee, X, n_instances=1, **disagreement_measur
     return query_idx, X[query_idx]
 
 
-def regressor_std_sampling(regressor, X):
-    _, std = regressor.predict(X, return_std=True)
-    query_idx = np.argmax(std)
+def regressor_std_sampling(regressor, X, n_instances=1, **predict_kwargs):
+    _, std = regressor.predict(X, return_std=True, **predict_kwargs)
+    std = std.reshape(len(X), )
+    query_idx = multi_argmax(std, n_instances=n_instances)
     return query_idx, X[query_idx]
