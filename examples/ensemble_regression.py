@@ -22,6 +22,7 @@ learner_list = [ActiveLearner(
                 )
                 for idx in initial_idx]
 
+
 # query strategy for regression
 def ensemble_regression_std(regressor, X):
     _, std = regressor.predict(X, return_std=True)
@@ -33,6 +34,3 @@ committee = CommitteeRegressor(
     learner_list=learner_list,
     query_strategy=ensemble_regression_std
 )
-
-for learner in committee:
-    print(learner)

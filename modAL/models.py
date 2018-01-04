@@ -318,6 +318,13 @@ class BaseCommittee(ABC):
         self._learner_list = learner_list
         self.query_strategy = query_strategy
 
+    def __iter__(self):
+        for learner in self._learner_list:
+            yield learner
+
+    def __len__(self):
+        return len(self._learner_list)
+
     def _add_training_data(self, X, y):
         """
         Adds the new data and label to the known data for each learner,
@@ -525,13 +532,6 @@ class Committee(BaseCommittee):
         super().__init__(learner_list, query_strategy)
         self._set_classes()
 
-    def __iter__(self):
-        for learner in self._learner_list:
-            yield learner
-
-    def __len__(self):
-        return len(self._learner_list)
-
     def _set_classes(self):
         """
         Checks the known class labels by each learner, merges the labels and
@@ -696,7 +696,7 @@ class CommitteeRegressor(BaseCommittee):
         check_array(X, ensure_2d=True)
         prediction = list()
 
-        for learner in self._learner_list:
+        for learner in self:
             prediction.append(learner.predict(X, **predict_kwargs))
 
         return prediction
