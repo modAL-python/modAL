@@ -366,7 +366,7 @@ class BaseCommittee(ABC):
 
     def fit(self, X, y, **fit_kwargs):
         """
-        Fits every learner in the Committee to a subset sampled with replacement from X.
+        Fits every learner to a subset sampled with replacement from X.
         Calling this method makes the learner forget the data it has seen up until this point and
         replaces it with X! If you would like to perform bootstrapping on each learner using the
         data it has seen, use the method .rebag()!
@@ -432,7 +432,7 @@ class BaseCommittee(ABC):
     def teach(self, X, y, bootstrap=False, **fit_kwargs):
         """
         Adds X and y to the known training data for each learner
-        and retrains the Committee with the augmented dataset.
+        and retrains learners with the augmented dataset.
 
         Parameters
         ----------
@@ -669,9 +669,78 @@ class Committee(BaseCommittee):
 
 class CommitteeRegressor(BaseCommittee):
     """
-    Committee model for regressors.
+    This class is an abstract model of a committee-based active learning regression.
+
+    Parameters
+    ----------
+    learner_list: list
+        A list of ActiveLearners forming the CommitteeRegressor.
+
+    query_strategy: function
+        Query strategy function. Committee supports disagreement-based query strategies
+        from modAL.disagreement, but uncertainty-based strategies from modAL.uncertainty
+        are also supported.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import matplotlib.pyplot as plt
+    >>> from sklearn.gaussian_process import GaussianProcessRegressor
+    >>> from sklearn.gaussian_process.kernels import WhiteKernel, RBF
+    >>> from modAL.models import ActiveLearner, CommitteeRegressor
+    >>>
+    >>> # generating the data
+    >>> X = np.concatenate((np.random.rand(100)-1, np.random.rand(100)))
+    >>> y = np.abs(X) + np.random.normal(scale=0.2, size=X.shape)
+    >>>
+    >>> # initializing the regressors
+    >>> n_initial = 10
+    >>> kernel = RBF(length_scale=1.0, length_scale_bounds=(1e-2, 1e3)) + WhiteKernel(noise_level=1, noise_level_bounds=(1e-10, 1e+1))
+    >>>
+    >>> initial_idx = list()
+    >>> initial_idx.append(np.random.choice(range(100), size=n_initial, replace=False))
+    >>> initial_idx.append(np.random.choice(range(100, 200), size=n_initial, replace=False))
+    >>> learner_list = [ActiveLearner(
+    ...                         predictor=GaussianProcessRegressor(kernel),
+    ...                         X_initial=X[idx].reshape(-1, 1), y_initial=y[idx].reshape(-1, 1)
+    ...                 )
+    ...                 for idx in initial_idx]
+    >>>
+    >>> # query strategy for regression
+    >>> def ensemble_regression_std(regressor, X):
+    ...     _, std = regressor.predict(X, return_std=True)
+    ...     query_idx = np.argmax(std)
+    ...     return query_idx, X[query_idx]
+    >>>
+    >>> # initializing the Committee
+    >>> committee = CommitteeRegressor(
+    ...     learner_list=learner_list,
+    ...     query_strategy=ensemble_regression_std
+    ... )
+    >>>
+    >>> # active regression
+    >>> n_queries = 10
+    >>> for idx in range(n_queries):
+    ...     query_idx, query_instance = committee.query(X.reshape(-1, 1))
+    ...     committee.teach(X[query_idx].reshape(-1, 1), y[query_idx].reshape(-1, 1))
     """
     def predict(self, X, return_std=False, **predict_kwargs):
+        """
+        Predicts the values of the samples by averaging the prediction of each regressor.
+
+        Parameters
+        ----------
+        X: numpy.ndarray of shape (n_samples, n_features)
+            The samples to be predicted.
+
+        predict_kwargs: keyword arguments
+            Keyword arguments to be passed to the .vote() method of the CommitteeRegressor.
+
+        Returns
+        -------
+        prediction: numpy.ndarray of shape (n_samples, )
+            The predicted class labels for X.
+        """
         vote = self.vote(X, **predict_kwargs)
         if not return_std:
             return np.mean(vote, axis=0)
@@ -680,8 +749,7 @@ class CommitteeRegressor(BaseCommittee):
 
     def vote(self, X, **predict_kwargs):
         """
-        Predicts the values for the supplied data for each regressor in the
-        CommitteeRegressor.
+        Predicts the values for the supplied data for each regressor in the CommitteeRegressor.
 
         Parameters
         ----------
