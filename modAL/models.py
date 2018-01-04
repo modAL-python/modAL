@@ -347,7 +347,6 @@ class BaseCommittee(ABC):
         """
         for learner in self._learner_list:
             learner._add_training_data(X, y)
-        self._set_classes()
 
     def _fit_to_known(self, bootstrap=False, **fit_kwargs):
         """
@@ -545,6 +544,10 @@ class Committee(BaseCommittee):
             axis=0
         )
         self.n_classes_ = len(self.classes_)
+
+    def _add_training_data(self, X, y):
+        super()._add_training_data(X, y)
+        self._set_classes()
 
     def predict(self, X, **predict_proba_kwargs):
         """
