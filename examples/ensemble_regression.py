@@ -3,10 +3,18 @@ import matplotlib.pyplot as plt
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import WhiteKernel, RBF
 from modAL.models import ActiveLearner, CommitteeRegressor
+from modAL.disagreement import regressor_std_sampling
 
 # generating the data
 X = np.concatenate((np.random.rand(100)-1, np.random.rand(100)))
 y = np.abs(X) + np.random.normal(scale=0.2, size=X.shape)
+
+# visualizing the data
+with plt.style.context('seaborn-white'):
+    plt.figure(figsize=(7, 7))
+    plt.scatter(X, y, c='k')
+    plt.title('Noisy absolute value function')
+    plt.show()
 
 # initializing the regressors
 n_initial = 10
@@ -22,17 +30,10 @@ learner_list = [ActiveLearner(
                 )
                 for idx in initial_idx]
 
-
-# query strategy for regression
-def ensemble_regression_std(regressor, X):
-    _, std = regressor.predict(X, return_std=True)
-    query_idx = np.argmax(std)
-    return query_idx, X[query_idx]
-
 # initializing the Committee
 committee = CommitteeRegressor(
     learner_list=learner_list,
-    query_strategy=ensemble_regression_std
+    query_strategy=regressor_std_sampling
 )
 
 # visualizing the regressors
