@@ -341,6 +341,9 @@ class TestCommittee(unittest.TestCase):
                     prediction
                 )
 
+    def test_predict_proba(self):
+        pass
+
     def test_vote(self):
         for n_members in range(1, 10):
             for n_instances in range(1, 100):
@@ -357,6 +360,9 @@ class TestCommittee(unittest.TestCase):
                     vote_output
                 )
 
+    def test_vote_proba(self):
+        pass
+
 
 class TestCommitteeRegressor(unittest.TestCase):
 
@@ -369,8 +375,12 @@ class TestCommitteeRegressor(unittest.TestCase):
                                 for member_idx in range(n_members)]
                 committee = modAL.models.CommitteeRegressor(learner_list=learner_list)
                 np.testing.assert_array_almost_equal(
-                    committee.predict(np.random.rand(n_instances).reshape(-1, 1)),
+                    committee.predict(np.random.rand(n_instances).reshape(-1, 1), return_std=False),
                     np.mean(vote, axis=0)
+                )
+                np.testing.assert_array_almost_equal(
+                    committee.predict(np.random.rand(n_instances).reshape(-1, 1), return_std=True),
+                    (np.mean(vote, axis=0), np.std(vote, axis=0))
                 )
 
     def test_vote(self):
