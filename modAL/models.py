@@ -243,7 +243,7 @@ class ActiveLearner:
             instances to request labels.
 
         query_kwargs: keyword arguments
-            Keyword arguments for the uncertainty measure function
+            Keyword arguments for the query strategy function.
 
         Returns
         -------
@@ -402,7 +402,7 @@ class BaseCommittee(ABC):
             instances to request labels.
 
         query_kwargs: keyword arguments
-            Keyword arguments for the uncertainty measure function
+            Keyword arguments for the query strategy function
 
         Returns
         -------

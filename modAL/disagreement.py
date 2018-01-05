@@ -225,6 +225,28 @@ def max_disagreement_sampling(committee, X, n_instances=1, **disagreement_measur
 
 
 def regressor_std_sampling(regressor, X, n_instances=1, **predict_kwargs):
+    """
+    Regressor standard deviation sampling strategy.
+
+    Parameters
+    ----------
+    X: numpy.ndarray of shape (n_samples, n_features)
+        The pool of samples to query from.
+
+    n_instances: int
+        Number of samples to be queried.
+
+    predict_kwargs:
+        Keyword arguments to be passed for the predict method.
+
+    Returns
+    -------
+    query_idx: numpy.ndarray of shape (n_instances, )
+        The indices of the instances from X_pool chosen to be labelled.
+
+    X_pool[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+        The instances from X_pool chosen to be labelled.
+    """
     _, std = regressor.predict(X, return_std=True, **predict_kwargs)
     std = std.reshape(len(X), )
     query_idx = multi_argmax(std, n_instances=n_instances)
