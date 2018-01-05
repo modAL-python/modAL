@@ -15,7 +15,7 @@ Currently, modAL supports two popular active learning models: *uncertainty based
   - [Committee.predict(X)](#Committee.predict)
   - [Committee.predict_proba(X)](#Committee.predict_proba)
   - [Committee.query(X)](#Committee.query)
-  - [Committee.rebag()](#Committee.bag)
+  - [Committee.rebag()](#Committee.rebag)
   - [Committee.teach(X, y, bootstrap=False)](#Committee.teach)
   - [Committee.vote(X)](#Committee.vote)
   - [Committee.vote_proba(X)](#Committee.vote_proba)
@@ -23,7 +23,7 @@ Currently, modAL supports two popular active learning models: *uncertainty based
   - [CommitteeRegressor.fit(X, y)](#CommitteeRegressor.fit)
   - [CommitteeRegressor.predict(X)](#CommitteeRegressor.predict)
   - [CommitteeRegressor.query(X)](#CommitteeRegressor.query)
-  - [CommitteeRegressor.rebag()](#CommitteeRegressor.bag)
+  - [CommitteeRegressor.rebag()](#CommitteeRegressor.rebag)
   - [CommitteeRegressor.teach(X, y, bootstrap=False)](#CommitteeRegressor.teach)
   - [CommitteeRegressor.vote(X)](#CommitteeRegressor.vote)
 
