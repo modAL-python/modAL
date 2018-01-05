@@ -4,7 +4,7 @@ With an ensemble of regressors, the standard deviation of the predictions at a g
 The executable script for this example can be [found here!](https://github.com/cosmic-cortex/modAL/blob/master/examples/ensemble_regression.py)
 
 ## The dataset
-For the sake of this example, we are going to learn the noisy sine function.
+For the sake of this example, we are going to learn the *noisy absolute value* function.
 ```python
 X = np.concatenate((np.random.rand(100)-1, np.random.rand(100)))
 y = np.abs(X) + np.random.normal(scale=0.2, size=X.shape)
