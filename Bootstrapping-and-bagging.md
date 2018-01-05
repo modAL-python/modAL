@@ -6,6 +6,9 @@ The executable script for this example can be [found here!](https://github.com/c
 ## The dataset
 In this short example, we will try to learn the shape of three black disks on a white background.
 ```python
+import numpy as np
+from itertools import product
+
 # creating the dataset
 im_width = 500
 im_height = 500
@@ -32,6 +35,9 @@ Here is how it looks:
 First we shall train three ActiveLearners on a bootstrapped dataset. Then we are going to bundle them together in a Committee and see how bagging is done with modAL.
 ## Bootstrapping
 ```python
+from modAL.models import ActiveLearner, Committee
+from sklearn.neighbors import KNeighborsClassifier
+
 # initial training data: 100 random pixels
 initial_idx = np.random.choice(range(len(X_pool)), size=100)
 

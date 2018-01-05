@@ -7,6 +7,8 @@ The executable script for this example can be [found here!](https://github.com/c
 In this example, we are going to learn a black square on a white background. We are going to use a random forest classifier in a stream-based setting. First, let's generate some data!
 
 ```python
+import numpy as np
+
 # creating the image
 im_width = 500
 im_height = 500
@@ -28,6 +30,9 @@ In case you are wondering, here is how this looks like!
 ## Active learning
 Initializing the learner is the same as always.
 ```python
+>>> from modAL.models import ActiveLearner
+>>> from sklearn.ensemble import RandomForestClassifier
+>>>
 >>> # assembling initial training set
 >>> n_initial = 5
 >>> initial_idx = np.random.choice(range(len(X_full)), size=n_initial, replace=False)
@@ -47,6 +52,8 @@ This is how the class prediction probabilities look like for each pixel.
 
 Now we are going to randomly sample pixels from the image. If the prediction of the pixel's value is uncertain, we query the true value and teach it to the classifier. We are going to do this until we reach at least 90% accuracy.
 ```python
+>>> from modAL.uncertainty import classifier_uncertainty
+>>> 
 >>> # learning until the accuracy reaches a given threshold
 >>> while learner.score(X_full, y_full) < 0.90:
 >>>     stream_idx = np.random.choice(range(len(X_full)))

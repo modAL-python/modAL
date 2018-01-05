@@ -6,6 +6,8 @@ The executable script for this example can be [found here!](https://github.com/c
 ## The dataset
 For this example, we shall try to learn the *noisy sine* function:
 ```python
+import numpy as np
+
 X = np.random.choice(np.linspace(0, 20, 10000), size=200, replace=False).reshape(-1, 1)
 y = np.sin(X) + np.random.normal(scale=0.3, size=X.shape)
 ```
@@ -22,6 +24,10 @@ def GP_regression_std(regressor, X):
 ## Active learning
 Initializing the active learner is as simple as always.
 ```python
+from modAL.models import ActiveLearner
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import WhiteKernel, RBF
+
 n_initial = 5
 initial_idx = np.random.choice(range(len(X)), size=n_initial, replace=False)
 X_initial, y_initial = X[initial_idx], y[initial_idx]

@@ -7,6 +7,10 @@ The executable script for this example is [available here!](https://github.com/c
 We are going to use the iris dataset for this example. For more information on the iris dataset, see [its wikipedia page](https://en.wikipedia.org/wiki/Iris_flower_data_set). For its scikit-learn interface, see [the scikit-learn documentation](http://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_iris.html).
 
 ```python
+import numpy as np
+from sklearn.decomposition import PCA
+from sklearn.datasets import load_iris
+
 # loading the iris dataset
 iris = load_iris()
 
@@ -27,6 +31,9 @@ If you perform a PCA on the iris dataset, here is how it looks like:
 ## Active learning
 After the initial training data and the pool are generated, we are ready to do active learning!
 ```python
+from modAL.models import ActiveLearner
+from sklearn.neighbors import KNeighborsClassifier
+
 # initializing the active learner
 learner = ActiveLearner(
     predictor=KNeighborsClassifier(n_neighbors=3),

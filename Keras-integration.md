@@ -6,6 +6,7 @@ The executable script for this example can be [found here!](https://github.com/c
 ## Keras' scikit-learn API
 By default, a Keras model's interface differs from what is used for scikit-learn estimators, it is possible to adapt your model.
 ```python
+import keras
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
 from keras.wrappers.scikit_learn import KerasClassifier
@@ -23,7 +24,11 @@ def create_keras_model():
     model.add(Dense(512, activation='relu'))
     model.add(Dropout(0.2))
     model.add(Dense(10, activation='sigmoid'))
-    model.compile(loss='categorical_crossentropy', optimizer='adadelta', metrics=['accuracy'])
+    model.compile(
+        loss='categorical_crossentropy',
+        optimizer='adadelta',
+        metrics=['accuracy']
+    )
 
     return model
 
@@ -58,6 +63,8 @@ y_pool = np.delete(y_train, initial_idx, axis=0)
 ```
 Active learning with data and classifier ready is as easy as always. Because training is *very* expensive in large neural networks, this time we are going to query the best 200 instances each time we measure the uncertainty of the pool.
 ```python
+from modAL.models import ActiveLearner
+
 # initialize ActiveLearner
 learner = ActiveLearner(
     predictor=classifier,

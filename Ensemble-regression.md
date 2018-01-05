@@ -6,6 +6,8 @@ The executable script for this example can be [found here!](https://github.com/c
 ## The dataset
 For the sake of this example, we are going to learn the *noisy absolute value* function.
 ```python
+import numpy as np
+
 X = np.concatenate((np.random.rand(100)-1, np.random.rand(100)))
 y = np.abs(X) + np.random.normal(scale=0.2, size=X.shape)
 ```
@@ -13,13 +15,18 @@ y = np.abs(X) + np.random.normal(scale=0.2, size=X.shape)
 ![er-data](img/er-data.png)
 
 ## Measuring disagreement with CommitteeRegression
-If you have several regressors, measuring disagreement can be done by calculating the standard deviation of the predictions for each point. This of course cannot be achieved with classifier algorithms, where averaging the class labels doesn't make sense. (Or it is undefined even, if the class labels are strings for example.) In the simplest setting, this is implemented in the function ```modAL.disagreement.regressor_std_sampling```. For more details on this, see the [disagreement sampling API reference](Disagreement-sampling-API).
+If you have several regressors, measuring disagreement can be done by calculating the standard deviation of the predictions for each point. This of course cannot be achieved with classifier algorithms, where averaging the class labels doesn't make sense. (Or it is undefined even, if the class labels are strings for example.) In the simplest setting, this is implemented in the function ```modAL.disagreement.max_std_sampling```. For more details on this, see the [disagreement sampling API reference](Disagreement-sampling-API).
 
 This measure is default for CommitteeRegressors, so we don't need to specify this upon initialization.
 
 ## Active regression
 With an ensemble of regressors, it can happen that each one explains part of your data particularly well, while doing poorly on the rest. In our case, it can happen when one of them only seen negative numbers and the other only seen positive ones.
 ```python
+from modAL.models import ActiveLearner, CommitteeRegressor
+from modAL.disagreement import max_std_sampling
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import WhiteKernel, RBF
+
 # initializing the regressors
 n_initial = 10
 kernel = RBF(length_scale=1.0, length_scale_bounds=(1e-2, 1e3)) \
@@ -37,7 +44,7 @@ learner_list = [ActiveLearner(
 # initializing the Committee
 committee = CommitteeRegressor(
     learner_list=learner_list,
-    query_strategy=regressor_std_sampling
+    query_strategy=max_std_sampling
 )
 ```
 This is demonstrated in the figure below, where the transparent blue region represents the standard deviation of the predictions, which is our disagreement measure.

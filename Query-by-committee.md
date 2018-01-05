@@ -6,6 +6,10 @@ The executable script for this example is [available here!](https://github.com/c
 ## The dataset
 We are going to use the iris dataset for this example. For more information on the iris dataset, see [its wikipedia page](https://en.wikipedia.org/wiki/Iris_flower_data_set). For its scikit-learn interface, see [the scikit-learn documentation](http://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_iris.html).
 ```python
+import numpy as np
+from copy import deepcopy
+from sklearn.datasets import load_iris
+
 # loading the iris dataset
 iris = load_iris()
 
@@ -21,6 +25,9 @@ If you perform a PCA on the iris dataset, here is how it looks like:
 ## Initializing the Committee
 In this example, we are going to use the ```Committee``` class from ```modAL.models```. Its interface is almost exactly identical to the ```ActiveLearner```. Upon initialization, ```Committee``` requires a list of active learners.
 ```python
+from modAL.models import ActiveLearner, Committee
+from sklearn.ensemble import RandomForestClassifier
+
 # initializing Committee members
 n_members = 2
 learner_list = list()
