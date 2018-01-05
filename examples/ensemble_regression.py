@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import WhiteKernel, RBF
 from modAL.models import ActiveLearner, CommitteeRegressor
-from modAL.disagreement import regressor_std_sampling
+from modAL.disagreement import max_std_sampling
 
 # generating the data
 X = np.concatenate((np.random.rand(100)-1, np.random.rand(100)))
@@ -33,7 +33,7 @@ learner_list = [ActiveLearner(
 # initializing the Committee
 committee = CommitteeRegressor(
     learner_list=learner_list,
-    query_strategy=regressor_std_sampling
+    query_strategy=max_std_sampling
 )
 
 # visualizing the regressors

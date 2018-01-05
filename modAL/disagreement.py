@@ -224,7 +224,7 @@ def max_disagreement_sampling(committee, X, n_instances=1, **disagreement_measur
     return query_idx, X[query_idx]
 
 
-def regressor_std_sampling(regressor, X, n_instances=1, **predict_kwargs):
+def max_std_sampling(regressor, X, n_instances=1, **predict_kwargs):
     """
     Regressor standard deviation sampling strategy.
 

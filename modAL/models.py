@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from sklearn.utils import check_array
 from modAL.utils.validation import check_class_labels, check_class_proba
 from modAL.uncertainty import uncertainty_sampling
-from modAL.disagreement import vote_entropy_sampling, regressor_std_sampling
+from modAL.disagreement import vote_entropy_sampling, max_std_sampling
 
 
 class ActiveLearner:
@@ -677,9 +677,7 @@ class CommitteeRegressor(BaseCommittee):
         A list of ActiveLearners forming the CommitteeRegressor.
 
     query_strategy: function
-        Query strategy function. Committee supports disagreement-based query strategies
-        from modAL.disagreement, but uncertainty-based strategies from modAL.uncertainty
-        are also supported.
+        Query strategy function.
 
     Examples
     --------
@@ -712,7 +710,7 @@ class CommitteeRegressor(BaseCommittee):
     ...     query_idx = np.argmax(std)
     ...     return query_idx, X[query_idx]
     >>>
-    >>> # initializing the Committee
+    >>> # initializing the CommitteeRegressor
     >>> committee = CommitteeRegressor(
     ...     learner_list=learner_list,
     ...     query_strategy=ensemble_regression_std
@@ -727,7 +725,7 @@ class CommitteeRegressor(BaseCommittee):
     def __init__(
             self,
             learner_list,                                        # list of ActiveLearner objects
-            query_strategy=regressor_std_sampling                # callable to query labels
+            query_strategy=max_std_sampling                # callable to query labels
 
     ):
         assert type(learner_list) == list, 'learners must be supplied in a list'
