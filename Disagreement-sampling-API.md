@@ -11,6 +11,7 @@ Similarly to modAL.uncertainty, this module contains two type of functions: disa
   - [Vote entropy](#vote-entropy)
   - [Consensus entropy](#consensus-entropy)
   - [Maximum disagreement](#maximum-disagreement)
+  - [Max standard deviation sampling for regression](#std-sampling)
 
 # Query by Committee strategies<a name="query-by-committee"></a>
 
@@ -174,4 +175,26 @@ KL divergences of the learners from the consensus probability.
 
 **References**  
 Settles, Burr: Active Learning, (Morgan & Claypool Publishers), equation no. (3.3)
+
+## Max standard deviation sampling for regression<a name="std-sampling"></a>
+```max_std_sampling(regressor, X, n_instances=1, **predict_kwargs)```
+
+Regressor standard deviation sampling strategy.
+
+**Parameters**  
+*X*: numpy.ndarray of shape (n_samples, n_features)  
+    The pool of samples to query from.
+
+*n_instances*: int  
+    Number of samples to be queried.
+
+*predict_kwargs*:  
+    Keyword arguments to be passed for the predict method.
+
+**Returns**  
+*query_idx*: numpy.ndarray of shape (n_instances, )  
+    The indices of the instances from X_pool chosen to be labelled.
+
+*X_pool[query_idx]*: numpy.ndarray of shape (n_instances, n_features)  
+    The instances from X_pool chosen to be labelled.
 

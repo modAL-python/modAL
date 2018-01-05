@@ -19,6 +19,13 @@ Currently, modAL supports two popular active learning models: *uncertainty based
   - [Committee.teach(X, y, bootstrap=False)](#Committee.teach)
   - [Committee.vote(X)](#Committee.vote)
   - [Committee.vote_proba(X)](#Committee.vote_proba)
+- [CommitteeRegressor](#CommitteeRegressor)
+  - [CommitteeRegressor.fit(X, y)](#CommitteeRegressor.fit)
+  - [CommitteeRegressor.predict(X)](#CommitteeRegressor.predict)
+  - [CommitteeRegressor.query(X)](#CommitteeRegressor.query)
+  - [CommitteeRegressor.rebag()](#CommitteeRegressor.bag)
+  - [CommitteeRegressor.teach(X, y, bootstrap=False)](#CommitteeRegressor.teach)
+  - [CommitteeRegressor.vote(X)](#CommitteeRegressor.vote)
 
 # ActiveLearner<a name="ActiveLearner"></a>
 This class is an abstract model of a general active learning algorithm.
@@ -156,7 +163,7 @@ the query_strategy function. Returns the queried instances and its indices.
     instances to request labels.
 
 *query_kwargs*: keyword arguments  
-    Keyword arguments for the uncertainty measure function
+    Keyword arguments for the query strategy function.
 
 **Returns**  
 *query_idx*: numpy.ndarray of shape (n_instances, )  
@@ -258,10 +265,10 @@ This class is an abstract model of a committee-based active learning algorithm.
 ```
 
 ## Committee.fit(X, y)<a name="Committee.fit"></a>
-Fits every learner in the Committee to a randomly sampled (with replacement) subset of X.
+Fits every learner to a subset sampled with replacement from X.
 Calling this method makes the learner forget the data it has seen up until this point and
 replaces it with X! If you would like to perform bootstrapping on each learner using the
-data it has seen, use the method ```.rebag()```!
+data it has seen, use the method .rebag()!
 
 **Parameters**  
 *X*: numpy.ndarray of shape (n_samples, n_features)  
@@ -318,7 +325,7 @@ the query_strategy function. Returns the queried instances and its indices.
     instances to request labels.
 
 *query_kwargs*: keyword arguments  
-    Keyword arguments for the uncertainty measure function
+    Keyword arguments for the query strategy function.
 
 **Returns**  
 *query_idx*: numpy.ndarray of shape (n_instances, )  
@@ -383,3 +390,153 @@ Predicts the probabilities of the classes for each sample and each learner.
 **Returns**  
 *vote_proba*: numpy.ndarray of shape (n_samples, n_learners, n_classes)  
     Probabilities of each class for each learner and each instance.
+
+# CommitteeRegressor<a name="CommitteeRegressor"></a>
+
+This class is an abstract model of a committee-based active learning regression.
+
+**Parameters**  
+*learner_list*: list  
+    A list of ActiveLearners forming the CommitteeRegressor.
+
+*query_strategy*: function  
+    Query strategy function.
+
+**Examples**
+```python
+>>> import numpy as np
+>>> import matplotlib.pyplot as plt
+>>> from sklearn.gaussian_process import GaussianProcessRegressor
+>>> from sklearn.gaussian_process.kernels import WhiteKernel, RBF
+>>> from modAL.models import ActiveLearner, CommitteeRegressor
+>>>
+>>> # generating the data
+>>> X = np.concatenate((np.random.rand(100)-1, np.random.rand(100)))
+>>> y = np.abs(X) + np.random.normal(scale=0.2, size=X.shape)
+>>>
+>>> # initializing the regressors
+>>> n_initial = 10
+>>> kernel = RBF(length_scale=1.0, length_scale_bounds=(1e-2, 1e3)) + WhiteKernel(noise_level=1, noise_level_bounds=(1e-10, 1e+1))
+>>>
+>>> initial_idx = list()
+>>> initial_idx.append(np.random.choice(range(100), size=n_initial, replace=False))
+>>> initial_idx.append(np.random.choice(range(100, 200), size=n_initial, replace=False))
+>>> learner_list = [ActiveLearner(
+...                         predictor=GaussianProcessRegressor(kernel),
+...                         X_initial=X[idx].reshape(-1, 1), y_initial=y[idx].reshape(-1, 1)
+...                 )
+...                 for idx in initial_idx]
+>>>
+>>> # query strategy for regression
+>>> def ensemble_regression_std(regressor, X):
+...     _, std = regressor.predict(X, return_std=True)
+...     query_idx = np.argmax(std)
+...     return query_idx, X[query_idx]
+>>>
+>>> # initializing the CommitteeRegressor
+>>> committee = CommitteeRegressor(
+...     learner_list=learner_list,
+...     query_strategy=ensemble_regression_std
+... )
+>>>
+>>> # active regression
+>>> n_queries = 10
+>>> for idx in range(n_queries):
+...     query_idx, query_instance = committee.query(X.reshape(-1, 1))
+...     committee.teach(X[query_idx].reshape(-1, 1), y[query_idx].reshape(-1, 1))
+```
+
+## CommitteeRegressor.fit(X, y)<a name="CommitteeRegressor.fit"></a>
+Fits every learner to a subset sampled with replacement from X.
+Calling this method makes the learner forget the data it has seen up until this point and
+replaces it with X! If you would like to perform bootstrapping on each learner using the
+data it has seen, use the method .rebag()!
+
+**Parameters**  
+*X*: numpy.ndarray of shape (n_samples, n_features)  
+    The samples to be fitted.
+
+*y*: numpy.ndarray of shape (n_samples, )  
+    The corresponding labels.
+
+*fit_kwargs*: keyword arguments  
+    Keyword arguments to be passed to the fit method of the predictor.
+
+**DANGER ZONE**  
+Calling this method makes the learner forget the data it has seen up until this point and
+replaces it with X!
+
+# CommitteeRegressor.predict(X)<a name="CommitteeRegressor.predict"></a>
+Predicts the values of the samples by averaging the prediction of each regressor.
+
+**Parameters**  
+*X*: numpy.ndarray of shape (n_samples, n_features)  
+    The samples to be predicted.
+
+*predict_kwargs*: keyword arguments  
+    Keyword arguments to be passed to the .vote() method of the CommitteeRegressor.
+
+**Returns**  
+*prediction*: numpy.ndarray of shape (n_samples, )  
+    The predicted class labels for X.
+
+## CommitteeRegressor.query(X)<a name="CommitteeRegressor.query"></a>
+Finds the n_instances most informative point in the data provided by calling
+the query_strategy function. Returns the queried instances and its indices.
+
+**Parameters**  
+*X*: numpy.ndarray of shape (n_samples, n_features)  
+    The pool of samples from which the query strategy should choose
+    instances to request labels.
+
+*query_kwargs*: keyword arguments  
+    Keyword arguments for the query strategy function.
+
+**Returns**  
+*query_idx*: numpy.ndarray of shape (n_instances, )  
+    The indices of the instances from X_pool chosen to be labelled.
+
+*X[query_idx]*: numpy.ndarray of shape (n_instances, n_features)  
+    The instances from X_pool chosen to be labelled.
+
+## CommitteeRegressor.rebag()<a name="CommitteeRegressor.rebag"></a>
+Refits every learner with a dataset bootstrapped from its training instances. Contrary to
+```.bag()```, it bootstraps the training data for each learner based on its own examples.
+
+**Parameters**  
+*fit_kwargs*: keyword arguments  
+    Keyword arguments to be passed to the fit method of the predictor.
+
+## CommitteeRegressor.teach(X, y, bootstrap=False)<a name="CommitteeRegressor.teach"></a>
+Adds X and y to the known training data for each learner
+and retrains the CommitteeRegressor with the augmented dataset.
+
+**Parameters**  
+*X*: numpy.ndarray of shape (n_samples, n_features)  
+    The new samples for which the labels are supplied
+    by the expert.
+
+*y*: numpy.ndarray of shape (n_samples, )  
+    Labels corresponding to the new instances in X.
+
+*bootstrap*: boolean  
+    If True, trains each learner on a bootstrapped set. Useful
+    when building the ensemble by bagging.
+
+*fit_kwargs*: keyword arguments  
+    Keyword arguments to be passed to the fit method
+    of the predictor.
+
+## CommitteeRegressor.vote(X)<a name="CommitteeRegressor.vote"></a>
+Predicts the values for the supplied data for each regressor in the CommitteeRegressor.
+
+**Parameters**  
+*X*: numpy.ndarray of shape (n_samples, n_features)  
+    The samples to cast votes.
+
+*predict_kwargs*: keyword arguments  
+    Keyword arguments to be passed for the learners .predict() method.
+
+**Returns**  
+*vote*: numpy.ndarray of shape (n_samples, n_regressors)  
+    The predicted value for each regressor in the CommitteeRegressor and each sample in X.

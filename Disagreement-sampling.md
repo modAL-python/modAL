@@ -2,10 +2,16 @@
 When you have several hypothesis about your data, selecting the next instances to label can be done by measuring the disagreement between the hypotheses. Naturally, there are many ways to do that. In modAL, there are three built-in disagreement measures and query strategies: *vote entropy*, *consensus entropy* and *maximum disagreement*. In this quick tutorial, we are going to review them. For more details, see Section 3.4 of the awesome book [*Active learning* by Burr Settles](http://active-learning.net/).
 
 ## Page contents
-- [Vote entropy](#vote-entropy)
-- [Consensus entropy](#consensus-entropy)
-- [Max disagreement](#max-disagreement)
+- [Disagreement sampling for classifiers](#disagreement-classifiers)
+  - [Vote entropy](#vote-entropy)
+  - [Consensus entropy](#consensus-entropy)
+  - [Max disagreement](#max-disagreement)
+- [Disagreement sampling for regressors](#disagreement-regressors)
+  - [Standard deviation sampling](#std-sampling)
 - [Disagreement measures in action](#disagreement-measures-in-action)
+
+# Disagreement sampling for classifiers<a name="disagreement-classifiers"></a>
+Committee-based models in modAL come in two flavors: Committee for classifiers and CommitteeRegressor for regressors. First, let's take a look at disagreement-based sampling strategies for classification!
 
 ## Vote entropy<a name="vote-entropy"></a>
 Suppose that you have a Committee of three classifiers, classes ```[0, 1, 2]``` and five instances to classify. If you would like to calculate the vote entropy, first you ask every classifier about its prediction:
@@ -41,17 +47,17 @@ For an example, let's suppose that we continue the previous example with three c
 >>> vote_proba
 ... [[[0.8, 0.1, 0.0]    # \
 ...   [0.3, 0.7, 0.0]    # |
-...   [1.0, 0.0, 0.0]    # |  <--- class probabilities for the first classifier
+...   [1.0, 0.0, 0.0]    # |  <-- class probabilities for the first classifier
 ...   [0.2, 0.2, 0.6]    # |
 ...   [0.2, 0.7, 0.1]],  # /
 ...  [[0.0, 1.0, 0.0]    # \
 ...   [0.4, 0.6, 0.0]    # |
-...   [0.2, 0.7, 0.1]    # |  <--- class probabilities for the second classifier
+...   [0.2, 0.7, 0.1]    # |  <-- class probabilities for the second classifier
 ...   [0.3, 0.1, 0.6]    # |
 ...   [0.0, 0.0, 1.0]],  # /
 ...  [[0.7, 0.2, 0.1]    # \
 ...   [0.4, 0.0, 0.6]    # |
-...   [0.3, 0.2, 0.5]    # |  <--- class probabilities for the third classifier
+...   [0.3, 0.2, 0.5]    # |  <-- class probabilities for the third classifier
 ...   [0.1, 0.0, 0.9]    # |
 ...   [0.0, 0.1, 0.9]]]  # /
 ```
@@ -90,7 +96,14 @@ The disagreement measures so far take the actual *disagreement* into account in 
 ```
 In this case, one of the learner highly disagrees with the others in the class of the first instance. Thus, the max disagreement sampling would choose this one to be labelled by the Oracle.
 
-## Disagreement measures in action<a name="disagreement-measures-in-action"></a>
+# Disagreement sampling for regressors<a name="disagreement-regressors"></a>
+Since regressors in general don't provide a way to calculate prediction probabilities, disagreement measures for classifiers may not work with regressors. Despite of this, ensemble regression models can be always used in an active learning scenario, because the standard deviation of the predictions at a given point can be thought of as a measure of disagreement.
+
+## Standard deviation sampling<a name="std-sampling"></a>
+
+![er-iniial](#img/er-iniial.png)
+
+# Disagreement measures in action<a name="disagreement-measures-in-action"></a>
 To visualize the disagreement measures, let's consider a toy example! Suppose that we would like to learn these two objects:
 
 ![dis-data](img/dis-data.png)

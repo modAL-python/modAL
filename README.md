@@ -82,6 +82,7 @@ To see modAL in *real* action, visit the examples section!
 - [Pool-based sampling](Pool-based-sampling)  
 - [Stream-based sampling](Stream-based-sampling)  
 - [Active regression](Active-regression)  
+- [Ensemble regression](Ensemble-regression)  
 - [Query by committee](Query-by-committee)  
 - [Bootstrapping and bagging](Bootstrapping-and-bagging)  
 - [Keras integration](Keras-integration)

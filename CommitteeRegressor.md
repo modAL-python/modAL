@@ -17,4 +17,6 @@ This is demonstrated in [this example](Ensemble-regression), where two regressor
 
 ![er-initial](img/er-initial.png)
 
+![er-final](img/er-final.png)
+
 
