@@ -342,7 +342,20 @@ class TestCommittee(unittest.TestCase):
                 )
 
     def test_predict_proba(self):
-        pass
+        for n_samples in range(1, 100):
+            for n_learners in range(1, 10):
+                for n_classes in range(1, 10):
+                    vote_proba_output = np.random.rand(n_samples, n_learners, n_classes)
+                    # assembling the mock learners
+                    learner_list = [mock.MockActiveLearner(
+                        predict_proba_return=vote_proba_output[:, learner_idx, :],
+                        predictor=mock.MockClassifier(classes_=list(range(n_classes)))
+                    ) for learner_idx in range(n_learners)]
+                    committee = modAL.models.Committee(learner_list=learner_list)
+                    np.testing.assert_almost_equal(
+                        committee.predict_proba(np.random.rand(n_samples, 1)),
+                        np.mean(vote_proba_output, axis=1)
+                    )
 
     def test_vote(self):
         for n_members in range(1, 10):
