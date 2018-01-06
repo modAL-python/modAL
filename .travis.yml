@@ -8,10 +8,13 @@ before_install:
 
 install:
   - pip install codecov
+  - pip install coverage
   - pip install .
 
 script:
   - tests/test.sh
+  - coverage run tests/core_tests.py
+  - coverage report
 
 after_success:
   - codecov
