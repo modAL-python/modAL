@@ -409,7 +409,6 @@ class TestCommitteeRegressor(unittest.TestCase):
                     (np.mean(vote, axis=1), np.std(vote, axis=1))
                 )
 
-
     def test_vote(self):
         for n_members in range(1, 10):
             for n_instances in range(1, 100):
@@ -422,6 +421,19 @@ class TestCommitteeRegressor(unittest.TestCase):
                     committee.vote(np.random.rand(n_instances).reshape(-1, 1)),
                     vote_output
                 )
+
+
+class TestExamples(unittest.TestCase):
+
+    def test_examples(self):
+        import example_tests.active_regression
+        import example_tests.bagging
+        import example_tests.ensemble
+        import example_tests.ensemble_regression
+        import example_tests.pool_based_sampling
+        import example_tests.query_by_committee
+        import example_tests.shape_learning
+        import example_tests.stream_based_sampling
 
 
 if __name__ == '__main__':
