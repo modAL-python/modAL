@@ -10,7 +10,9 @@ install:
   - pip install .
 
 script:
-  - pytest
+  - tests/test.sh
 
-after_deploy:
-  - tests/after_deploy.sh
+branches:
+  only:
+    - master
+    - dev
