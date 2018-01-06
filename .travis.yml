@@ -7,10 +7,14 @@ before_install:
   - sudo apt-get -qq update
 
 install:
+  - pip install codecov
   - pip install .
 
 script:
   - tests/test.sh
+
+after_success:
+  - codecov
 
 branches:
   only:
