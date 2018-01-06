@@ -10,6 +10,8 @@ from copy import deepcopy
 from sklearn.ensemble import RandomForestClassifier
 from modAL.models import ActiveLearner
 
+np.random.seed(0)
+
 # creating the image
 im_width = 500
 im_height = 500

@@ -7,13 +7,14 @@ from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import WhiteKernel, RBF
 from modAL.models import ActiveLearner
 
+np.random.seed(0)
+
 
 # query strategy for regression
 def GP_regression_std(regressor, X):
     _, std = regressor.predict(X, return_std=True)
     query_idx = np.argmax(std)
     return query_idx, X[query_idx]
-
 
 # generating the data
 X = np.random.choice(np.linspace(0, 20, 10000), size=200, replace=False).reshape(-1, 1)

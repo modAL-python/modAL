@@ -4,6 +4,8 @@ from sklearn.gaussian_process.kernels import WhiteKernel, RBF
 from modAL.models import ActiveLearner, CommitteeRegressor
 from modAL.disagreement import max_std_sampling
 
+np.random.seed(0)
+
 # generating the data
 X = np.concatenate((np.random.rand(100)-1, np.random.rand(100)))
 y = np.abs(X) + np.random.normal(scale=0.2, size=X.shape)

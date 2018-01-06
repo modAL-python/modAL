@@ -9,6 +9,8 @@ from sklearn.datasets import load_iris
 from sklearn.neighbors import KNeighborsClassifier
 from modAL.models import ActiveLearner
 
+np.random.seed(0)
+
 # loading the iris dataset
 iris = load_iris()
 

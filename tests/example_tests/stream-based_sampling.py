@@ -7,6 +7,8 @@ from sklearn.ensemble import RandomForestClassifier
 from modAL.models import ActiveLearner
 from modAL.uncertainty import classifier_uncertainty
 
+np.random.seed(0)
+
 # creating the image
 im_width = 500
 im_height = 500
@@ -39,7 +41,7 @@ process is continued until the learner reaches a previously defined accuracy.
 """
 
 # learning until the accuracy reaches a given threshold
-while learner.score(X_full, y_full) < 0.90:
+while learner.score(X_full, y_full) < 0.7:
     stream_idx = np.random.choice(range(len(X_full)))
     if classifier_uncertainty(learner, X_full[stream_idx].reshape(1, -1)) >= 0.4:
         learner.teach(X_full[stream_idx].reshape(1, -1), y_full[stream_idx].reshape(-1, ))

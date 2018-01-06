@@ -4,6 +4,8 @@ from sklearn.datasets import load_iris
 from sklearn.ensemble import RandomForestClassifier
 from modAL.models import ActiveLearner, Committee
 
+np.random.seed(0)
+
 # loading the iris dataset
 iris = load_iris()
 

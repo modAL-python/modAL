@@ -7,6 +7,8 @@ from itertools import product
 from sklearn.neighbors import KNeighborsClassifier
 from modAL.models import ActiveLearner, Committee
 
+np.random.seed(0)
+
 # creating the dataset
 im_width = 500
 im_height = 500

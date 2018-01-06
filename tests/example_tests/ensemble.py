@@ -3,6 +3,8 @@ from itertools import product
 from sklearn.ensemble import RandomForestClassifier
 from modAL.models import ActiveLearner, Committee
 
+np.random.seed(0)
+
 # creating the dataset
 im_width = 500
 im_height = 500
