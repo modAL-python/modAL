@@ -1,0 +1,5 @@
+before_install: sudo apt-get install python3-pip git -qq
+
+install: pip3 install .
+
+after_deploy: tests/after_deploy.sh
