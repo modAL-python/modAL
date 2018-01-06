@@ -1,4 +1,4 @@
-![travis-ci-dev](https://travis-ci.org/cosmic-cortex/modAL.svg?branch=dev)
+![travis-ci-dev](https://travis-ci.org/cosmic-cortex/modAL.svg?branch=dev) ![codecov-dev](https://codecov.io/gh/cosmic-cortex/modAL/branch/dev/graph/badge.svg)
 
 # modAL
 Modular Active Learning framework for Python3
