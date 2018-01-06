@@ -6,6 +6,6 @@ python:
 
 before_install: sudo apt-get -qq update
 
-install: sudo pip3 install .
+install: pip install .
 
 after_deploy: tests/after_deploy.sh
