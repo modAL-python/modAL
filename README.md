@@ -1,4 +1,3 @@
-
 [![travis-ci-master](https://travis-ci.org/cosmic-cortex/modAL.svg?branch=master)](https://travis-ci.org/cosmic-cortex/modAL) [![codecov-master](https://codecov.io/gh/cosmic-cortex/modAL/branch/master/graph/badge.svg)](https://codecov.io/gh/cosmic-cortex/modAL)
 
 # modAL
