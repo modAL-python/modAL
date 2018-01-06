@@ -1,5 +1,8 @@
-
+<<<<<<< HEAD
+![travis-ci-master](https://travis-ci.org/cosmic-cortex/modAL.svg?branch=master) ![codecov-master](https://codecov.io/gh/cosmic-cortex/modAL/branch/master/graph/badge.svg)
+=======
 [![travis-ci-master](https://travis-ci.org/cosmic-cortex/modAL.svg?branch=master)](https://travis-ci.org/cosmic-cortex/modAL) [![codecov-master](https://codecov.io/gh/cosmic-cortex/modAL/branch/master/graph/badge.svg)](https://codecov.io/gh/cosmic-cortex/modAL)
+>>>>>>> e21860363f954cac63ce269e6c3c935f2771c36b
 
 # modAL
 Modular Active Learning framework for Python3
