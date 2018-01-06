@@ -1,7 +1,11 @@
-language: "python3"
+language: "python"
+python:
+  - "3.4"
+  - "3.5"
+  - "3.6"
 
 before_install: sudo apt-get -qq update
 
-install: sudo -qq pip3 install .
+install: sudo pip3 install .
 
 after_deploy: tests/after_deploy.sh

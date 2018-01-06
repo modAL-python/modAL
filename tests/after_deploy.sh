@@ -1,16 +1,16 @@
 #!/bin/bash
 
 echo executing core tests ...
-python3 core_tests.py
+python3 tests/core_tests.py
 exit_code=$?
 if [ $exit_code -eq 0 ]; then
-echo core_tests.py successfully executed
+echo core tests successfully executed
 else
-echo core_tests.py failed
+echo core tests failed
 exit 1
 fi
 
-for example_test in example_tests/*
+for example_test in tests/example_tests/*
 do
   echo executing $example_test ...
   python3 $example_test
