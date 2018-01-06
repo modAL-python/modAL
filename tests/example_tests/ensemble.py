@@ -1,6 +1,5 @@
 import numpy as np
 from itertools import product
-from matplotlib import pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
 from modAL.models import ActiveLearner, Committee
 
@@ -14,13 +13,6 @@ for i, j in product(range(im_width), range(im_height)):
     for x, y, r in disks:
         if (x-i)**2 + (y-j)**2 < r**2:
             data[i, j] = 1
-
-# visualizing the dataset
-with plt.style.context('seaborn-white'):
-    plt.figure(figsize=(7, 7))
-    plt.imshow(data)
-    plt.title('The shapes to learn')
-    plt.show()
 
 # create the pool from the image
 X_pool = np.transpose(
