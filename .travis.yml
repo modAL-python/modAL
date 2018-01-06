@@ -1,11 +1,16 @@
 language: "python"
 python:
-  - "3.4"
   - "3.5"
   - "3.6"
 
-before_install: sudo apt-get -qq update
+before_install:
+  - sudo apt-get -qq update
 
-install: pip install .
+install:
+  - pip install .
 
-after_deploy: tests/after_deploy.sh
+script:
+  - pytest
+
+after_deploy:
+  - tests/after_deploy.sh
