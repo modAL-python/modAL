@@ -98,9 +98,9 @@ modAL requires
 - SciPy >= 0.18
 - scikit-learn >= 0.18
 
-You can install modAL directly with pip:
+You can install modAL directly with pip:  
 ```pip install modAL```
-Alternatively, you can install modAL directly from source:
+Alternatively, you can install modAL directly from source:  
 ```pip install git+https://github.com/cosmic-cortex/modAL.git```
 
 ## Documentation<a name="documentation"></a>
