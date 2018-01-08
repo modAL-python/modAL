@@ -17,7 +17,7 @@ Modular Active Learning framework for Python3
 
 ## Introduction<a name="introduction"></a>
 
-> *modal*: adjective, relating to structure as opposed to substance  
+> modal: adjective, relating to structure as opposed to substance  
 >  
 > (Merriam-Webster Dictionary)
 
