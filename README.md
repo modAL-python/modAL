@@ -10,7 +10,6 @@ Modular Active Learning framework for Python3
   - [Replacing parts with your own solutions](#replacing-parts-with-your-own-solutions)  
   - [Working examples](#working-examples)  
 - [Installation](#installation)  
-- [Documentation](#documentation)  
 - [About the developer](#about-the-developer)
 
 ## Introduction<a name="introduction"></a>
