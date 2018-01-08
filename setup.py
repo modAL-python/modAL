@@ -10,5 +10,5 @@ setup(
     url='https://cosmic-cortex.github.io/modAL',
     packages=['modAL', 'modAL.utils'],
     classifiers=['Development Status :: 4 - Beta'],
-    install_requires=['numpy>=1.12', 'scikit-learn>=0.18', 'scipy>=0.18'],
+    install_requires=['numpy>=1.10', 'scikit-learn>=0.18', 'scipy>=0.18'],
 )

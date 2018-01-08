@@ -22,8 +22,8 @@ after_success:
 matrix:
   include:
     env:
-      - "NUMPY_VERSION=1.12"
-      - "SKLEARN_VERSION=0.19"
+      - "NUMPY_VERSION=1.10"
+      - "SKLEARN_VERSION=0.18"
       - "SCIPY_VERSION=0.18"
 
 branches:
