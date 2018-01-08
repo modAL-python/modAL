@@ -13,11 +13,24 @@ install:
 
 script:
   - tests/test.sh
-  - coverage run tests/core_tests.py
+  - coverage run tests/core_tests.opy
   - coverage report
 
 after_success:
   - codecov
+
+matrix:
+  include:
+    env:
+      - "NUMPY_VERSION=1.12"
+      - "NUMPY_VERSION=1.13"
+    env:
+      - "SKLEARN_VERSION=0.18"
+      - "SKLEARN_VERSION=0.19"
+    env:
+      - "SCIPY_VERSION=0.18"
+      - "SCIPY_VERSION=0.19"
+      - "SCIPY_VERSION=1.0"
 
 branches:
   only:
