@@ -21,10 +21,11 @@ after_success:
 
 matrix:
   include:
-    env:
-      - "NUMPY_VERSION=1.10"
-      - "SKLEARN_VERSION=0.18"
-      - "SCIPY_VERSION=0.18"
+    install:
+      - pip install numpy==1.10 scikit-learn==0.18 scipy==0.18
+      - pip install codecov
+      - pip install coverage
+      - pip install .
 
 branches:
   only:
