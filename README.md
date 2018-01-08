@@ -1,4 +1,4 @@
-# modAL
+<img src="img/modAL_b.png" alt="modAL" style="width: 400px;">
 Modular Active Learning framework for Python3
 
 ## Page contents
