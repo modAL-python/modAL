@@ -14,9 +14,4 @@ Alternatively, you can install modAL directly from source:
 ```
 pip install git+https://github.com/cosmic-cortex/modAL.git
 ```
-
-# Documentation
-
-You can find the documentation of modAL at [https://cosmic-cortex.github.io/modAL](https://cosmic-cortex.github.io/modAL), where several tutorials and working examples are available, along with a complete API reference. For running the examples, Matplotlib >= 2.0 is recommended.
-
-
+For running the examples, Matplotlib >= 2.0 is recommended.
