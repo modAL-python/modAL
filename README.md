@@ -20,7 +20,7 @@ Modular Active Learning framework for Python3
 modAL is an active learning framework for Python3, designed with *modularity, flexibility* and *extensibility* in mind. Built on top of scikit-learn, it allows you to rapidly create active learning workflows with nearly complete freedom. What is more, you can easily replace parts with your custom built solutions, allowing you to design novel algorithms with ease.
 
 ## Active learning from bird's-eye view<a name="active-learning"></a>
-Let's take a look at a general active learning workflow!
+With the recent explosion of available data, you have can have millions of unlabelled examples with a high cost to obtain labels. For instance, when trying to predict the sentiment of tweets, obtaining a training set can require immense manual labour. But worry not, active learning comes to the rescue! In general, AL is a framework allowing you to increase classification performance by intelligently querying you to label the most informative instances. In general, an active learning workflow looks like the following.
 
 ![active-learning](https://cosmic-cortex.github.io/modAL/img/active_learning.png)
 
