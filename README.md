@@ -23,7 +23,7 @@ modAL is an active learning framework for Python3, designed with *modularity, fl
 # Active learning from bird's-eye view<a name="active-learning"></a>
 With the recent explosion of available data, you have can have millions of unlabelled examples with a high cost to obtain labels. For instance, when trying to predict the sentiment of tweets, obtaining a training set can require immense manual labour. But worry not, active learning comes to the rescue! In general, AL is a framework allowing you to increase classification performance by intelligently querying you to label the most informative instances. To give an example, suppose that you have the following data and classifier with shaded regions signifying the classification probability.
 
-![](https://cosmic-cortex.github.io/modAL/img/motivating-example.png)
+<img src="https://cosmic-cortex.github.io/modAL/img/motivating-example.png" height="600px" width="600px"/>
 
 Suppose that you can query the label of an unlabelled instance, but it costs you a lot. Which one would you choose? By querying an instance in the uncertain region, surely you obtain more information than querying by random. Active learning gives you a set of tools to handle problems like this. In general, an active learning workflow looks like the following.
 
