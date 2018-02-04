@@ -104,6 +104,12 @@ class ActiveLearner:
             self._y_training = check_array(y_initial, ensure_2d=False)
             self._fit_to_known(bootstrap=bootstrap_init, **fit_kwargs)
 
+    def __getattr__(self, item):
+        if hasattr(self._predictor, item):
+            return getattr(self._predictor, item)
+        else:
+            raise AttributeError('%s object has no attribute %s' % (self.__class__.__name__, str(item)))
+
     def _add_training_data(self, X, y):
         """
         Adds the new data and label to the known data, but does
