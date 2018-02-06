@@ -39,7 +39,7 @@ for member_idx in range(n_members):
     # initializing learner
     learner = ActiveLearner(
         predictor=RandomForestClassifier(),
-        X_initial=X_train, y_initial=y_train
+        X_training=X_train, y_training=y_train
     )
     learner_list.append(learner)
 

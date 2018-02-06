@@ -5,12 +5,13 @@ Core models for active learning algorithms.
 import numpy as np
 from abc import ABC, abstractmethod
 from sklearn.utils import check_array
+from sklearn.base import BaseEstimator
 from modAL.utils.validation import check_class_labels, check_class_proba
 from modAL.uncertainty import uncertainty_sampling
 from modAL.disagreement import vote_entropy_sampling, max_std_sampling
 
 
-class ActiveLearner:
+class ActiveLearner(BaseEstimator):
     """
     This class is an abstract model of a general active learning algorithm.
 
@@ -69,7 +70,7 @@ class ActiveLearner:
     >>> # initialize active learner
     >>> learner = ActiveLearner(
     ...     predictor=RandomForestClassifier(),
-    ...     X_initial=X_training, y_initial=y_training
+    ...     X_training=X_training, y_training=y_training
     ... )
     >>>
     >>> # querying for labels
@@ -87,7 +88,7 @@ class ActiveLearner:
             self,
             predictor,                                           # scikit-learner estimator object
             query_strategy=uncertainty_sampling,	             # callable to query labels
-            X_initial=None, y_initial=None,	                     # initial data if available
+            X_training=None, y_training=None,	                     # initial data if available
             bootstrap_init=False,                                # first training with bootstrapping
             **fit_kwargs                                         # keyword arguments for fitting the initial data
     ):
@@ -96,19 +97,19 @@ class ActiveLearner:
         self._predictor = predictor
         self.query_strategy = query_strategy
 
-        if type(X_initial) == type(None) and type(y_initial) == type(None):
+        if type(X_training) == type(None) and type(y_training) == type(None):
             self._X_training = None
             self._y_training = None
-        elif type(X_initial) != type(None) and type(y_initial) != type(None):
-            self._X_training = check_array(X_initial)
-            self._y_training = check_array(y_initial, ensure_2d=False)
+        elif type(X_training) != type(None) and type(y_training) != type(None):
+            self._X_training = check_array(X_training)
+            self._y_training = check_array(y_training, ensure_2d=False)
             self._fit_to_known(bootstrap=bootstrap_init, **fit_kwargs)
 
-    def __getattr__(self, item):
+    '''def __getattr__(self, item):
         if hasattr(self._predictor, item):
             return getattr(self._predictor, item)
         else:
-            raise AttributeError('%s object has no attribute %s' % (self.__class__.__name__, str(item)))
+            raise AttributeError('%s object has no attribute %s' % (self.__class__.__name__, str(item)))'''
 
     def _add_training_data(self, X, y):
         """
@@ -503,11 +504,11 @@ class Committee(BaseCommittee):
     >>> # initialize ActiveLearners
     >>> learner_1 = ActiveLearner(
     ...     predictor=RandomForestClassifier(),
-    ...     X_initial=iris['data'][[0, 50, 100]], y_initial=iris['target'][[0, 50, 100]]
+    ...     X_training=iris['data'][[0, 50, 100]], y_training=iris['target'][[0, 50, 100]]
     ... )
     >>> learner_2 = ActiveLearner(
     ...     predictor=KNeighborsClassifier(n_neighbors=3),
-    ...     X_initial=iris['data'][[1, 51, 101]], y_initial=iris['target'][[1, 51, 101]]
+    ...     X_training=iris['data'][[1, 51, 101]], y_training=iris['target'][[1, 51, 101]]
     ... )
     >>>
     >>> # initialize the Committee
@@ -706,7 +707,7 @@ class CommitteeRegressor(BaseCommittee):
     >>> initial_idx.append(np.random.choice(range(100, 200), size=n_initial, replace=False))
     >>> learner_list = [ActiveLearner(
     ...                         predictor=GaussianProcessRegressor(kernel),
-    ...                         X_initial=X[idx].reshape(-1, 1), y_initial=y[idx].reshape(-1, 1)
+    ...                         X_training=X[idx].reshape(-1, 1), y_training=y[idx].reshape(-1, 1)
     ...                 )
     ...                 for idx in initial_idx]
     >>>

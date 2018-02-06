@@ -33,7 +33,7 @@ learner_list = []
 for _ in range(n_learners):
     learner = ActiveLearner(
         predictor=RandomForestClassifier(),
-        X_initial=X_pool[initial_idx], y_initial=y_pool[initial_idx],
+        X_training=X_pool[initial_idx], y_training=y_pool[initial_idx],
         bootstrap_init=True
     )
     learner_list.append(learner)

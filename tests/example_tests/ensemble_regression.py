@@ -20,7 +20,7 @@ initial_idx.append(np.random.choice(range(100), size=n_initial, replace=False))
 initial_idx.append(np.random.choice(range(100, 200), size=n_initial, replace=False))
 learner_list = [ActiveLearner(
                         predictor=GaussianProcessRegressor(kernel),
-                        X_initial=X[idx].reshape(-1, 1), y_initial=y[idx].reshape(-1, 1)
+                        X_training=X[idx].reshape(-1, 1), y_training=y[idx].reshape(-1, 1)
                 )
                 for idx in initial_idx]
 

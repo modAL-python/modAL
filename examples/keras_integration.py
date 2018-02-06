@@ -64,7 +64,7 @@ Training the ActiveLearner
 # initialize ActiveLearner
 learner = ActiveLearner(
     predictor=classifier,
-    X_initial=X_initial, y_initial=y_initial,
+    X_training=X_initial, y_training=y_initial,
     verbose=0
 )
 

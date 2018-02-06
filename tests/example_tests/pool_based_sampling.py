@@ -26,7 +26,7 @@ y_pool = np.delete(iris['target'], train_idx)
 # initializing the active learner
 learner = ActiveLearner(
     predictor=KNeighborsClassifier(n_neighbors=3),
-    X_initial=X_train, y_initial=y_train
+    X_training=X_train, y_training=y_train
 )
 
 # pool-based sampling

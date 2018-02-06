@@ -31,7 +31,7 @@ X_train, y_train = X_full[initial_idx], y_full[initial_idx]
 # initialize the learner
 learner = ActiveLearner(
     predictor=RandomForestClassifier(),
-    X_initial=X_train, y_initial=y_train
+    X_training=X_train, y_training=y_train
 )
 
 """

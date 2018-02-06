@@ -33,7 +33,7 @@ kernel = RBF(length_scale=1.0, length_scale_bounds=(1e-2, 1e3)) \
 regressor = ActiveLearner(
     predictor=GaussianProcessRegressor(kernel=kernel),
     query_strategy=GP_regression_std,
-    X_initial=X_initial.reshape(-1, 1), y_initial=y_initial.reshape(-1, 1)
+    X_training=X_initial.reshape(-1, 1), y_training=y_initial.reshape(-1, 1)
 )
 
 # plotting the initial estimation

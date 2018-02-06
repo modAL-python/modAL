@@ -211,7 +211,7 @@ class TestActiveLearner(unittest.TestCase):
                     y_new = np.random.randint(0, 2, size=(n_new_samples,))
                     learner = modAL.models.ActiveLearner(
                         predictor=mock.MockClassifier(),
-                        X_initial=X_initial, y_initial=y_initial
+                        X_training=X_initial, y_training=y_initial
                     )
                     learner._add_training_data(X_new, y_new)
                     np.testing.assert_almost_equal(
@@ -227,7 +227,7 @@ class TestActiveLearner(unittest.TestCase):
                     y_new = np.random.randint(0, 2, size=(n_new_samples, n_features+1))
                     learner = modAL.models.ActiveLearner(
                         predictor=mock.MockClassifier(),
-                        X_initial=X_initial, y_initial=y_initial
+                        X_training=X_initial, y_training=y_initial
                     )
                     learner._add_training_data(X_new, y_new)
                     np.testing.assert_equal(
@@ -304,8 +304,8 @@ class TestActiveLearner(unittest.TestCase):
     def test_sklearn(self):
         learner = modAL.models.ActiveLearner(
             predictor=RandomForestClassifier(),
-            X_initial=np.random.rand(10, 10),
-            y_initial=np.random.randint(0, 2, size=(10,))
+            X_training=np.random.rand(10, 10),
+            y_training=np.random.randint(0, 2, size=(10,))
         )
         learner.fit(np.random.rand(10, 10), np.random.randint(0, 2, size=(10,)))
         pred = learner.predict(np.random.rand(10, 10))
