@@ -98,11 +98,11 @@ class ActiveLearner(BaseEstimator):
         self.query_strategy = query_strategy
 
         if type(X_training) == type(None) and type(y_training) == type(None):
-            self._X_training = None
-            self._y_training = None
+            self.X_training = None
+            self.y_training = None
         elif type(X_training) != type(None) and type(y_training) != type(None):
-            self._X_training = check_array(X_training)
-            self._y_training = check_array(y_training, ensure_2d=False)
+            self.X_training = check_array(X_training)
+            self.y_training = check_array(y_training, ensure_2d=False)
             self._fit_to_known(bootstrap=bootstrap_init, **fit_kwargs)
 
     '''def __getattr__(self, item):
@@ -134,17 +134,17 @@ class ActiveLearner(BaseEstimator):
         X, y = check_array(X), check_array(y, ensure_2d=False)
         assert len(X) == len(y), 'the number of new data points and number of labels must match'
 
-        if type(self._X_training) != type(None):
+        if type(self.X_training) != type(None):
             try:
-                self._X_training = np.vstack((self._X_training, X))
-                self._y_training = np.concatenate((self._y_training, y))
+                self.X_training = np.vstack((self.X_training, X))
+                self.y_training = np.concatenate((self.y_training, y))
             except ValueError:
                 raise ValueError('the dimensions of the new training data and label must'
                                  'agree with the training data and labels provided so far')
 
         else:
-            self._X_training = X
-            self._y_training = y
+            self.X_training = X
+            self.y_training = y
 
     def _fit_to_known(self, bootstrap=False, **fit_kwargs):
         """
@@ -160,11 +160,11 @@ class ActiveLearner(BaseEstimator):
             Keyword arguments to be passed to the fit method of the predictor.
         """
         if not bootstrap:
-            self.estimator.fit(self._X_training, self._y_training, **fit_kwargs)
+            self.estimator.fit(self.X_training, self.y_training, **fit_kwargs)
         else:
-            n_instances = len(self._X_training)
+            n_instances = len(self.X_training)
             bootstrap_idx = np.random.choice(range(n_instances), n_instances, replace=True)
-            self.estimator.fit(self._X_training[bootstrap_idx], self._y_training[bootstrap_idx], **fit_kwargs)
+            self.estimator.fit(self.X_training[bootstrap_idx], self.y_training[bootstrap_idx], **fit_kwargs)
 
     def fit(self, X, y, bootstrap=False, **fit_kwargs):
         """
@@ -192,8 +192,8 @@ class ActiveLearner(BaseEstimator):
         When using scikit-learn estimators, calling this method will make the
         ActiveLearner forget all training data it has seen!
         """
-        self._X_training = X
-        self._y_training = y
+        self.X_training = X
+        self.y_training = y
         self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
     def predict(self, X, **predict_kwargs):

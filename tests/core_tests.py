@@ -215,11 +215,11 @@ class TestActiveLearner(unittest.TestCase):
                     )
                     learner._add_training_data(X_new, y_new)
                     np.testing.assert_almost_equal(
-                        learner._X_training,
+                        learner.X_training,
                         np.vstack((X_initial, X_new))
                     )
                     np.testing.assert_equal(
-                        learner._y_training,
+                        learner.y_training,
                         np.concatenate((y_initial, y_new))
                     )
                     # 2. vector class labels
@@ -231,7 +231,7 @@ class TestActiveLearner(unittest.TestCase):
                     )
                     learner._add_training_data(X_new, y_new)
                     np.testing.assert_equal(
-                        learner._y_training,
+                        learner.y_training,
                         np.concatenate((y_initial, y_new))
                     )
 
