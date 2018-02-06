@@ -105,12 +105,6 @@ class ActiveLearner(BaseEstimator):
             self.y_training = check_array(y_training, ensure_2d=False)
             self._fit_to_known(bootstrap=bootstrap_init, **fit_kwargs)
 
-    '''def __getattr__(self, item):
-        if hasattr(self._predictor, item):
-            return getattr(self._predictor, item)
-        else:
-            raise AttributeError('%s object has no attribute %s' % (self.__class__.__name__, str(item)))'''
-
     def _add_training_data(self, X, y):
         """
         Adds the new data and label to the known data, but does
@@ -161,10 +155,12 @@ class ActiveLearner(BaseEstimator):
         """
         if not bootstrap:
             self.estimator.fit(self.X_training, self.y_training, **fit_kwargs)
+            return self
         else:
             n_instances = len(self.X_training)
             bootstrap_idx = np.random.choice(range(n_instances), n_instances, replace=True)
             self.estimator.fit(self.X_training[bootstrap_idx], self.y_training[bootstrap_idx], **fit_kwargs)
+            return self
 
     def fit(self, X, y, bootstrap=False, **fit_kwargs):
         """
@@ -195,6 +191,7 @@ class ActiveLearner(BaseEstimator):
         self.X_training = X
         self.y_training = y
         self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
+        return self
 
     def predict(self, X, **predict_kwargs):
         """
