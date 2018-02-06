@@ -32,7 +32,7 @@ y_pool = np.delete(iris['target'], train_idx)
 
 # initializing the active learner
 learner = ActiveLearner(
-    predictor=KNeighborsClassifier(n_neighbors=3),
+    estimator=KNeighborsClassifier(n_neighbors=3),
     X_training=X_train, y_training=y_train
 )
 

@@ -32,7 +32,7 @@ n_learners = 3
 learner_list = []
 for _ in range(n_learners):
     learner = ActiveLearner(
-        predictor=RandomForestClassifier(),
+        estimator=RandomForestClassifier(),
         X_training=X_pool[initial_idx], y_training=y_pool[initial_idx],
         bootstrap_init=True
     )
@@ -43,7 +43,7 @@ committee = Committee(learner_list)
 
 # ensemble active learner from the Committee
 ensemble_learner = ActiveLearner(
-    predictor=committee
+    estimator=committee
 )
 
 query_idx, query_instance = ensemble_learner.query(X_pool)

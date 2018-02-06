@@ -210,7 +210,7 @@ class TestActiveLearner(unittest.TestCase):
                     X_new = np.random.rand(n_new_samples, n_features)
                     y_new = np.random.randint(0, 2, size=(n_new_samples,))
                     learner = modAL.models.ActiveLearner(
-                        predictor=mock.MockClassifier(),
+                        estimator=mock.MockClassifier(),
                         X_training=X_initial, y_training=y_initial
                     )
                     learner._add_training_data(X_new, y_new)
@@ -226,7 +226,7 @@ class TestActiveLearner(unittest.TestCase):
                     y_initial = np.random.randint(0, 2, size=(n_samples, n_features+1))
                     y_new = np.random.randint(0, 2, size=(n_new_samples, n_features+1))
                     learner = modAL.models.ActiveLearner(
-                        predictor=mock.MockClassifier(),
+                        estimator=mock.MockClassifier(),
                         X_training=X_initial, y_training=y_initial
                     )
                     learner._add_training_data(X_new, y_new)
@@ -252,7 +252,7 @@ class TestActiveLearner(unittest.TestCase):
                 predict_return = np.random.randint(0, 2, size=(n_samples, ))
                 mock_classifier = mock.MockClassifier(predict_return=predict_return)
                 learner = modAL.models.ActiveLearner(
-                    predictor=mock_classifier
+                    estimator=mock_classifier
                 )
                 np.testing.assert_equal(
                     learner.predict(X),
@@ -266,7 +266,7 @@ class TestActiveLearner(unittest.TestCase):
                 predict_proba_return = np.random.randint(0, 2, size=(n_samples,))
                 mock_classifier = mock.MockClassifier(predict_proba_return=predict_proba_return)
                 learner = modAL.models.ActiveLearner(
-                    predictor=mock_classifier
+                    estimator=mock_classifier
                 )
                 np.testing.assert_equal(
                     learner.predict_proba(X),
@@ -280,7 +280,7 @@ class TestActiveLearner(unittest.TestCase):
                 query_idx = np.random.randint(0, n_samples)
                 mock_query = mock.MockFunction(return_val=(query_idx, X[query_idx]))
                 learner = modAL.models.ActiveLearner(
-                    predictor=None,
+                    estimator=None,
                     query_strategy=mock_query
                 )
                 np.testing.assert_equal(
@@ -303,7 +303,7 @@ class TestActiveLearner(unittest.TestCase):
 
     def test_sklearn(self):
         learner = modAL.models.ActiveLearner(
-            predictor=RandomForestClassifier(),
+            estimator=RandomForestClassifier(),
             X_training=np.random.rand(10, 10),
             y_training=np.random.randint(0, 2, size=(10,))
         )
@@ -317,7 +317,7 @@ class TestCommittee(unittest.TestCase):
 
     def test_set_classes(self):
         for n_classes in range(1, 10):
-            learner_list = [modAL.models.ActiveLearner(predictor=mock.MockClassifier(classes_=np.asarray([idx])))
+            learner_list = [modAL.models.ActiveLearner(estimator=mock.MockClassifier(classes_=np.asarray([idx])))
                             for idx in range(n_classes)]
             committee = modAL.models.Committee(learner_list=learner_list)
             np.testing.assert_equal(

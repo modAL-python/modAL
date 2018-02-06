@@ -36,7 +36,7 @@ X_train, y_train = X_full[initial_idx], y_full[initial_idx]
 
 # initialize the learner
 learner = ActiveLearner(
-    predictor=RandomForestClassifier(),
+    estimator=RandomForestClassifier(),
     X_training=X_train, y_training=y_train
 )
 print('Initial prediction accuracy: %f' % learner.score(X_full, y_full))

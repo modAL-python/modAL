@@ -45,7 +45,7 @@ class MockActiveLearner:
             predict_proba_return=None, calculate_utility_return=None, predict_return=None, score_return=None,
             _X_initial=None, _y_initial=None
     ):
-        self._predictor = predictor
+        self.estimator = predictor
         self.query_strategy = query_strategy
 
         self.predict_proba_return = predict_proba_return

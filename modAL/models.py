@@ -17,17 +17,17 @@ class ActiveLearner(BaseEstimator):
 
     Parameters
     ----------
-    predictor: scikit-learn estimator
+    estimator: scikit-learn estimator
         The estimator to be used in the active learning loop.
 
     query_strategy: function
         Function providing the query strategy for the active learning
         loop, for instance modAL.uncertainty.uncertainty_sampling.
 
-    X_initial: None or numpy.ndarray of shape (n_samples, n_features)
+    X_training: None or numpy.ndarray of shape (n_samples, n_features)
         Initial training samples, if available.
 
-    y_initial: None or numpy.ndarray of shape (n_samples, )
+    y_training: None or numpy.ndarray of shape (n_samples, )
         Initial training labels corresponding to initial training samples
 
     bootstrap_init: boolean
@@ -39,19 +39,19 @@ class ActiveLearner(BaseEstimator):
 
     Attributes
     ----------
-    predictor: scikit-learn estimator
+    estimator: scikit-learn estimator
         The estimator to be used in the active learning loop.
 
     query_strategy: function
         Function providing the query strategy for the active learning
         loop, for instance modAL.query.max_uncertainty.
 
-    _X_training: None numpy.ndarray of shape (n_samples, n_features)
+    X_training: None numpy.ndarray of shape (n_samples, n_features)
         If the model hasn't been fitted yet: None
         If the model has been fitted already: numpy.ndarray containing the
         samples which the model has been trained on
 
-    _y_training: None or numpy.ndarray of shape (n_samples, )
+    y_training: None or numpy.ndarray of shape (n_samples, )
         If the model hasn't been fitted yet: None
         If the model has been fitted already: numpy.ndarray containing the
         labels corresponding to _training_samples
@@ -69,7 +69,7 @@ class ActiveLearner(BaseEstimator):
     >>>
     >>> # initialize active learner
     >>> learner = ActiveLearner(
-    ...     predictor=RandomForestClassifier(),
+    ...     estimator=RandomForestClassifier(),
     ...     X_training=X_training, y_training=y_training
     ... )
     >>>
@@ -86,15 +86,15 @@ class ActiveLearner(BaseEstimator):
     """
     def __init__(
             self,
-            predictor,                                           # scikit-learner estimator object
+            estimator,                                           # scikit-learner estimator object
             query_strategy=uncertainty_sampling,	             # callable to query labels
-            X_training=None, y_training=None,	                     # initial data if available
+            X_training=None, y_training=None,	                 # initial data if available
             bootstrap_init=False,                                # first training with bootstrapping
             **fit_kwargs                                         # keyword arguments for fitting the initial data
     ):
         assert callable(query_strategy), 'query_function must be callable'
 
-        self._predictor = predictor
+        self.estimator = estimator
         self.query_strategy = query_strategy
 
         if type(X_training) == type(None) and type(y_training) == type(None):
@@ -148,7 +148,7 @@ class ActiveLearner(BaseEstimator):
 
     def _fit_to_known(self, bootstrap=False, **fit_kwargs):
         """
-        Fits self._predictor to the training data and labels provided to it so far.
+        Fits self.estimator to the training data and labels provided to it so far.
 
         Parameters
         ----------
@@ -160,11 +160,11 @@ class ActiveLearner(BaseEstimator):
             Keyword arguments to be passed to the fit method of the predictor.
         """
         if not bootstrap:
-            self._predictor.fit(self._X_training, self._y_training, **fit_kwargs)
+            self.estimator.fit(self._X_training, self._y_training, **fit_kwargs)
         else:
             n_instances = len(self._X_training)
             bootstrap_idx = np.random.choice(range(n_instances), n_instances, replace=True)
-            self._predictor.fit(self._X_training[bootstrap_idx], self._y_training[bootstrap_idx], **fit_kwargs)
+            self.estimator.fit(self._X_training[bootstrap_idx], self._y_training[bootstrap_idx], **fit_kwargs)
 
     def fit(self, X, y, bootstrap=False, **fit_kwargs):
         """
@@ -214,7 +214,7 @@ class ActiveLearner(BaseEstimator):
         pred: numpy.ndarray of shape (n_samples, )
             Estimator predictions for X.
         """
-        return self._predictor.predict(X, **predict_kwargs)
+        return self.estimator.predict(X, **predict_kwargs)
 
     def predict_proba(self, X, **predict_proba_kwargs):
         """
@@ -236,7 +236,7 @@ class ActiveLearner(BaseEstimator):
         proba: numpy.ndarray of shape (n_samples, n_classes)
             Class probabilities for X.
         """
-        return self._predictor.predict_proba(X, **predict_proba_kwargs)
+        return self.estimator.predict_proba(X, **predict_proba_kwargs)
 
     def query(self, X, **query_kwargs):
         """
@@ -262,7 +262,7 @@ class ActiveLearner(BaseEstimator):
         """
         check_array(X, ensure_2d=True)
 
-        query_idx, query_instances = self.query_strategy(self._predictor, X, **query_kwargs)
+        query_idx, query_instances = self.query_strategy(self.estimator, X, **query_kwargs)
         return query_idx, query_instances
 
     def score(self, X, y, **score_kwargs):
@@ -285,7 +285,7 @@ class ActiveLearner(BaseEstimator):
         -------
         mean_accuracy: numpy.float containing the mean accuracy of the predictor
         """
-        return self._predictor.score(X, y, **score_kwargs)
+        return self.estimator.score(X, y, **score_kwargs)
 
     def teach(self, X, y, bootstrap=False, **fit_kwargs):
         """
@@ -503,11 +503,11 @@ class Committee(BaseCommittee):
     >>>
     >>> # initialize ActiveLearners
     >>> learner_1 = ActiveLearner(
-    ...     predictor=RandomForestClassifier(),
+    ...     estimator=RandomForestClassifier(),
     ...     X_training=iris['data'][[0, 50, 100]], y_training=iris['target'][[0, 50, 100]]
     ... )
     >>> learner_2 = ActiveLearner(
-    ...     predictor=KNeighborsClassifier(n_neighbors=3),
+    ...     estimator=KNeighborsClassifier(n_neighbors=3),
     ...     X_training=iris['data'][[1, 51, 101]], y_training=iris['target'][[1, 51, 101]]
     ... )
     >>>
@@ -547,7 +547,7 @@ class Committee(BaseCommittee):
 
         # assemble the list of known classes from each learner
         self.classes_ = np.unique(
-            np.concatenate(tuple(learner._predictor.classes_ for learner in self._learner_list), axis=0),
+            np.concatenate(tuple(learner.estimator.classes_ for learner in self._learner_list), axis=0),
             axis=0
         )
         self.n_classes_ = len(self.classes_)
@@ -656,7 +656,7 @@ class Committee(BaseCommittee):
         proba = np.zeros(shape=(n_samples, n_learners, self.n_classes_))
 
         # checking if the learners in the Committee know the same set of class labels
-        if check_class_labels(*[learner._predictor for learner in self._learner_list]):
+        if check_class_labels(*[learner.estimator for learner in self._learner_list]):
             # known class labels are the same for each learner
             # probability prediction is straightforward
 
@@ -667,7 +667,7 @@ class Committee(BaseCommittee):
             for learner_idx, learner in enumerate(self._learner_list):
                 proba[:, learner_idx, :] = check_class_proba(
                     proba=learner.predict_proba(X, **predict_proba_kwargs),
-                    known_labels=learner._predictor.classes_,
+                    known_labels=learner.estimator.classes_,
                     all_labels=self.classes_
                 )
 
@@ -706,7 +706,7 @@ class CommitteeRegressor(BaseCommittee):
     >>> initial_idx.append(np.random.choice(range(100), size=n_initial, replace=False))
     >>> initial_idx.append(np.random.choice(range(100, 200), size=n_initial, replace=False))
     >>> learner_list = [ActiveLearner(
-    ...                         predictor=GaussianProcessRegressor(kernel),
+    ...                         estimator=GaussianProcessRegressor(kernel),
     ...                         X_training=X[idx].reshape(-1, 1), y_training=y[idx].reshape(-1, 1)
     ...                 )
     ...                 for idx in initial_idx]

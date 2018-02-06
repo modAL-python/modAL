@@ -36,7 +36,7 @@ n_learners = 3
 learner_list = []
 for _ in range(n_learners):
     learner = ActiveLearner(
-        predictor=KNeighborsClassifier(n_neighbors=10),
+        estimator=KNeighborsClassifier(n_neighbors=10),
         X_training=X_pool[initial_idx], y_training=y_pool[initial_idx],
         bootstrap_init=True
     )
