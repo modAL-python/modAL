@@ -103,7 +103,7 @@ Since regressors in general don't provide a way to calculate prediction probabil
 
 ![er-iniial](img/er-initial.png)
 
-When a committee of regressors is available, uncertainty of predictions can be estimated by calculating the standard deviation of predictions. This is done by the '''modAL.disagreement.max_std_sampling''' function.
+When a committee of regressors is available, uncertainty of predictions can be estimated by calculating the standard deviation of predictions. This is done by the ```modAL.disagreement.max_std_sampling``` function.
 
 # Disagreement measures in action<a name="disagreement-measures-in-action"></a>
 To visualize the disagreement measures, let's consider a toy example! Suppose that we would like to learn these two objects:
