@@ -467,7 +467,7 @@ class BaseCommittee(ABC):
         pass
 
 
-class Committee(BaseCommittee):
+class Committee(BaseCommittee, BaseEstimator):
     """
     This class is an abstract model of a committee-based active learning algorithm.
 
@@ -669,7 +669,7 @@ class Committee(BaseCommittee):
         return proba
 
 
-class CommitteeRegressor(BaseCommittee):
+class CommitteeRegressor(BaseCommittee, BaseEstimator):
     """
     This class is an abstract model of a committee-based active learning regression.
 
