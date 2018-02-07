@@ -319,15 +319,15 @@ class BaseCommittee(ABC):
     ):
         assert type(learner_list) == list, 'learners must be supplied in a list'
 
-        self._learner_list = learner_list
+        self.learner_list = learner_list
         self.query_strategy = query_strategy
 
     def __iter__(self):
-        for learner in self._learner_list:
+        for learner in self.learner_list:
             yield learner
 
     def __len__(self):
-        return len(self._learner_list)
+        return len(self.learner_list)
 
     def _add_training_data(self, X, y):
         """
@@ -349,7 +349,7 @@ class BaseCommittee(ABC):
         have to agree with the training samples which the
         classifier has seen.
         """
-        for learner in self._learner_list:
+        for learner in self.learner_list:
             learner._add_training_data(X, y)
 
     def _fit_to_known(self, bootstrap=False, **fit_kwargs):
@@ -365,7 +365,7 @@ class BaseCommittee(ABC):
         fit_kwargs: keyword arguments
             Keyword arguments to be passed to the fit method of the predictor.
         """
-        for learner in self._learner_list:
+        for learner in self.learner_list:
             learner._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
     def fit(self, X, y, **fit_kwargs):
@@ -391,7 +391,7 @@ class BaseCommittee(ABC):
         Calling this method makes the learner forget the data it has seen up until this point and
         replaces it with X!
         """
-        for learner in self._learner_list:
+        for learner in self.learner_list:
             learner.fit(X, y, **fit_kwargs)
 
     def query(self, X, **query_kwargs):
@@ -544,7 +544,7 @@ class Committee(BaseCommittee):
 
         # assemble the list of known classes from each learner
         self.classes_ = np.unique(
-            np.concatenate(tuple(learner.estimator.classes_ for learner in self._learner_list), axis=0),
+            np.concatenate(tuple(learner.estimator.classes_ for learner in self.learner_list), axis=0),
             axis=0
         )
         self.n_classes_ = len(self.classes_)
@@ -619,9 +619,9 @@ class Committee(BaseCommittee):
             and each sample in X.
         """
         check_array(X, ensure_2d=True)
-        prediction = np.zeros(shape=(X.shape[0], len(self._learner_list)))
+        prediction = np.zeros(shape=(X.shape[0], len(self.learner_list)))
 
-        for learner_idx, learner in enumerate(self._learner_list):
+        for learner_idx, learner in enumerate(self.learner_list):
             prediction[:, learner_idx] = learner.predict(X, **predict_kwargs)
 
         return prediction
@@ -649,19 +649,19 @@ class Committee(BaseCommittee):
 
         # get dimensions
         n_samples = X.shape[0]
-        n_learners = len(self._learner_list)
+        n_learners = len(self.learner_list)
         proba = np.zeros(shape=(n_samples, n_learners, self.n_classes_))
 
         # checking if the learners in the Committee know the same set of class labels
-        if check_class_labels(*[learner.estimator for learner in self._learner_list]):
+        if check_class_labels(*[learner.estimator for learner in self.learner_list]):
             # known class labels are the same for each learner
             # probability prediction is straightforward
 
-            for learner_idx, learner in enumerate(self._learner_list):
+            for learner_idx, learner in enumerate(self.learner_list):
                 proba[:, learner_idx, :] = learner.predict_proba(X, **predict_proba_kwargs)
 
         else:
-            for learner_idx, learner in enumerate(self._learner_list):
+            for learner_idx, learner in enumerate(self.learner_list):
                 proba[:, learner_idx, :] = check_class_proba(
                     proba=learner.predict_proba(X, **predict_proba_kwargs),
                     known_labels=learner.estimator.classes_,
@@ -729,7 +729,7 @@ class CommitteeRegressor(BaseCommittee):
     def __init__(
             self,
             learner_list,                                        # list of ActiveLearner objects
-            query_strategy=max_std_sampling                # callable to query labels
+            query_strategy=max_std_sampling                      # callable to query labels
 
     ):
         assert type(learner_list) == list, 'learners must be supplied in a list'
@@ -777,9 +777,9 @@ class CommitteeRegressor(BaseCommittee):
             The predicted value for each regressor in the CommitteeRegressor and each sample in X.
         """
         check_array(X, ensure_2d=True)
-        prediction = np.zeros(shape=(len(X), len(self._learner_list)))
+        prediction = np.zeros(shape=(len(X), len(self.learner_list)))
 
-        for learner_idx, learner in enumerate(self._learner_list):
+        for learner_idx, learner in enumerate(self.learner_list):
             prediction[:, learner_idx] = learner.predict(X, **predict_kwargs).reshape(-1, )
 
         return prediction
