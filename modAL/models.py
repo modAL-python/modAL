@@ -530,8 +530,6 @@ class Committee(BaseCommittee):
             query_strategy=vote_entropy_sampling                 # callable to query labels
 
     ):
-        assert type(learner_list) == list, 'learners must be supplied in a list'
-
         super().__init__(learner_list, query_strategy)
         self._set_classes()
 
@@ -732,8 +730,6 @@ class CommitteeRegressor(BaseCommittee):
             query_strategy=max_std_sampling                      # callable to query labels
 
     ):
-        assert type(learner_list) == list, 'learners must be supplied in a list'
-
         super().__init__(learner_list, query_strategy)
 
     def predict(self, X, return_std=False, **predict_kwargs):
