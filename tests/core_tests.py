@@ -9,6 +9,7 @@ import modAL.disagreement
 import modAL.utils.selection
 import modAL.utils.validation
 
+from copy import deepcopy
 from itertools import chain
 from collections import namedtuple
 from sklearn.ensemble import RandomForestClassifier
@@ -38,7 +39,23 @@ class TestUtils(unittest.TestCase):
                 self.assertFalse(modAL.utils.validation.check_class_labels(*shuffled_learners))
 
     def test_check_class_proba(self):
-        pass
+        for n_labels in range(2, 20):
+            # when all classes are known:
+            proba = np.random.rand(100, n_labels)
+            class_labels = list(range(n_labels))
+            np.testing.assert_almost_equal(
+                modAL.utils.check_class_proba(proba, known_labels=class_labels, all_labels=class_labels),
+                proba
+            )
+            for unknown_idx in range(n_labels):
+                all_labels = list(range(n_labels))
+                known_labels = deepcopy(all_labels)
+                known_labels.remove(unknown_idx)
+                aug_proba = np.insert(proba[:, known_labels], unknown_idx, np.zeros(len(proba)), axis=1)
+                np.testing.assert_almost_equal(
+                    modAL.utils.check_class_proba(proba[:, known_labels], known_labels=known_labels, all_labels=all_labels),
+                    aug_proba
+                )
 
 
 class TestUncertainties(unittest.TestCase):
