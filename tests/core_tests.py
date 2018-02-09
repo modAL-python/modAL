@@ -6,6 +6,7 @@ import mock
 import modAL.models
 import modAL.uncertainty
 import modAL.disagreement
+import modAL.density
 import modAL.utils.selection
 import modAL.utils.validation
 import modAL.utils.combination
@@ -178,6 +179,20 @@ class TestUncertainties(unittest.TestCase):
                         classifier, np.random.rand(n_samples, n_classes)
                     )
                     np.testing.assert_array_equal(query_idx, true_query_idx)
+
+
+class TestDensity(unittest.TestCase):
+
+    def test_similarize_distance(self):
+        from scipy.spatial.distance import cosine
+        sim = modAL.density.similarize_distance(cosine)
+        for _ in range(100):
+            for n_dim in range(1, 10):
+                X_1, X_2 = np.random.rand(n_dim), np.random.rand(n_dim)
+                np.testing.assert_almost_equal(
+                    sim(X_1, X_2),
+                    1/(1 + cosine(X_1, X_2))
+                )
 
 
 class TestDisagreements(unittest.TestCase):
