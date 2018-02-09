@@ -19,7 +19,10 @@ def similarize_distance(distance_measure):
     return sim
 
 
-def similarity(X_pool, similarity_measure=similarize_distance(cosine)):
+cosine_similarity = similarize_distance(cosine)
+
+
+def similarity(X_pool, similarity_measure=cosine_similarity):
     sim = np.zeros(shape=(len(X_pool), ))
     for X_idx, X in enumerate(X_pool):
         sim[X_idx] = sum(similarity_measure(X, X_j) for X_j in X_pool)
