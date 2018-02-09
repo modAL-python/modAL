@@ -95,16 +95,10 @@ class TestUtils(unittest.TestCase):
                 # linear combination with weights
                 exponents = np.random.rand(n_functions)
                 exp_product = modAL.utils.combination.make_product(*functions, exponents=exponents)
-                try:
-                    np.testing.assert_almost_equal(
-                        exp_product(X_in),
-                        np.prod([X_in**exponent for exponent in exponents], axis=0)
-                    )
-                except:
-                    np.testing.assert_almost_equal(
-                        exp_product(X_in),
-                        np.prod([X_in ** exponent for exponent in exponents], axis=0)
-                    )
+                np.testing.assert_almost_equal(
+                    exp_product(X_in),
+                    np.prod([X_in**exponent for exponent in exponents], axis=0)
+                )
 
 
 class TestUncertainties(unittest.TestCase):
