@@ -12,7 +12,19 @@ from scipy.spatial.distance import cosine
 
 
 def similarize_distance(distance_measure):
+    """
+    Takes a distance measure and converts it into a information_density measure.
 
+    Parameters
+    ----------
+    distance_measure: function
+        The distance measure to be converted into information_density measure.
+
+    Returns
+    -------
+    sim: function
+        The information_density measure obtained from the given disance measure.
+    """
     def sim(*args, **kwargs):
         return 1/(1 + distance_measure(*args, **kwargs))
 
@@ -22,9 +34,25 @@ def similarize_distance(distance_measure):
 cosine_similarity = similarize_distance(cosine)
 
 
-def similarity(X_pool, similarity_measure=cosine_similarity):
-    sim = np.zeros(shape=(len(X_pool), ))
-    for X_idx, X in enumerate(X_pool):
-        sim[X_idx] = sum(similarity_measure(X, X_j) for X_j in X_pool)
+def information_density(X_pool, similarity_measure=cosine_similarity):
+    """
 
-    return sim/len(X_pool)
+    Parameters
+    ----------
+    X_pool: numpy.ndarray of shape (n_samples, n_features)
+        The data for which the information density is to be calculated.
+
+    similarity_measure: function
+        The similarity measure to be used. Should take two 1d numpy.ndarrays for argument.
+
+    Returns
+    -------
+    inf_density: numpy.ndarray of shape (n_samples, )
+        The information density for each sample.
+
+    """
+    inf_density = np.zeros(shape=(len(X_pool), ))
+    for X_idx, X in enumerate(X_pool):
+        inf_density[X_idx] = sum(similarity_measure(X, X_j) for X_j in X_pool)
+
+    return inf_density/len(X_pool)
