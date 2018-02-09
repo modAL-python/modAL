@@ -194,6 +194,13 @@ class TestDensity(unittest.TestCase):
                     1/(1 + cosine(X_1, X_2))
                 )
 
+    def test_similarity(self):
+        for n_samples in range(1, 10):
+            for n_dim in range(1, 10):
+                X_pool = np.random.rand(n_samples, n_dim)
+                similarities = modAL.density.similarity(X_pool)
+                np.testing.assert_equal(len(similarities), n_samples)
+
 
 class TestDisagreements(unittest.TestCase):
 
