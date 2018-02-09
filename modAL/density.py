@@ -13,8 +13,8 @@ from scipy.spatial.distance import cosine
 
 def similarize_distance(distance_measure):
 
-    def sim(x, y):
-        return 1/(1 + distance_measure(x, y))
+    def sim(*args, **kwargs):
+        return 1/(1 + distance_measure(*args, **kwargs))
 
     return sim
 
