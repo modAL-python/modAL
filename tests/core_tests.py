@@ -8,6 +8,7 @@ import modAL.uncertainty
 import modAL.disagreement
 import modAL.utils.selection
 import modAL.utils.validation
+import modAL.utils.combination
 
 from copy import deepcopy
 from itertools import chain
@@ -55,6 +56,27 @@ class TestUtils(unittest.TestCase):
                 np.testing.assert_almost_equal(
                     modAL.utils.check_class_proba(proba[:, known_labels], known_labels=known_labels, all_labels=all_labels),
                     aug_proba
+                )
+
+    def test_linear_combination(self):
+        for n_dim in range(1, 5):
+            shape = tuple([10] + [2 for _ in range(n_dim-1)])
+            X_in = np.ones(shape=shape)
+            for n_functions in range(1, 10):
+                functions = [(lambda x: x) for _ in range(n_functions)]
+                # linear combination without weights
+                linear_combination = modAL.utils.combination.make_linear_combination(*functions)
+                np.testing.assert_almost_equal(
+                    linear_combination(X_in),
+                    n_functions*X_in
+                )
+
+                # linear combination with weights
+                weights = np.random.rand(n_functions)
+                weighted_linear_combination = modAL.utils.combination.make_linear_combination(*functions, weights=weights)
+                np.testing.assert_almost_equal(
+                    weighted_linear_combination(X_in),
+                    np.sum(weights) * X_in
                 )
 
 

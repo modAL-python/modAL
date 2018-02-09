@@ -50,6 +50,8 @@ def check_class_proba(proba, known_labels, all_labels):
 
     """
 
+    # TODO: rewrite this function using numpy.insert
+
     label_idx_map = -np.ones(len(all_labels), dtype='int')
 
     for known_label_idx, known_label in enumerate(known_labels):
