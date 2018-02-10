@@ -118,7 +118,7 @@ kernel = RBF(length_scale=1.0, length_scale_bounds=(1e-2, 1e3)) \
 regressor = ActiveLearner(
     estimator=GaussianProcessRegressor(kernel=kernel),
     query_strategy=GP_regression_std,
-    X_training=X_training.reshape(-1, 1), y_training=y_initial.reshape(-1, 1)
+    X_training=X_training.reshape(-1, 1), y_training=y_training.reshape(-1, 1)
 )
 ```
 The initial regressor is not very accurate.
