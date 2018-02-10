@@ -7,7 +7,6 @@ Measures for estimating the information density of a given sample
 -----------------------------------------------------------------
 """
 
-import time
 import numpy as np
 from scipy.spatial.distance import cosine
 
