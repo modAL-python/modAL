@@ -16,8 +16,8 @@ iris = load_iris()
 
 # initial training data
 train_idx = [0, 50, 100]
-X_train = iris['data'][train_idx]
-y_train = iris['target'][train_idx]
+X_training = iris['data'][train_idx]
+y_training = iris['target'][train_idx]
 
 # generating the pool
 X_pool = np.delete(iris['data'], train_idx, axis=0)
@@ -36,8 +36,8 @@ from sklearn.neighbors import KNeighborsClassifier
 
 # initializing the active learner
 learner = ActiveLearner(
-    predictor=KNeighborsClassifier(n_neighbors=3),
-    X_initial=X_train, y_initial=y_train
+    estimator=KNeighborsClassifier(n_neighbors=3),
+    X_training=X_training, y_training=y_training
 )
 ```
 Before the active learning loop, here is how the predictions look like.

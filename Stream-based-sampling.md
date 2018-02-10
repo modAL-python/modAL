@@ -36,12 +36,12 @@ Initializing the learner is the same as always.
 >>> # assembling initial training set
 >>> n_initial = 5
 >>> initial_idx = np.random.choice(range(len(X_full)), size=n_initial, replace=False)
->>> X_train, y_train = X_full[initial_idx], y_full[initial_idx]
+>>> X_training, y_training = X_full[initial_idx], y_full[initial_idx]
 >>> 
 >>> # initialize the learner
 >>> learner = ActiveLearner(
 >>>     predictor=RandomForestClassifier(),
->>>     X_initial=X_train, y_initial=y_train
+>>>     X_training=X_training, y_training=y_training
 >>> )
 >>> print('Initial prediction accuracy: %f' % learner.score(X_full, y_full))
 >>>

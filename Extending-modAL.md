@@ -22,7 +22,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 # initializing the learner
 learner = ActiveLearner(
-    predictor=RandomForestClassifier(),
+    estimator=RandomForestClassifier(),
     query_strategy=some_query_strategy
 )
 
@@ -39,8 +39,8 @@ n_learners = 3
 learner_list = []
 for _ in range(n_learners):
     learner = ActiveLearner(
-        predictor=RandomForestClassifier(),
-        X_initial=X_initial, y_initial=y_pool[initial_idx],
+        estimator=RandomForestClassifier(),
+        X_training=X_training, y_training=y_training,
         bootstrap_init=True
     )
     learner_list.append(learner)
@@ -50,7 +50,7 @@ committee = Committee(learner_list)
 
 # ensemble active learner from the Committee
 ensemble_learner = ActiveLearner(
-    predictor=committee
+    estimator=committee
 )
 ```
 Now you are ready for active learning with an ensemble of classifiers! If you would like to keep bagging the data pass ```bootstrap=True``` to the ```.teach()``` method!

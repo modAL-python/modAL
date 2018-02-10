@@ -31,17 +31,17 @@ Currently, modAL supports two popular active learning models: *uncertainty based
 This class is an abstract model of a general active learning algorithm.
 
 **Parameters**  
-*predictor*: scikit-learn estimator  
+*estimator*: scikit-learn estimator  
     The estimator to be used in the active learning loop.
 
 *query_strategy*: function  
     Function providing the query strategy for the active learning
     loop, for instance modAL.uncertainty.uncertainty_sampling.
 
-*X_initial*: None or numpy.ndarray of shape (n_samples, n_features)  
+*X_training*: None or numpy.ndarray of shape (n_samples, n_features)  
     Initial training samples, if available.
 
-*y_initial*: None or numpy.ndarray of shape (n_samples, )  
+*y_training*: None or numpy.ndarray of shape (n_samples, )  
     Initial training labels corresponding to initial training samples
 
 *bootstrap_init*: boolean  
@@ -52,7 +52,7 @@ This class is an abstract model of a general active learning algorithm.
 *fit_kwargs*: keyword arguments for the fit method
 
 **Attributes**  
-*predictor*: scikit-learn estimator  
+*estimator*: scikit-learn estimator  
     The estimator to be used in the active learning loop.
 
 *query_strategy*: function  
@@ -83,8 +83,8 @@ This class is an abstract model of a general active learning algorithm.
 >>>
 >>> # initialize active learner
 >>> learner = ActiveLearner(
-...     predictor=RandomForestClassifier(),
-...     X_initial=X_training, y_initial=y_training
+...     estimator=RandomForestClassifier(),
+...     X_training=X_training, y_training=y_training
 ... )
 >>>
 >>> # querying for labels
@@ -100,7 +100,7 @@ This class is an abstract model of a general active learning algorithm.
 ```
 
 ## ActiveLearner.fit(X, y, bootstrap=False)<a name="ActiveLearner.fit"></a>
-Interface for the fit method of the predictor. Fits the predictor
+Interface for the fit method of the estimator. Fits the estimator
 to the supplied data, then stores it internally for the active
 learning loop.
 
@@ -116,7 +116,7 @@ learning loop.
     Committee models with bagging.
 
 *fit_kwargs*: keyword arguments  
-    Keyword arguments to be passed to the fit method of the predictor.
+    Keyword arguments to be passed to the fit method of the estimator.
 
 **DANGER ZONE**  
 When using scikit-learn estimators, calling this method will make the
@@ -138,7 +138,7 @@ method of the estimator.
     Estimator predictions for X.
 
 ## ActiveLearner.predict_proba(X)<a name="ActiveLearner.predict_proba"></a>
-Class probabilities if the predictor is a classifier.
+Class probabilities if the estimator is a classifier.
 Interface with the predict_proba method of the classifier.
 
 **Parameters**  
@@ -173,7 +173,7 @@ the query_strategy function. Returns the queried instances and its indices.
     The instances from X_pool chosen to be labelled.
 
 ## ActiveLearner.score(X, y)<a name="ActiveLearner.score"></a>
-Interface for the score method of the predictor.
+Interface for the score method of the estimator.
 
 **Parameters**  
 *X*: numpy.ndarray of shape (n_samples, n_features)  
@@ -187,10 +187,10 @@ Interface for the score method of the predictor.
     classifier
 
 **Returns**  
-*mean_accuracy*: numpy.float containing the mean accuracy of the predictor
+*mean_accuracy*: numpy.float containing the mean accuracy of the estimator
 
 ## ActiveLearner.teach(X, y, bootstrap=False)<a name="ActiveLearner.teach"></a>
-Adds X and y to the known training data and retrains the predictor
+Adds X and y to the known training data and retrains the estimator
 with the augmented dataset.
 
 **Parameters**  
@@ -206,7 +206,7 @@ with the augmented dataset.
 
 *fit_kwargs*: keyword arguments  
     Keyword arguments to be passed to the fit method
-    of the predictor.
+    of the estimator.
 
 # Committee<a name="Committee"></a>
 This class is an abstract model of a committee-based active learning algorithm.
@@ -239,12 +239,12 @@ This class is an abstract model of a committee-based active learning algorithm.
 >>>
 >>> # initialize ActiveLearners
 >>> learner_1 = ActiveLearner(
-...     predictor=RandomForestClassifier(),
-...     X_initial=iris['data'][[0, 50, 100]], y_initial=iris['target'][[0, 50, 100]]
+...     estimator=RandomForestClassifier(),
+...     X_training=iris['data'][[0, 50, 100]], y_training=iris['target'][[0, 50, 100]]
 ... )
 >>> learner_2 = ActiveLearner(
-...     predictor=KNeighborsClassifier(n_neighbors=3),
-...     X_initial=iris['data'][[1, 51, 101]], y_initial=iris['target'][[1, 51, 101]]
+...     estimator=KNeighborsClassifier(n_neighbors=3),
+...     X_training=iris['data'][[1, 51, 101]], y_training=iris['target'][[1, 51, 101]]
 ... )
 >>>
 >>> # initialize the Committee
@@ -278,7 +278,7 @@ data it has seen, use the method .rebag()!
     The corresponding labels.
 
 *fit_kwargs*: keyword arguments  
-    Keyword arguments to be passed to the fit method of the predictor.
+    Keyword arguments to be passed to the fit method of the estimator.
 
 **DANGER ZONE**  
 Calling this method makes the learner forget the data it has seen up until this point and
@@ -340,7 +340,7 @@ Refits every learner with a dataset bootstrapped from its training instances. Co
 
 **Parameters**  
 *fit_kwargs*: keyword arguments  
-    Keyword arguments to be passed to the fit method of the predictor.
+    Keyword arguments to be passed to the fit method of the estimator.
 
 ## Committee.teach(X, y, bootstrap=False)<a name="Committee.teach"></a>
 Adds X and y to the known training data for each learner
@@ -360,7 +360,7 @@ and retrains the Committee with the augmented dataset.
 
 *fit_kwargs*: keyword arguments  
     Keyword arguments to be passed to the fit method
-    of the predictor.
+    of the estimator.
 
 ## Committee.vote(X)<a name="Committee.vote"></a>
 Predicts the labels for the supplied data for each learner in
@@ -422,8 +422,8 @@ This class is an abstract model of a committee-based active learning regression.
 >>> initial_idx.append(np.random.choice(range(100), size=n_initial, replace=False))
 >>> initial_idx.append(np.random.choice(range(100, 200), size=n_initial, replace=False))
 >>> learner_list = [ActiveLearner(
-...                         predictor=GaussianProcessRegressor(kernel),
-...                         X_initial=X[idx].reshape(-1, 1), y_initial=y[idx].reshape(-1, 1)
+...                         estimator=GaussianProcessRegressor(kernel),
+...                         X_training=X[idx].reshape(-1, 1), y_training=y[idx].reshape(-1, 1)
 ...                 )
 ...                 for idx in initial_idx]
 >>>
@@ -460,7 +460,7 @@ data it has seen, use the method .rebag()!
     The corresponding labels.
 
 *fit_kwargs*: keyword arguments  
-    Keyword arguments to be passed to the fit method of the predictor.
+    Keyword arguments to be passed to the fit method of the estimator.
 
 **DANGER ZONE**  
 Calling this method makes the learner forget the data it has seen up until this point and
@@ -505,7 +505,7 @@ Refits every learner with a dataset bootstrapped from its training instances. Co
 
 **Parameters**  
 *fit_kwargs*: keyword arguments  
-    Keyword arguments to be passed to the fit method of the predictor.
+    Keyword arguments to be passed to the fit method of the estimator.
 
 ## CommitteeRegressor.teach(X, y, bootstrap=False)<a name="CommitteeRegressor.teach"></a>
 Adds X and y to the known training data for each learner
@@ -525,7 +525,7 @@ and retrains the CommitteeRegressor with the augmented dataset.
 
 *fit_kwargs*: keyword arguments  
     Keyword arguments to be passed to the fit method
-    of the predictor.
+    of the estimator.
 
 ## CommitteeRegressor.vote(X)<a name="CommitteeRegressor.vote"></a>
 Predicts the values for the supplied data for each regressor in the CommitteeRegressor.

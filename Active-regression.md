@@ -30,15 +30,15 @@ from sklearn.gaussian_process.kernels import WhiteKernel, RBF
 
 n_initial = 5
 initial_idx = np.random.choice(range(len(X)), size=n_initial, replace=False)
-X_initial, y_initial = X[initial_idx], y[initial_idx]
+X_training, y_training = X[initial_idx], y[initial_idx]
 
 kernel = RBF(length_scale=1.0, length_scale_bounds=(1e-2, 1e3)) \
          + WhiteKernel(noise_level=1, noise_level_bounds=(1e-10, 1e+1))
 
 regressor = ActiveLearner(
-    predictor=GaussianProcessRegressor(kernel=kernel),
+    estimator=GaussianProcessRegressor(kernel=kernel),
     query_strategy=GP_regression_std,
-    X_initial=X_initial.reshape(-1, 1), y_initial=y_initial.reshape(-1, 1)
+    X_training=X_training.reshape(-1, 1), y_training=y_training.reshape(-1, 1)
 )
 ```
 

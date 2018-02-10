@@ -36,8 +36,8 @@ for member_idx in range(n_members):
     # initial training data
     n_initial = 5
     train_idx = np.random.choice(range(X_pool.shape[0]), size=n_initial, replace=False)
-    X_train = X_pool[train_idx]
-    y_train = y_pool[train_idx]
+    X_training = X_pool[train_idx]
+    y_training = y_pool[train_idx]
 
     # creating a reduced copy of the data with the known instances removed
     X_pool = np.delete(X_pool, train_idx, axis=0)
@@ -45,8 +45,8 @@ for member_idx in range(n_members):
 
     # initializing learner
     learner = ActiveLearner(
-        predictor=RandomForestClassifier(),
-        X_initial=X_train, y_initial=y_train
+        estimator=RandomForestClassifier(),
+        X_training=X_training, y_training=y_training
     )
     learner_list.append(learner)
 

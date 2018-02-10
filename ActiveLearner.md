@@ -17,22 +17,22 @@ from modAL.uncertainty import uncertainty_sampling
 from sklearn.ensemble import RandomForestClassifier
 
 learner = ActiveLearner(
-    predictor=RandomForestClassifier(),
+    estimator=RandomForestClassifier(),
     query_strategy=uncertainty_sampling
 )
 ```
-If you have initial training data available, you can train the predictor by passing it via the arguments ```X_initial``` and ```y_initial```. For instance, if the samples are contained in ```X_training``` and the labels are in ```y_training```, you can do the following.
+If you have initial training data available, you can train the estimator by passing it via the arguments ```X_training``` and ```y_training```. For instance, if the samples are contained in ```X_training``` and the labels are in ```y_training```, you can do the following.
 ```python
 learner = ActiveLearner(
-    predictor=RandomForestClassifier(),
+    estimator=RandomForestClassifier(),
     query_strategy=uncertainty_sampling
-    X_initial=X_training, y_initial=y_training
+    X_training=X_training, y_training=y_training
 )
 ```
 After initialization, your ActiveLearner is ready to ask and learn! The learner keeps track of the training data it has seen during its lifetime.
 
 ## Training<a name="training"></a>
-To teach newly acquired labels for the ActiveLearner, you should use the ```.teach(X, y)``` method. This augments the available training data with the new samples ```X``` and new labels ```y```, then refits the predictor to this augmented training dataset. Just like this:
+To teach newly acquired labels for the ActiveLearner, you should use the ```.teach(X, y)``` method. This augments the available training data with the new samples ```X``` and new labels ```y```, then refits the estimator to this augmented training dataset. Just like this:
 ```python
 learner.teach(X, y)
 ```
