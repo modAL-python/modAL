@@ -20,4 +20,4 @@ with plt.style.context('seaborn-white'):
     plt.scatter(x=X[:, 0], y=X[:, 1], c=euclidean_density, cmap='viridis', s=50)
     plt.title('The euclidean information density')
     plt.colorbar()
-    plt.savefig('id.png')
+    plt.show()

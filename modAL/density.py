@@ -7,6 +7,7 @@ Measures for estimating the information density of a given sample
 -----------------------------------------------------------------
 """
 
+import time
 import numpy as np
 from scipy.spatial.distance import cosine
 
@@ -34,12 +35,14 @@ def similarize_distance(distance_measure):
 cosine_similarity = similarize_distance(cosine)
 
 
-def information_density(X_pool, similarity_measure=cosine_similarity):
+def information_density(X, similarity_measure=cosine_similarity):
     """
+    Calculates the information density metric of the given data using the similarity
+    measure given.
 
     Parameters
     ----------
-    X_pool: numpy.ndarray of shape (n_samples, n_features)
+    X: numpy.ndarray of shape (n_samples, n_features)
         The data for which the information density is to be calculated.
 
     similarity_measure: function
@@ -51,8 +54,8 @@ def information_density(X_pool, similarity_measure=cosine_similarity):
         The information density for each sample.
 
     """
-    inf_density = np.zeros(shape=(len(X_pool), ))
-    for X_idx, X in enumerate(X_pool):
-        inf_density[X_idx] = sum(similarity_measure(X, X_j) for X_j in X_pool)
+    inf_density = np.zeros(shape=(len(X),))
+    for X_idx, X in enumerate(X):
+        inf_density[X_idx] = sum(similarity_measure(X, X_j) for X_j in X)
 
-    return inf_density/len(X_pool)
+    return inf_density/len(X)
