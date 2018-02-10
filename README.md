@@ -42,8 +42,8 @@ from sklearn.ensemble import RandomForestClassifier
 
 # initializing the learner
 learner = ActiveLearner(
-    predictor=RandomForestClassifier(),
-    X_initial=X_train, y_initial=y_train
+    estimator=RandomForestClassifier(),
+    X_training=X_training, y_training=y_training
 )
 
 # query for labels
@@ -63,9 +63,9 @@ from modAL.uncertainty import entropy_sampling
 from sklearn.ensemble import RandomForestClassifier
 
 learner = ActiveLearner(
-    predictor=RandomForestClassifier(),
+    estimator=RandomForestClassifier(),
     query_strategy=entropy_sampling,
-    X_initial=X_train, y_initial=y_train
+    X_training=X_training, y_training=y_training
 )
 ```
 
@@ -80,9 +80,9 @@ def random_sampling(classifier, X_pool):
     return query_idx, X_pool[query_idx]
 
 learner = ActiveLearner(
-    predictor=RandomForestClassifier(),
+    estimator=RandomForestClassifier(),
     query_strategy=random_sampling,
-    X_initial=X_train, y_initial=y_train
+    X_training=X_training, y_training=y_training
 )
 ```
 For more details on how to implement your custom strategies, visit the page [Extending modAL](https://cosmic-cortex.github.io/modAL/Extending-modAL)!
@@ -110,15 +110,15 @@ from sklearn.gaussian_process.kernels import WhiteKernel, RBF
 
 n_initial = 5
 initial_idx = np.random.choice(range(len(X)), size=n_initial, replace=False)
-X_initial, y_initial = X[initial_idx], y[initial_idx]
+X_training, y_training = X[initial_idx], y[initial_idx]
 
 kernel = RBF(length_scale=1.0, length_scale_bounds=(1e-2, 1e3)) \
          + WhiteKernel(noise_level=1, noise_level_bounds=(1e-10, 1e+1))
 
 regressor = ActiveLearner(
-    predictor=GaussianProcessRegressor(kernel=kernel),
+    estimator=GaussianProcessRegressor(kernel=kernel),
     query_strategy=GP_regression_std,
-    X_initial=X_initial.reshape(-1, 1), y_initial=y_initial.reshape(-1, 1)
+    X_training=X_training.reshape(-1, 1), y_training=y_initial.reshape(-1, 1)
 )
 ```
 The initial regressor is not very accurate.
