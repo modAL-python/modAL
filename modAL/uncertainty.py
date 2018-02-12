@@ -166,7 +166,7 @@ def margin_sampling(classifier, X, n_instances=1, **uncertainty_measure_kwargs):
     query_idx: numpy.ndarray of shape (n_instances, )
         The indices of the instances from X_pool chosen to be labelled.
 
-    X_pool[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+    X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
         The instances from X_pool chosen to be labelled.
     """
     margin = classifier_margin(classifier, X, **uncertainty_measure_kwargs)
@@ -199,7 +199,7 @@ def entropy_sampling(classifier, X, n_instances=1, **uncertainty_measure_kwargs)
     query_idx: numpy.ndarray of shape (n_instances, )
         The indices of the instances from X_pool chosen to be labelled.
 
-    X_pool[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+    X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
         The instances from X_pool chosen to be labelled.
     """
     entropy = classifier_entropy(classifier, X, **uncertainty_measure_kwargs)

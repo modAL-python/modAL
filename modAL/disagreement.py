@@ -151,7 +151,7 @@ def vote_entropy_sampling(committee, X, n_instances=1, **disagreement_measure_kw
     query_idx: numpy.ndarray of shape (n_instances, )
         The indices of the instances from X_pool chosen to be labelled.
 
-    X_pool[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+    X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
         The instances from X_pool chosen to be labelled.
     """
     disagreement = vote_entropy(committee, X, **disagreement_measure_kwargs)
@@ -183,7 +183,7 @@ def consensus_entropy_sampling(committee, X, n_instances=1, **disagreement_measu
     query_idx: numpy.ndarray of shape (n_instances, )
         The indices of the instances from X_pool chosen to be labelled.
 
-    X_pool[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+    X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
         The instances from X_pool chosen to be labelled.
     """
     disagreement = consensus_entropy(committee, X, **disagreement_measure_kwargs)
@@ -215,7 +215,7 @@ def max_disagreement_sampling(committee, X, n_instances=1, **disagreement_measur
     query_idx: numpy.ndarray of shape (n_instances, )
         The indices of the instances from X_pool chosen to be labelled.
 
-    X_pool[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+    X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
         The instances from X_pool chosen to be labelled.
     """
     disagreement = KL_max_disagreement(committee, X, **disagreement_measure_kwargs)
@@ -244,7 +244,7 @@ def max_std_sampling(regressor, X, n_instances=1, **predict_kwargs):
     query_idx: numpy.ndarray of shape (n_instances, )
         The indices of the instances from X_pool chosen to be labelled.
 
-    X_pool[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+    X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
         The instances from X_pool chosen to be labelled.
     """
     _, std = regressor.predict(X, return_std=True, **predict_kwargs)
