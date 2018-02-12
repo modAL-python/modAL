@@ -5,10 +5,12 @@ Template for query strategies
 
 The first two arguments of a query strategy function is always the estimator and the pool
 of instances to be queried from. Additional arguments are accepted as keyword arguments.
+A valid query strategy function always returns a tuple of the indices of the queried
+instances and the instances themselves.
 
-def custom_query_strategy(estimator, X, a_keyword_argument=42):
+def custom_query_strategy(classifier, X, a_keyword_argument=42):
     # measure the utility of each instance in the pool
-    utility = utility_measure(estimator, X)
+    utility = utility_measure(classifier, X)
 
     # select the indices of the instances to be queried
     query_idx = select_instances(utility)
@@ -29,6 +31,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from modAL.utils.combination import make_linear_combination, make_product
+from modAL.utils.selection import multi_argmax
 from modAL.uncertainty import classifier_uncertainty, classifier_margin
 from modAL.models import ActiveLearner
 from sklearn.datasets import make_blobs
@@ -46,7 +49,7 @@ X, y = make_blobs(
 with plt.style.context('seaborn-white'):
     plt.figure(figsize=(7, 7))
     plt.scatter(x=X[:, 0], y=X[:, 1], c=y, cmap='viridis', s=50)
-    plt.title('The iris dataset')
+    plt.title('The dataset')
     plt.show()
 
 # initial training data
@@ -88,3 +91,26 @@ with plt.style.context('seaborn-white'):
         plt.colorbar()
 
     plt.show()
+
+
+# defining the custom query strategy, which uses the linear combination of
+# classifier uncertainty and classifier margin
+def custom_query_strategy(classifier, X, n_instances=1):
+    utility = linear_combination(classifier, X)
+    query_idx = multi_argmax(utility, n_instances=n_instances)
+    return query_idx, X[query_idx]
+
+custom_query_learner = ActiveLearner(
+    estimator=GaussianProcessClassifier(1.0 * RBF(1.0)),
+    query_strategy=custom_query_strategy,
+    X_training=X_training, y_training=y_training
+)
+
+# pool-based sampling
+n_queries = 20
+for idx in range(n_queries):
+    query_idx, query_instance = custom_query_learner.query(X, n_instances=2)
+    custom_query_learner.teach(
+        X=X[query_idx].reshape(-1, 2),
+        y=y[query_idx].reshape(-1, )
+    )
