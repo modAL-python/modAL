@@ -84,7 +84,7 @@ def custom_query_strategy(classifier, X, n_instances=1):
     return query_idx, X[query_idx]
 ```
 
-This can be used immediately in the active learning workflow!
+This can be used immediately in the active learning workflow! If you would like to experiment with this, <a href="https://github.com/cosmic-cortex/modAL/blob/master/examples/custom_query_strategies.py">you can find the executable script with this example here.</a>
 
 # Using your custom estimators<a name="custom-estimators"></a>
 As long as your classifier follows the scikit-learn API, you can use it in your modAL workflow. (Really, all it needs is a ```.fit(X, y)``` and a ```.predict(X)``` method.) For instance, the ensemble model implemented in Committee can be given to an ActiveLearner.
