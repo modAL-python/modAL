@@ -2,7 +2,6 @@
 modAL was designed for researchers, allowing quick and efficient prototyping. For this purpose, modAL makes it easy for you to use your customly designed parts, for instance query strategies or new classifier algorithms.
 
 ## Page contents
-- [Writing your own query strategy](#query-strategy)  
 - [Building blocks of query strategies](#building-blocks)  
   - [Utility measures](#utility-measures)  
   - [Linear combinations and products](#combinators)  
@@ -10,37 +9,9 @@ modAL was designed for researchers, allowing quick and efficient prototyping. Fo
   - [Putting them together](#putting-them-together)  
 - [Using your custom estimators](#custom-estimators)  
 
-# Writing your own query strategy<a name="query-strategy"></a>
-In modAL, a query strategy for active learning is implemented as a function, taking an estimator and a bunch of data, turning it into an instance from the data you supplied to it. Exactly like in the following.
-```python
-def some_query_strategy(classifier, X, a_keyword_argument=42):
-    proba = classifier.predict_proba(X)
-    # ...
-    # ... do some magic and find the most informative instance ...
-    # ...
-    return query_idx, X[query_idx]
-```
-Putting this to work is as simple as the following.
-```python
-from modAL.models import ActiveLearner
-from sklearn.ensemble import RandomForestClassifier
-
-# initializing the learner
-learner = ActiveLearner(
-    estimator=RandomForestClassifier(),
-    query_strategy=some_query_strategy
-)
-
-# querying for labels
-query_idx, query_instance = learner.query(X)
-```
-For a practical example, see for instance this [active regression](Active-regression).
-
 # Building blocks of query strategies<a name="building-blocks"></a>
 
-To build more elaborate query strategies, many building blocks are available. In the following, we are going to take a look how can you combine already existing or custom utility measures with each other.
-
-The two main components of a query strategy are the utility measure and the query selector. From an abstract viewpoint, this is how a query strategy looks like.
+In modAL, a query strategy for active learning is implemented as a function, taking an estimator and a bunch of data, turning it into an instance from the data you supplied to it. To build elaborate custom query strategies, many building blocks are available. The two main components of a query strategy are the utility measure and the query selector. From an abstract viewpoint, this is how a query strategy looks like.
 ```python
 def custom_query_strategy(classifier, X, a_keyword_argument=42):
     # measure the utility of each instance in the pool
@@ -52,6 +23,22 @@ def custom_query_strategy(classifier, X, a_keyword_argument=42):
     # return the indices and the instances
     return query_idx, X[query_idx]
 ```
+
+Putting this to work is as simple as the following.
+```python
+from modAL.models import ActiveLearner
+from sklearn.ensemble import RandomForestClassifier
+
+# initializing the learner
+learner = ActiveLearner(
+    estimator=RandomForestClassifier(),
+    query_strategy=custom_query_strategy
+)
+
+# querying for labels
+query_idx, query_instance = learner.query(X)
+
+For an example in practice, see for instance this [active regression](Active-regression). In the following, we are going to take a look how can you combine already existing or custom utility measures with each other.
 
 ## Utility measures<a name="utility-measures"></a>
 The soul of a query strategy is the utility measure. A utility measure takes a pool of examples (and frequently but optionally an estimator object) and returns a one dimensional array containing the utility score for each example. For instance, ```classifier_uncertainty```, ```classifier_margin``` and ```classifier_entropy``` from ```modAL.uncertainty``` are utility measures which you can use. You can also implement your own or you can take linear combinations and products, as we shall see next.
