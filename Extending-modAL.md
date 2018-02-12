@@ -37,6 +37,7 @@ learner = ActiveLearner(
 
 # querying for labels
 query_idx, query_instance = learner.query(X)
+```
 
 For an example in practice, see for instance this [active regression](Active-regression). In the following, we are going to take a look how can you combine already existing or custom utility measures with each other.
 
