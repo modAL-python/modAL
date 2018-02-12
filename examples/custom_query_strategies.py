@@ -1,3 +1,30 @@
+"""
+=============================
+Template for query strategies
+=============================
+
+The first two arguments of a query strategy function is always the estimator and the pool
+of instances to be queried from. Additional arguments are accepted as keyword arguments.
+
+def custom_query_strategy(estimator, X, a_keyword_argument=42):
+    # measure the utility of each instance in the pool
+    utility = utility_measure(estimator, X)
+
+    # select the indices of the instances to be queried
+    query_idx = select_instances(utility)
+
+    # return the indices and the instances
+    return query_idx, X[query_idx]
+
+This function can be used in the active learning workflow.
+
+learner = ActiveLearner(classifier, query_strategy=custom_query_strategy)
+query_idx, query_instance = learner.query(X_pool, a_keyword_argument=42*42)
+
+In this example, we will construct a custom query function by combining classifier uncertainty
+and classifier margin.
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -8,6 +35,8 @@ from sklearn.datasets import make_blobs
 from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.gaussian_process.kernels import RBF
 
+
+# generating the data
 centers = np.asarray([[-2, 3], [0.5, 5], [1, 1.5]])
 X, y = make_blobs(
     n_features=2, n_samples=1000, random_state=0, cluster_std=0.7,
@@ -44,25 +73,18 @@ product = make_product(
 
 # visualizing the different utility metrics
 with plt.style.context('seaborn-white'):
-    uncertainty = classifier_uncertainty(learner, X)
-    margin = classifier_margin(learner, X)
-    lc = linear_combination(learner, X)
-    prod = product(learner, X)
+    utilities = [
+        (1, classifier_uncertainty(learner, X), 'Classifier uncertainty'),
+        (2, classifier_margin(learner, X), 'Classifier margin'),
+        (3, linear_combination(learner, X), '1.0*uncertainty + 1.0*margin'),
+        (4, product(learner, X), '(uncertainty**0.5)*(margin**0.5)')
+    ]
+
     plt.figure(figsize=(18, 14))
-    plt.subplot(2, 2, 1)
-    plt.scatter(x=X[:, 0], y=X[:, 1], c=uncertainty, cmap='viridis', s=50)
-    plt.title('Classifier uncertainty')
-    plt.colorbar()
-    plt.subplot(2, 2, 2)
-    plt.scatter(x=X[:, 0], y=X[:, 1], c=margin, cmap='viridis', s=50)
-    plt.title('Classifier margin')
-    plt.colorbar()
-    plt.subplot(2, 2, 3)
-    plt.scatter(x=X[:, 0], y=X[:, 1], c=lc, cmap='viridis', s=50)
-    plt.title('1.0*uncertainty + 1.0*margin')
-    plt.colorbar()
-    plt.subplot(2, 2, 4)
-    plt.scatter(x=X[:, 0], y=X[:, 1], c=prod, cmap='viridis', s=50)
-    plt.title('(uncertainty**0.5)*(margin**0.5)')
-    plt.colorbar()
+    for idx, utility, title in utilities:
+        plt.subplot(2, 2, idx)
+        plt.scatter(x=X[:, 0], y=X[:, 1], c=utility, cmap='viridis', s=50)
+        plt.title(title)
+        plt.colorbar()
+
     plt.show()
