@@ -6,7 +6,7 @@ When you present unlabelled examples to an active learner, it finds you the most
 - [Classification margin](#margin)  
 - [Classification entropy](#entropy)  
 
-## Classification uncertainty<a name="uncertainty"></a>
+# Classification uncertainty<a name="uncertainty"></a>
 The simplest measure is the uncertainty of classification defined by
 
 ![cu-def]
@@ -36,7 +36,7 @@ For this ternary classification problem, given the first two probabilities, the 
 [cu-xhat]: https://chart.apis.google.com/chart?cht=tx&chl=\hat{x}
 [cu-plot]: img/unc-uncertainty.png
 
-## Classification margin<a name="margin"></a>
+# Classification margin<a name="margin"></a>
 
 Classification margin is the difference in probability of the first and second most likely prediction, that is, it is defined by
 
@@ -63,7 +63,7 @@ When querying for labels, the strategy selects the sample with the *smallest* ma
 [cm-x2]: https://chart.apis.google.com/chart?cht=tx&chl=\hat{x_2}
 [cm-plot]: img/unc-margin.png
 
-## Classification entropy<a name="entropy"></a>
+# Classification entropy<a name="entropy"></a>
 
 The third built-in uncertainty measure is the classification entropy, which is defined by
 

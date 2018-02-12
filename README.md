@@ -1,5 +1,7 @@
-<img src="img/modAL_b.png" alt="modAL" style="width: 400px;">
-Modular Active Learning framework for Python3
+<p align="center">
+  <img src="img/modAL_b.png" alt="modAL" style="width: 600px;"><br>
+  <font size="5">A modular active learning framework for Python3</font>
+</p>
 
 # Page contents
 - [Introduction](#introduction)  

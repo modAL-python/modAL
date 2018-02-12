@@ -3,9 +3,9 @@ modAL was designed for researchers, allowing quick and efficient prototyping. Fo
 
 ## Page contents
 - [Writing your own query strategy](#query-strategy)  
-- [Using your custom estimators](#custom-estimators)
+- [Using your custom estimators](#custom-estimators)  
 
-## Writing your own query strategy<a name="query-strategy"></a>
+# Writing your own query strategy<a name="query-strategy"></a>
 In modAL, a query strategy for active learning is implemented as a function, taking an estimator and a bunch of data, turning it into an instance from the data you supplied to it. Exactly like in the following.
 ```python
 def some_query_strategy(classifier, X, a_keyword_argument=42):
@@ -31,7 +31,7 @@ query_idx, query_instance = learner.query(X)
 ```
 For a more elaborate example see for instance this [active regression](Active-regression).
 
-## Using your custom estimators<a name="custom-estimators"></a>
+# Using your custom estimators<a name="custom-estimators"></a>
 As long as your classifier follows the scikit-learn API, you can use it in your modAL workflow. (Really, all it needs is a ```.fit(X, y)``` and a ```.predict(X)``` method.) For instance, the ensemble model implemented in Committee can be given to an ActiveLearner.
 ```python
 # initializing the learners
