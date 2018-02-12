@@ -1,5 +1,3 @@
-import matplotlib.pyplot as plt
-
 from modAL.density import similarize_distance, information_density
 from sklearn.datasets import make_blobs
 from scipy.spatial.distance import euclidean
