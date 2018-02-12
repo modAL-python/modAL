@@ -24,11 +24,15 @@ modAL is an active learning framework for Python3, designed with *modularity, fl
 # Active learning from bird's-eye view<a name="active-learning"></a>
 With the recent explosion of available data, you have can have millions of unlabelled examples with a high cost to obtain labels. For instance, when trying to predict the sentiment of tweets, obtaining a training set can require immense manual labour. But worry not, active learning comes to the rescue! In general, AL is a framework allowing you to increase classification performance by intelligently querying you to label the most informative instances. To give an example, suppose that you have the following data and classifier with shaded regions signifying the classification probability.
 
-<img src="img/motivating-example.png" height="600px" width="600px"/>
+<p align="center">
+  <img src="img/motivating-example.png" height="600px" width="600px"/>
+</p>
 
 Suppose that you can query the label of an unlabelled instance, but it costs you a lot. Which one would you choose? By querying an instance in the uncertain region, surely you obtain more information than querying by random. Active learning gives you a set of tools to handle problems like this. In general, an active learning workflow looks like the following.
 
-![](img/active_learning.png)
+<p align="center">
+  <img src="img/active_learning.png"/>
+</p>
 
 The key components of any workflow are the **model** you choose, the **uncertainty** measure you use and the **query** strategy you apply to request labels. With modAL, instead of choosing from a small set of built-in components, you have the freedom to seamlessly integrate scikit-learn or Keras models into your algorithm and easily tailor your custom query strategies and uncertainty measures.
 
@@ -124,7 +128,9 @@ regressor = ActiveLearner(
 ```
 The initial regressor is not very accurate.
 
-![gp-initial](img/gp-initial.png)
+<p align="center">
+  <img src="img/gp-initial.png"/>
+</p>
 
 The blue band enveloping the regressor represents the standard deviation of the Gaussian process at the given point. Now we are ready to do active learning!
 ```python
@@ -136,7 +142,9 @@ for idx in range(n_queries):
 ```
 After a few queries, we can see that the prediction is much improved.
 
-![gp-final](img/gp-final.png)
+<p align="center">
+  <img src="img/gp-final"/>
+</p>
 
 ## Additional examples<a name="additional-examples"></a>
 Including this, many examples are available:
