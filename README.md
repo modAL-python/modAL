@@ -145,7 +145,7 @@ for idx in range(n_queries):
 After a few queries, we can see that the prediction is much improved.
 
 <p align="center">
-  <img src="img/gp-final"/>
+  <img src="img/gp-final.png"/>
 </p>
 
 ## Additional examples<a name="additional-examples"></a>
