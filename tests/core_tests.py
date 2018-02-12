@@ -516,6 +516,8 @@ class TestExamples(unittest.TestCase):
         import example_tests.query_by_committee
         import example_tests.shape_learning
         import example_tests.stream_based_sampling
+        import example_tests.custom_query_strategies
+        import example_tests.information_density
 
 
 if __name__ == '__main__':
