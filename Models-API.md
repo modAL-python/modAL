@@ -466,7 +466,7 @@ data it has seen, use the method .rebag()!
 Calling this method makes the learner forget the data it has seen up until this point and
 replaces it with X!
 
-# CommitteeRegressor.predict(X)<a name="CommitteeRegressor.predict"></a>
+## CommitteeRegressor.predict(X)<a name="CommitteeRegressor.predict"></a>
 Predicts the values of the samples by averaging the prediction of each regressor.
 
 **Parameters**  
