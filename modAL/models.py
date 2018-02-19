@@ -310,7 +310,7 @@ class ActiveLearner(BaseEstimator):
         self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
 
-class BaseCommittee(ABC):
+class BaseCommittee(ABC, BaseEstimator):
     def __init__(
             self,
             learner_list,                                        # list of ActiveLearner objects
@@ -467,7 +467,7 @@ class BaseCommittee(ABC):
         pass
 
 
-class Committee(BaseCommittee, BaseEstimator):
+class Committee(BaseCommittee):
     """
     This class is an abstract model of a committee-based active learning algorithm.
 
@@ -669,7 +669,7 @@ class Committee(BaseCommittee, BaseEstimator):
         return proba
 
 
-class CommitteeRegressor(BaseCommittee, BaseEstimator):
+class CommitteeRegressor(BaseCommittee):
     """
     This class is an abstract model of a committee-based active learning regression.
 
