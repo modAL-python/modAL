@@ -85,7 +85,7 @@ def make_query_strategy(utility_measure, selector, utility_kwargs, selector_kwar
 
     # TODO: check for the signatures of utility_measure and selector
 
-    def query_strategy(classifier, X, **utility_kwargs, **selector_kwargs):
+    def query_strategy(classifier, X, utility_kwargs, selector_kwargs):
         utility = utility_measure(classifier, X, **utility_kwargs)
         query_idx, query_instance = selector(utility, **selector_kwargs)
         return query_idx, query_instance
