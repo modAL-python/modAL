@@ -39,21 +39,45 @@ learner = ActiveLearner(
 initial_prediction = learner.predict_proba(X_full)[:, 1].reshape(im_height, im_width)
 
 n_queries = 100
+uncertainty_sampling_accuracy = list()
 for round_idx in range(n_queries):
     query_idx, query_inst = learner.query(X_pool)
     learner.teach(X_pool[query_idx].reshape(1, -1), y_pool[query_idx].reshape(-1, ))
     X_pool = np.delete(X_pool, query_idx, axis=0)
     y_pool = np.delete(y_pool, query_idx)
+    uncertainty_sampling_accuracy.append(learner.score(X_full, y_full))
 
 final_prediction = learner.predict_proba(X_full)[:, 1].reshape(im_height, im_width)
 
+"""
+---------------------------------
+ comparison with random sampling
+---------------------------------
+"""
+
+
+def random_sampling(classsifier, X):
+    query_idx = np.random.rand(range(len(X)))
+    return query_idx, X[query_idx]
+
+
+X_pool = deepcopy(X_full)
+y_pool = deepcopy(y_full)
+
 # learning with randomly selected queries instead of active learning
-random_idx = initial_idx + list(np.random.choice(range(len(X_full)), n_queries, replace=False))
-X_train, y_train = X_full[initial_idx], y_full[initial_idx]
 random_learner = ActiveLearner(
     estimator=RandomForestClassifier(),
+    query_strategy=random_sampling,
     X_training=X_train, y_training=y_train
 )
+
+random_sampling_accuracy = list()
+for round_idx in range(n_queries):
+    query_idx, query_inst = learner.query(X_pool)
+    random_learner.teach(X_pool[query_idx].reshape(1, -1), y_pool[query_idx].reshape(-1, ))
+    X_pool = np.delete(X_pool, query_idx, axis=0)
+    y_pool = np.delete(y_pool, query_idx)
+    random_sampling_accuracy.append(random_learner.score(X_full, y_full))
 
 with plt.style.context('seaborn-white'):
     plt.figure(figsize=(40, 10))
@@ -69,4 +93,11 @@ with plt.style.context('seaborn-white'):
     plt.subplot(1, 4, 4)
     plt.imshow(random_learner.predict_proba(X_full)[:, 1].reshape(im_height, im_width))
     plt.title('Learning with the same amount of randomly selected points')
+    plt.show()
+
+with plt.style.context('seaborn-white'):
+    plt.figure(figsize=(10, 10))
+    plt.plot(list(range(len(uncertainty_sampling_accuracy))), uncertainty_sampling_accuracy, label="uncertainty sampling")
+    plt.plot(list(range(len(random_sampling_accuracy))), random_sampling_accuracy, label="random sampling")
+    plt.legend()
     plt.show()
