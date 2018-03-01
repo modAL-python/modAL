@@ -2,13 +2,21 @@
 Core models for active learning algorithms.
 """
 
+import abc
+import sys
 import numpy as np
-from abc import ABC, abstractmethod
+
 from sklearn.utils import check_array
 from sklearn.base import BaseEstimator
 from modAL.utils.validation import check_class_labels, check_class_proba
 from modAL.uncertainty import uncertainty_sampling
 from modAL.disagreement import vote_entropy_sampling, max_std_sampling
+
+
+if sys.version_info >= (3, 4):
+    ABC = abc.ABC
+else:
+    ABC = abc.ABCMeta('ABC', (), {})
 
 
 class ActiveLearner(BaseEstimator):
@@ -458,11 +466,11 @@ class BaseCommittee(ABC, BaseEstimator):
         self._add_training_data(X, y)
         self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
-    @abstractmethod
+    @abc.abstractmethod
     def predict(self, X):
         pass
 
-    @abstractmethod
+    @abc.abstractmethod
     def vote(self, X):
         pass
 
