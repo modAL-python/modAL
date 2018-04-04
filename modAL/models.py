@@ -6,7 +6,6 @@ import abc
 import sys
 import numpy as np
 
-from sklearn.utils import check_array
 from sklearn.base import BaseEstimator
 from modAL.utils.validation import check_class_labels, check_class_proba
 from modAL.uncertainty import uncertainty_sampling
@@ -109,8 +108,8 @@ class ActiveLearner(BaseEstimator):
             self.X_training = None
             self.y_training = None
         elif type(X_training) != type(None) and type(y_training) != type(None):
-            self.X_training = check_array(X_training)
-            self.y_training = check_array(y_training, ensure_2d=False)
+            self.X_training = X_training
+            self.y_training = y_training
             self._fit_to_known(bootstrap=bootstrap_init, **fit_kwargs)
 
     def _add_training_data(self, X, y):
@@ -133,7 +132,6 @@ class ActiveLearner(BaseEstimator):
         have to agree with the training samples which the
         classifier has seen.
         """
-        X, y = check_array(X), check_array(y, ensure_2d=False)
         assert len(X) == len(y), 'the number of new data points and number of labels must match'
 
         if type(self.X_training) != type(None):
@@ -265,7 +263,6 @@ class ActiveLearner(BaseEstimator):
         X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
             The instances from X_pool chosen to be labelled.
         """
-        check_array(X, ensure_2d=True)
 
         query_idx, query_instances = self.query_strategy(self.estimator, X, **query_kwargs)
         return query_idx, query_instances
@@ -424,8 +421,6 @@ class BaseCommittee(ABC, BaseEstimator):
         X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
             The instances from X_pool chosen to be labelled.
         """
-        check_array(X, ensure_2d=True)
-
         query_idx, query_instances = self.query_strategy(self, X, **query_kwargs)
         return query_idx, X[query_idx]
 
@@ -624,7 +619,6 @@ class Committee(BaseCommittee):
             The predicted class for each learner in the Committee
             and each sample in X.
         """
-        check_array(X, ensure_2d=True)
         prediction = np.zeros(shape=(X.shape[0], len(self.learner_list)))
 
         for learner_idx, learner in enumerate(self.learner_list):
@@ -650,8 +644,6 @@ class Committee(BaseCommittee):
             Probabilities of each class for each learner and each instance.
 
         """
-
-        check_array(X, ensure_2d=True)
 
         # get dimensions
         n_samples = X.shape[0]
@@ -780,7 +772,6 @@ class CommitteeRegressor(BaseCommittee):
         vote: numpy.ndarray of shape (n_samples, n_regressors)
             The predicted value for each regressor in the CommitteeRegressor and each sample in X.
         """
-        check_array(X, ensure_2d=True)
         prediction = np.zeros(shape=(len(X), len(self.learner_list)))
 
         for learner_idx, learner in enumerate(self.learner_list):
