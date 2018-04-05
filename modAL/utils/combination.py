@@ -1,14 +1,6 @@
 import numpy as np
 
 
-def check_init(obj, typ):
-    if obj is None:
-        return typ()
-    else:
-        assert isinstance(obj, typ), 'obj must be of type %s' % typ.__name__
-        return obj
-
-
 def make_linear_combination(*functions, weights=None):
     """
     Takes the given functions and makes a function which returns the linear combination
@@ -79,15 +71,12 @@ def make_product(*functions, exponents=None):
     return product_function
 
 
-def make_query_strategy(utility_measure, selector, utility_kwargs, selector_kwargs):
-
-    utility_kwargs, selector_kwargs = check_init(utility_kwargs, dict), check_init(selector_kwargs, dict)
-
+def make_query_strategy(utility_measure, selector):
     # TODO: check for the signatures of utility_measure and selector
 
-    def query_strategy(classifier, X, utility_kwargs, selector_kwargs):
-        utility = utility_measure(classifier, X, **utility_kwargs)
-        query_idx, query_instance = selector(utility, **selector_kwargs)
+    def query_strategy(classifier, X):
+        utility = utility_measure(classifier, X)
+        query_idx, query_instance = selector(utility)
         return query_idx, query_instance
 
     return query_strategy
