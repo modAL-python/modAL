@@ -73,8 +73,8 @@ def make_product(*functions, exponents=None):
                                                  'same as the number of given functions'
 
     def product_function(*args, **kwargs):
-        return np.prod((functions[i](*args, **kwargs)**exponents[i]
-                       for i in range(len(exponents))), axis=0)
+        return np.prod([functions[i](*args, **kwargs)**exponents[i]
+                       for i in range(len(exponents))], axis=0)
 
     return product_function
 
