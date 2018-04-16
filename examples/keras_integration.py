@@ -7,7 +7,7 @@ import keras
 import numpy as np
 from keras.datasets import mnist
 from keras.models import Sequential
-from keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense
+from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D
 from keras.wrappers.scikit_learn import KerasClassifier
 from modAL.models import ActiveLearner
 
@@ -18,8 +18,10 @@ def create_keras_model():
     This function compiles and returns a Keras model.
     Should be passed to KerasClassifier in the Keras scikit-learn API.
     """
+
     model = Sequential()
     model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(28, 28, 1)))
+    model.add(Conv2D(64, (3, 3), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
     model.add(Flatten())
@@ -68,20 +70,21 @@ Training the ActiveLearner
 learner = ActiveLearner(
     estimator=classifier,
     X_training=X_initial, y_training=y_initial,
-    verbose=0
+    verbose=1
 )
 
 # the active learning loop
 n_queries = 10
 for idx in range(n_queries):
     query_idx, query_instance = learner.query(X_pool, n_instances=200, verbose=0)
+    print(query_idx)
     learner.teach(
         X=X_pool[query_idx], y=y_pool[query_idx],
-        verbose=0
+        verbose=1
     )
     # remove queried instance from pool
     X_pool = np.delete(X_pool, query_idx, axis=0)
     y_pool = np.delete(y_pool, query_idx, axis=0)
 
 # the final accuracy score
-print(learner.score(X_test, y_test, verbose=0))
+print(learner.score(X_test, y_test, verbose=1))
