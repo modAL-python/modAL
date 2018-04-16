@@ -1,5 +1,7 @@
 """
-Core models for active learning algorithms.
+==========================================
+Core models for active learning algorithms
+==========================================
 """
 
 import abc
