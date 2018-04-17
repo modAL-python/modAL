@@ -76,7 +76,7 @@ def make_query_strategy(utility_measure, selector):
 
     def query_strategy(classifier, X):
         utility = utility_measure(classifier, X)
-        query_idx, query_instance = selector(utility)
-        return query_idx, query_instance
+        query_idx = selector(utility)
+        return query_idx, X[query_idx]
 
     return query_strategy
