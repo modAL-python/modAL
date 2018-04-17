@@ -320,7 +320,7 @@ class ActiveLearner(BaseEstimator):
         """
         return self.estimator.score(X, y, **score_kwargs)
 
-    def teach(self, X, y, bootstrap=False, **fit_kwargs):
+    def teach(self, X, y, bootstrap=False, only_new=False, **fit_kwargs):
         """
         Adds X and y to the known training data and retrains the predictor
         with the augmented dataset.
@@ -338,12 +338,20 @@ class ActiveLearner(BaseEstimator):
             If True, training is done on a bootstrapped dataset. Useful for building
             Committee models with bagging.
 
+        only_new: boolean
+            If True, the model is retrained using only X and y, ignoring the previously
+            provided examples. Useful when working with models where the .fit() method
+            doesn't retrain the model from scratch. (For example, in tensorflow or keras.)
+
         fit_kwargs: keyword arguments
             Keyword arguments to be passed to the fit method
             of the predictor.
         """
         self._add_training_data(X, y)
-        self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
+        if not only_new:
+            self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
+        else:
+            self._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
 
 
 class BaseCommittee(ABC, BaseEstimator):

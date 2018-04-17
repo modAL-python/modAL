@@ -380,6 +380,22 @@ class TestActiveLearner(unittest.TestCase):
                 score_return
             )
 
+    def test_teach(self):
+        X_training = np.random.rand(10, 2)
+        y_training = np.random.randint(0, 2, size=10)
+
+        for n_samples in range(1, 10):
+            X = np.random.rand(n_samples, 2)
+            y = np.random.randint(0, 2, size=n_samples)
+
+            learner = modAL.models.ActiveLearner(
+                X_training=X_training, y_training=y_training,
+                estimator=mock.MockClassifier()
+            )
+
+            learner.teach(X, y, only_new=False)
+            learner.teach(X, y, only_new=True)
+
     def test_keras(self):
         pass
 
