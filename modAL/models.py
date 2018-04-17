@@ -170,6 +170,35 @@ class ActiveLearner(BaseEstimator):
             self.estimator.fit(self.X_training[bootstrap_idx], self.y_training[bootstrap_idx], **fit_kwargs)
             return self
 
+    def _fit_on_new(self, X, y, bootstrap=False, **fit_kwargs):
+        """
+        Fits self.estimator to the given data and labels.
+
+        Parameters
+        ----------
+        X: numpy.ndarray of shape (n_samples, n_features)
+            The new samples for which the labels are supplied
+            by the expert.
+
+        y: numpy.ndarray of shape (n_samples, )
+            Labels corresponding to the new instances in X.
+
+        bootstrap: boolean
+            If True, the method trains the model on a set bootstrapped from X.
+
+        fit_kwargs: keyword arguments
+            Keyword arguments to be passed to the fit method of the predictor.
+        """
+        assert len(X) == len(y), 'the length of X and y must match'
+
+        if not bootstrap:
+            self.estimator.fit(X, y, **fit_kwargs)
+            return self
+        else:
+            bootstrap_idx = np.random.choice(range(len(X)), len(X), replace=True)
+            self.estimator.fit(X[bootstrap_idx], y[bootstrap_idx])
+            return self
+
     def fit(self, X, y, bootstrap=False, **fit_kwargs):
         """
         Interface for the fit method of the predictor. Fits the predictor
