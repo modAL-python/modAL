@@ -101,6 +101,29 @@ class TestUtils(unittest.TestCase):
                     np.prod([X_in**exponent for exponent in exponents], axis=0)
                 )
 
+    def test_make_query_strategy(self):
+        query_strategy = modAL.utils.combination.make_query_strategy(
+            utility_measure=modAL.uncertainty.classifier_uncertainty,
+            selector=modAL.utils.selection.multi_argmax
+        )
+
+        for n_samples in range(1, 10):
+            for n_classes in range(1, 10):
+                proba = np.random.rand(n_samples, n_classes)
+                proba = proba/np.sum(proba, axis=1).reshape(n_samples, 1)
+                X = np.random.rand(n_samples, 3)
+
+                learner = modAL.models.ActiveLearner(
+                    estimator=mock.MockClassifier(predict_proba_return=proba)
+                )
+
+                query_1 = query_strategy(learner, X)
+                query_2 = modAL.uncertainty.uncertainty_sampling(learner, X)
+
+                np.testing.assert_equal(query_1[0], query_2[0])
+                np.testing.assert_almost_equal(query_1[1], query_2[1])
+
+
 
 class TestUncertainties(unittest.TestCase):
 
