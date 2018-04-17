@@ -487,6 +487,30 @@ class TestCommittee(unittest.TestCase):
                         vote_proba_output
                     )
 
+    def test_teach(self):
+        X_training = np.random.rand(10, 2)
+        y_training = np.random.randint(0, 2, size=10)
+
+        for n_samples in range(1, 10):
+            X = np.random.rand(n_samples, 2)
+            y = np.random.randint(0, 2, size=n_samples)
+
+            learner_1 = modAL.models.ActiveLearner(
+                X_training=X_training, y_training=y_training,
+                estimator=mock.MockClassifier(classes_=[0, 1])
+            )
+            learner_2 = modAL.models.ActiveLearner(
+                X_training=X_training, y_training=y_training,
+                estimator=mock.MockClassifier(classes_=[0, 1])
+            )
+
+            committee = modAL.models.Committee(
+                learner_list=[learner_1, learner_2]
+            )
+
+            committee.teach(X, y, only_new=False)
+            committee.teach(X, y, only_new=True)
+
 
 class TestCommitteeRegressor(unittest.TestCase):
 

@@ -412,6 +412,30 @@ class BaseCommittee(ABC, BaseEstimator):
         for learner in self.learner_list:
             learner._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
+    def _fit_on_new(self, X, y, bootstrap=False, **fit_kwargs):
+        """
+        Fits all learners to the given data and labels.
+
+        Parameters
+        ----------
+        X: numpy.ndarray of shape (n_samples, n_features)
+            The new samples for which the labels are supplied
+            by the expert.
+
+        y: numpy.ndarray of shape (n_samples, )
+            Labels corresponding to the new instances in X.
+
+        bootstrap: boolean
+            If True, the method trains the model on a set bootstrapped from X.
+
+        fit_kwargs: keyword arguments
+            Keyword arguments to be passed to the fit method of the predictor.
+        """
+        assert len(X) == len(y), 'the length of X and y must match'
+
+        for learner in self.learner_list:
+            learner._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
+
     def fit(self, X, y, **fit_kwargs):
         """
         Fits every learner to a subset sampled with replacement from X.
@@ -475,7 +499,7 @@ class BaseCommittee(ABC, BaseEstimator):
         """
         self._fit_to_known(bootstrap=True, **fit_kwargs)
 
-    def teach(self, X, y, bootstrap=False, **fit_kwargs):
+    def teach(self, X, y, bootstrap=False, only_new=False, **fit_kwargs):
         """
         Adds X and y to the known training data for each learner
         and retrains learners with the augmented dataset.
@@ -498,7 +522,10 @@ class BaseCommittee(ABC, BaseEstimator):
             of the predictor.
         """
         self._add_training_data(X, y)
-        self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
+        if not only_new:
+            self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
+        else:
+            self._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
 
     @abc.abstractmethod
     def predict(self, X):
