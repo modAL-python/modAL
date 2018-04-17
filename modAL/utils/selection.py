@@ -47,6 +47,8 @@ def weighted_random(weights, n_instances=1):
         n_instances random indices based on the weights.
     """
     assert n_instances <= len(weights), 'n_instances must be less or equal than the size of utility'
+    weight_sum = np.sum(weights)
+    assert weight_sum > 0, 'the sum of weights must be larger than zero'
 
-    random_idx = np.random.choice(range(len(weights)), size=n_instances, p=weights / np.sum(weights), replace=False)
+    random_idx = np.random.choice(range(len(weights)), size=n_instances, p=weights/weight_sum, replace=False)
     return random_idx
