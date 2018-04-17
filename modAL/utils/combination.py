@@ -72,7 +72,27 @@ def make_product(*functions, exponents=None):
 
 
 def make_query_strategy(utility_measure, selector):
-    # TODO: check for the signatures of utility_measure and selector
+    """
+    Takes the given utility measure and selector functions and makes a query strategy
+    by combining them.
+
+    Parameters
+    ----------
+    utility_measure: function
+        Utility measure, for instance modAL.disagreement.vote_entropy, but it can be
+        a custom function as well. Should take a classifier and the unlabelled data
+        and should return an array containing the utility scores.
+
+    selector: function
+        Function selecting instances for query. Should take an array of utility scores
+        and should return an array containing the queried items.
+
+    Returns
+    -------
+    query_strategy: function
+        A function which returns queried instances given a classifier and an unlabelled
+        pool.
+    """
 
     def query_strategy(classifier, X):
         utility = utility_measure(classifier, X)
