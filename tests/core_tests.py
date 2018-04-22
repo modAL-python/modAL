@@ -438,7 +438,8 @@ class TestBayesianOptimizer(unittest.TestCase):
         # case 1: the estimator is not fitted yet
         regressor = mock.MockClassifier()
         learner = modAL.models.BayesianOptimizer(estimator=regressor)
-        self.assertRaises(ValueError, learner._set_max)
+        #learner._set_max()
+        self.assertEqual(None, learner.max_val)
 
         # case 2: the estimator is fitted already
         for n_samples in range(1, 100):
@@ -451,7 +452,7 @@ class TestBayesianOptimizer(unittest.TestCase):
                 estimator=regressor,
                 X_training=X, y_training=y
             )
-            learner._set_max()
+            #learner._set_max()
             np.testing.assert_almost_equal(max_val, learner.max_val)
 
 
