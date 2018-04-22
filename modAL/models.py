@@ -435,7 +435,11 @@ class ActiveLearner(BaseLearner):
 
 class BayesianOptimizer(BaseLearner):
     def _set_max(self):
-        pass
+        if self.y_training is not None:
+            self.max_val = np.max(self.y_training)
+        else:
+            raise ValueError('the learner must contain at least one training instance, '
+                             'fit the learner before setting max')
 
     def _check_max(self):
         pass
