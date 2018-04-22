@@ -124,7 +124,6 @@ class TestUtils(unittest.TestCase):
                 np.testing.assert_almost_equal(query_1[1], query_2[1])
 
 
-
 class TestUncertainties(unittest.TestCase):
 
     def test_classifier_uncertainty(self):
@@ -432,6 +431,28 @@ class TestActiveLearner(unittest.TestCase):
         pred = learner.predict(np.random.rand(10, 10))
         learner.predict_proba(np.random.rand(10, 10))
         confusion_matrix(pred, np.random.randint(0, 2, size=(10,)))
+
+
+class TestBayesianOptimizer(unittest.TestCase):
+    def test_set_max(self):
+        # case 1: the estimator is not fitted yet
+        regressor = mock.MockClassifier()
+        learner = modAL.models.BayesianOptimizer(estimator=regressor)
+        self.assertRaises(ValueError, learner._set_max)
+
+        # case 2: the estimator is fitted already
+        for n_samples in range(1, 100):
+            X = np.random.rand(n_samples, 2)
+            y = np.random.rand(n_samples, )
+            max_val = np.max(y)
+
+            regressor = mock.MockClassifier()
+            learner = modAL.models.BayesianOptimizer(
+                estimator=regressor,
+                X_training=X, y_training=y
+            )
+            learner._set_max()
+            np.testing.assert_almost_equal(max_val, learner.max_val)
 
 
 class TestCommittee(unittest.TestCase):
