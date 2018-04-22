@@ -20,86 +20,87 @@ else:
     ABC = abc.ABCMeta('ABC', (), {})
 
 
-class ActiveLearner(BaseEstimator):
+class BaseLearner(ABC, BaseEstimator):
     """
-    This class is an abstract model of a general active learning algorithm.
+        This class is an abstract model of a general active learning algorithm.
 
-    Parameters
-    ----------
-    estimator: scikit-learn estimator
-        The estimator to be used in the active learning loop.
+        Parameters
+        ----------
+        estimator: scikit-learn estimator
+            The estimator to be used in the active learning loop.
 
-    query_strategy: function
-        Function providing the query strategy for the active learning
-        loop, for instance modAL.uncertainty.uncertainty_sampling.
+        query_strategy: function
+            Function providing the query strategy for the active learning
+            loop, for instance modAL.uncertainty.uncertainty_sampling.
 
-    X_training: None or numpy.ndarray of shape (n_samples, n_features)
-        Initial training samples, if available.
+        X_training: None or numpy.ndarray of shape (n_samples, n_features)
+            Initial training samples, if available.
 
-    y_training: None or numpy.ndarray of shape (n_samples, )
-        Initial training labels corresponding to initial training samples
+        y_training: None or numpy.ndarray of shape (n_samples, )
+            Initial training labels corresponding to initial training samples
 
-    bootstrap_init: boolean
-        If initial training data is available, bootstrapping can be done
-        during the first training. Useful when building Committee models
-        with bagging.
+        bootstrap_init: boolean
+            If initial training data is available, bootstrapping can be done
+            during the first training. Useful when building Committee models
+            with bagging.
 
-    fit_kwargs: keyword arguments for the fit method
+        fit_kwargs: keyword arguments for the fit method
 
-    Attributes
-    ----------
-    estimator: scikit-learn estimator
-        The estimator to be used in the active learning loop.
+        Attributes
+        ----------
+        estimator: scikit-learn estimator
+            The estimator to be used in the active learning loop.
 
-    query_strategy: function
-        Function providing the query strategy for the active learning
-        loop, for instance modAL.query.max_uncertainty.
+        query_strategy: function
+            Function providing the query strategy for the active learning
+            loop, for instance modAL.query.max_uncertainty.
 
-    X_training: None numpy.ndarray of shape (n_samples, n_features)
-        If the model hasn't been fitted yet: None
-        If the model has been fitted already: numpy.ndarray containing the
-        samples which the model has been trained on
+        X_training: None numpy.ndarray of shape (n_samples, n_features)
+            If the model hasn't been fitted yet: None
+            If the model has been fitted already: numpy.ndarray containing the
+            samples which the model has been trained on
 
-    y_training: None or numpy.ndarray of shape (n_samples, )
-        If the model hasn't been fitted yet: None
-        If the model has been fitted already: numpy.ndarray containing the
-        labels corresponding to _training_samples
+        y_training: None or numpy.ndarray of shape (n_samples, )
+            If the model hasn't been fitted yet: None
+            If the model has been fitted already: numpy.ndarray containing the
+            labels corresponding to _training_samples
 
-    Examples
-    --------
-    >>> from sklearn.datasets import load_iris
-    >>> from sklearn.ensemble import RandomForestClassifier
-    >>> from modAL.models import ActiveLearner
-    >>>
-    >>> iris = load_iris()
-    >>> # give initial training examples
-    >>> X_training = iris['data'][[0, 50, 100]]
-    >>> y_training = iris['target'][[0, 50, 100]]
-    >>>
-    >>> # initialize active learner
-    >>> learner = ActiveLearner(
-    ...     estimator=RandomForestClassifier(),
-    ...     X_training=X_training, y_training=y_training
-    ... )
-    >>>
-    >>> # querying for labels
-    >>> query_idx, query_sample = learner.query(iris['data'])
-    >>>
-    >>> # ...obtaining new labels from the Oracle...
-    >>>
-    >>> # teaching newly labelled examples
-    >>> learner.teach(
-    ...     X=iris['data'][query_idx].reshape(1, -1),
-    ...     y=iris['target'][query_idx].reshape(1, )
-    ... )
-    """
+        Examples
+        --------
+        >>> from sklearn.datasets import load_iris
+        >>> from sklearn.ensemble import RandomForestClassifier
+        >>> from modAL.models import ActiveLearner
+        >>>
+        >>> iris = load_iris()
+        >>> # give initial training examples
+        >>> X_training = iris['data'][[0, 50, 100]]
+        >>> y_training = iris['target'][[0, 50, 100]]
+        >>>
+        >>> # initialize active learner
+        >>> learner = ActiveLearner(
+        ...     estimator=RandomForestClassifier(),
+        ...     X_training=X_training, y_training=y_training
+        ... )
+        >>>
+        >>> # querying for labels
+        >>> query_idx, query_sample = learner.query(iris['data'])
+        >>>
+        >>> # ...obtaining new labels from the Oracle...
+        >>>
+        >>> # teaching newly labelled examples
+        >>> learner.teach(
+        ...     X=iris['data'][query_idx].reshape(1, -1),
+        ...     y=iris['target'][query_idx].reshape(1, )
+        ... )
+        """
+
     def __init__(
             self,
-            estimator,                                           # scikit-learner estimator object
-            query_strategy=uncertainty_sampling,	             # callable to query labels
-            X_training=None, y_training=None,	                 # initial data if available
-            bootstrap_init=False,                                # first training with bootstrapping
-            **fit_kwargs                                         # keyword arguments for fitting the initial data
+            estimator,  # scikit-learner estimator object
+            query_strategy=uncertainty_sampling,  # callable to query labels
+            X_training=None, y_training=None,  # initial data if available
+            bootstrap_init=False,  # first training with bootstrapping
+            **fit_kwargs  # keyword arguments for fitting the initial data
     ):
         assert callable(query_strategy), 'query_function must be callable'
 
@@ -320,6 +321,84 @@ class ActiveLearner(BaseEstimator):
         """
         return self.estimator.score(X, y, **score_kwargs)
 
+    @abc.abstractmethod
+    def teach(self):
+        pass
+
+
+class ActiveLearner(BaseLearner):
+    """
+    This class is an abstract model of a general active learning algorithm.
+
+    Parameters
+    ----------
+    estimator: scikit-learn estimator
+        The estimator to be used in the active learning loop.
+
+    query_strategy: function
+        Function providing the query strategy for the active learning
+        loop, for instance modAL.uncertainty.uncertainty_sampling.
+
+    X_training: None or numpy.ndarray of shape (n_samples, n_features)
+        Initial training samples, if available.
+
+    y_training: None or numpy.ndarray of shape (n_samples, )
+        Initial training labels corresponding to initial training samples
+
+    bootstrap_init: boolean-
+        If initial training data is available, bootstrapping can be done
+        during the first training. Useful when building Committee models
+        with bagging.
+
+    fit_kwargs: keyword arguments for the fit method
+
+    Attributes
+    ----------
+    estimator: scikit-learn estimator
+        The estimator to be used in the active learning loop.
+
+    query_strategy: function
+        Function providing the query strategy for the active learning
+        loop, for instance modAL.query.max_uncertainty.
+
+    X_training: None numpy.ndarray of shape (n_samples, n_features)
+        If the model hasn't been fitted yet: None
+        If the model has been fitted already: numpy.ndarray containing the
+        samples which the model has been trained on
+
+    y_training: None or numpy.ndarray of shape (n_samples, )
+        If the model hasn't been fitted yet: None
+        If the model has been fitted already: numpy.ndarray containing the
+        labels corresponding to _training_samples
+
+    Examples
+    --------
+    >>> from sklearn.datasets import load_iris
+    >>> from sklearn.ensemble import RandomForestClassifier
+    >>> from modAL.models import ActiveLearner
+    >>>
+    >>> iris = load_iris()
+    >>> # give initial training examples
+    >>> X_training = iris['data'][[0, 50, 100]]
+    >>> y_training = iris['target'][[0, 50, 100]]
+    >>>
+    >>> # initialize active learner
+    >>> learner = ActiveLearner(
+    ...     estimator=RandomForestClassifier(),
+    ...     X_training=X_training, y_training=y_training
+    ... )
+    >>>
+    >>> # querying for labels
+    >>> query_idx, query_sample = learner.query(iris['data'])
+    >>>
+    >>> # ...obtaining new labels from the Oracle...
+    >>>
+    >>> # teaching newly labelled examples
+    >>> learner.teach(
+    ...     X=iris['data'][query_idx].reshape(1, -1),
+    ...     y=iris['target'][query_idx].reshape(1, )
+    ... )
+    """
     def teach(self, X, y, bootstrap=False, only_new=False, **fit_kwargs):
         """
         Adds X and y to the known training data and retrains the predictor
