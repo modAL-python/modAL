@@ -16,7 +16,7 @@ from itertools import chain, product
 from collections import namedtuple
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix
-from scipy.stats import entropy
+from scipy.stats import entropy, norm
 from scipy.special import ndtr
 
 
@@ -143,6 +143,28 @@ class TestAcquisitionFunctions(unittest.TestCase):
             np.testing.assert_almost_equal(
                 ndtr((mean - max_val - tradeoff)/std),
                 modAL.acquisition.PI(optimizer, np.random.rand(n_samples, 2), tradeoff)
+            )
+
+    def test_EI(self):
+        for n_samples in range(1, 100):
+            mean = np.random.rand(n_samples, )
+            std = np.random.rand(n_samples, )
+            tradeoff = np.random.rand()
+            max_val = np.random.rand()
+
+            mock_estimator = mock.MockEstimator(
+                predict_return=(mean, std)
+            )
+
+            optimizer = modAL.models.BayesianOptimizer(estimator=mock_estimator)
+            optimizer._set_max([max_val])
+
+            true_EI = (mean - optimizer.max_val - tradeoff) * ndtr((mean - optimizer.max_val - tradeoff)/std)\
+                      + std * norm.pdf((mean - optimizer.max_val - tradeoff)/std)
+
+            np.testing.assert_almost_equal(
+                true_EI,
+                modAL.acquisition.EI(optimizer, np.random.rand(n_samples, 2), tradeoff)
             )
 
 
