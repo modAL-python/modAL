@@ -17,6 +17,7 @@ from collections import namedtuple
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix
 from scipy.stats import entropy
+from scipy.special import ndtr
 
 
 Test = namedtuple('Test', ['input', 'output'])
@@ -34,8 +35,8 @@ class TestUtils(unittest.TestCase):
             for n_learners in range(1, 10):
                 labels = np.random.randint(10, size=n_labels)
                 different_labels = np.random.randint(10, 20, size=np.random.randint(1, 10))
-                learner_list_1 = [mock.MockClassifier(classes_=labels) for _ in range(n_learners)]
-                learner_list_2 = [mock.MockClassifier(classes_=different_labels) for _ in range(np.random.randint(1, 5))]
+                learner_list_1 = [mock.MockEstimator(classes_=labels) for _ in range(n_learners)]
+                learner_list_2 = [mock.MockEstimator(classes_=different_labels) for _ in range(np.random.randint(1, 5))]
                 shuffled_learners = random.sample(learner_list_1 + learner_list_2, len(learner_list_1 + learner_list_2))
                 self.assertTrue(modAL.utils.validation.check_class_labels(*learner_list_1))
                 self.assertFalse(modAL.utils.validation.check_class_labels(*shuffled_learners))
@@ -114,7 +115,7 @@ class TestUtils(unittest.TestCase):
                 X = np.random.rand(n_samples, 3)
 
                 learner = modAL.models.ActiveLearner(
-                    estimator=mock.MockClassifier(predict_proba_return=proba)
+                    estimator=mock.MockEstimator(predict_proba_return=proba)
                 )
 
                 query_1 = query_strategy(learner, X)
@@ -124,13 +125,34 @@ class TestUtils(unittest.TestCase):
                 np.testing.assert_almost_equal(query_1[1], query_2[1])
 
 
+class TestAcquisitionFunctions(unittest.TestCase):
+    def test_PI(self):
+        for n_samples in range(1, 100):
+            mean = np.random.rand(n_samples, )
+            std = np.random.rand(n_samples, )
+            tradeoff = np.random.rand()
+            max_val = np.random.rand()
+
+            mock_estimator = mock.MockEstimator(
+                predict_return=(mean, std)
+            )
+            
+            optimizer = modAL.models.BayesianOptimizer(estimator=mock_estimator)
+            optimizer._set_max([max_val])
+
+            np.testing.assert_almost_equal(
+                ndtr((mean - max_val - tradeoff)/std),
+                modAL.acquisition.PI(optimizer, np.random.rand(n_samples, 2), tradeoff)
+            )
+
+
 class TestUncertainties(unittest.TestCase):
 
     def test_classifier_uncertainty(self):
         test_cases = (Test(p * np.ones(shape=(k, l)), (1 - p) * np.ones(shape=(k, )))
                       for k in range(1, 100) for l in range(1, 10) for p in np.linspace(0, 1, 11))
         for case in test_cases:
-            mock_classifier = mock.MockClassifier(predict_proba_return=case.input)
+            mock_classifier = mock.MockEstimator(predict_proba_return=case.input)
             np.testing.assert_almost_equal(
                 modAL.uncertainty.classifier_uncertainty(mock_classifier, np.random.rand(10)),
                 case.output
@@ -143,7 +165,7 @@ class TestUncertainties(unittest.TestCase):
                              p * np.ones(shape=(l, ))*int(k!=1))
                         for k in range(1, 10) for l in range(1, 100) for p in np.linspace(0, 1, 11))
         for case in chain(test_cases_1, test_cases_2):
-            mock_classifier = mock.MockClassifier(predict_proba_return=case.input)
+            mock_classifier = mock.MockEstimator(predict_proba_return=case.input)
             np.testing.assert_almost_equal(
                 modAL.uncertainty.classifier_margin(mock_classifier, np.random.rand(10)),
                 case.output
@@ -156,7 +178,7 @@ class TestUncertainties(unittest.TestCase):
                 for sample_idx in range(n_samples):
                     proba[sample_idx, np.random.choice(range(n_classes))] = 1.0
 
-                classifier = mock.MockClassifier(predict_proba_return=proba)
+                classifier = mock.MockEstimator(predict_proba_return=proba)
                 np.testing.assert_equal(
                     modAL.uncertainty.classifier_entropy(classifier, np.random.rand(n_samples, 1)),
                     np.zeros(shape=(n_samples, ))
@@ -169,7 +191,7 @@ class TestUncertainties(unittest.TestCase):
                 for true_query_idx in range(n_samples):
                     predict_proba = np.random.rand(n_samples, n_classes)
                     predict_proba[true_query_idx] = max_proba
-                    classifier = mock.MockClassifier(predict_proba_return=predict_proba)
+                    classifier = mock.MockEstimator(predict_proba_return=predict_proba)
                     query_idx, query_instance = modAL.uncertainty.uncertainty_sampling(
                         classifier, np.random.rand(n_samples, n_classes)
                     )
@@ -182,7 +204,7 @@ class TestUncertainties(unittest.TestCase):
                 for true_query_idx in range(n_samples):
                     predict_proba = np.random.rand(n_samples, n_classes)
                     predict_proba[true_query_idx] = max_proba
-                    classifier = mock.MockClassifier(predict_proba_return=predict_proba)
+                    classifier = mock.MockEstimator(predict_proba_return=predict_proba)
                     query_idx, query_instance = modAL.uncertainty.uncertainty_sampling(
                         classifier, np.random.rand(n_samples, n_classes)
                     )
@@ -196,7 +218,7 @@ class TestUncertainties(unittest.TestCase):
                     predict_proba = np.zeros(shape=(n_samples, n_classes))
                     predict_proba[:, 0] = 1.0
                     predict_proba[true_query_idx] = max_proba
-                    classifier = mock.MockClassifier(predict_proba_return=predict_proba)
+                    classifier = mock.MockEstimator(predict_proba_return=predict_proba)
                     query_idx, query_instance = modAL.uncertainty.uncertainty_sampling(
                         classifier, np.random.rand(n_samples, n_classes)
                     )
@@ -314,7 +336,7 @@ class TestActiveLearner(unittest.TestCase):
                     X_new = np.random.rand(n_new_samples, n_features)
                     y_new = np.random.randint(0, 2, size=(n_new_samples,))
                     learner = modAL.models.ActiveLearner(
-                        estimator=mock.MockClassifier(),
+                        estimator=mock.MockEstimator(),
                         X_training=X_initial, y_training=y_initial
                     )
                     learner._add_training_data(X_new, y_new)
@@ -330,7 +352,7 @@ class TestActiveLearner(unittest.TestCase):
                     y_initial = np.random.randint(0, 2, size=(n_samples, n_features+1))
                     y_new = np.random.randint(0, 2, size=(n_new_samples, n_features+1))
                     learner = modAL.models.ActiveLearner(
-                        estimator=mock.MockClassifier(),
+                        estimator=mock.MockEstimator(),
                         X_training=X_initial, y_training=y_initial
                     )
                     learner._add_training_data(X_new, y_new)
@@ -354,7 +376,7 @@ class TestActiveLearner(unittest.TestCase):
             for n_features in range(1, 10):
                 X = np.random.rand(n_samples, n_features)
                 predict_return = np.random.randint(0, 2, size=(n_samples, ))
-                mock_classifier = mock.MockClassifier(predict_return=predict_return)
+                mock_classifier = mock.MockEstimator(predict_return=predict_return)
                 learner = modAL.models.ActiveLearner(
                     estimator=mock_classifier
                 )
@@ -368,7 +390,7 @@ class TestActiveLearner(unittest.TestCase):
             for n_features in range(1, 10):
                 X = np.random.rand(n_samples, n_features)
                 predict_proba_return = np.random.randint(0, 2, size=(n_samples,))
-                mock_classifier = mock.MockClassifier(predict_proba_return=predict_proba_return)
+                mock_classifier = mock.MockEstimator(predict_proba_return=predict_proba_return)
                 learner = modAL.models.ActiveLearner(
                     estimator=mock_classifier
                 )
@@ -395,7 +417,7 @@ class TestActiveLearner(unittest.TestCase):
     def test_score(self):
         test_cases = (np.random.rand() for _ in range(10))
         for score_return in test_cases:
-            mock_classifier = mock.MockClassifier(score_return=score_return)
+            mock_classifier = mock.MockEstimator(score_return=score_return)
             learner = modAL.models.ActiveLearner(mock_classifier, mock.MockFunction(None))
             np.testing.assert_almost_equal(
                 learner.score(np.random.rand(5, 2), np.random.rand(5, )),
@@ -413,7 +435,7 @@ class TestActiveLearner(unittest.TestCase):
 
                 learner = modAL.models.ActiveLearner(
                     X_training=X_training, y_training=y_training,
-                    estimator=mock.MockClassifier()
+                    estimator=mock.MockEstimator()
                 )
 
                 learner.teach(X, y, bootstrap=bootstrap, only_new=only_new)
@@ -436,7 +458,7 @@ class TestActiveLearner(unittest.TestCase):
 class TestBayesianOptimizer(unittest.TestCase):
     def test_set_max(self):
         # case 1: the estimator is not fitted yet
-        regressor = mock.MockClassifier()
+        regressor = mock.MockEstimator()
         learner = modAL.models.BayesianOptimizer(estimator=regressor)
         self.assertEqual(-np.inf, learner.max_val)
 
@@ -446,7 +468,7 @@ class TestBayesianOptimizer(unittest.TestCase):
             y = np.random.rand(n_samples, )
             max_val = np.max(y)
 
-            regressor = mock.MockClassifier()
+            regressor = mock.MockEstimator()
             learner = modAL.models.BayesianOptimizer(
                 estimator=regressor,
                 X_training=X, y_training=y
@@ -458,7 +480,7 @@ class TestBayesianOptimizer(unittest.TestCase):
             # case 1: the learner is not fitted yet
             for n_samples in range(1, 10):
                 y = np.random.rand(n_samples)
-                regressor = mock.MockClassifier()
+                regressor = mock.MockEstimator()
                 learner = modAL.models.BayesianOptimizer(estimator=regressor)
                 learner._set_max(y)
                 self.assertEqual(learner.max_val, np.max(y))
@@ -468,7 +490,7 @@ class TestBayesianOptimizer(unittest.TestCase):
                 X = np.random.rand(n_samples, 2)
                 y = np.random.rand(n_samples)
 
-                regressor = mock.MockClassifier()
+                regressor = mock.MockEstimator()
                 learner = modAL.models.BayesianOptimizer(
                     estimator=regressor,
                     X_training=X, y_training=y
@@ -484,7 +506,7 @@ class TestBayesianOptimizer(unittest.TestCase):
                 X = np.random.rand(n_samples, 2)
                 y = np.random.rand(n_samples)
 
-                regressor = mock.MockClassifier()
+                regressor = mock.MockEstimator()
                 learner = modAL.models.BayesianOptimizer(
                     estimator=regressor,
                     X_training=X, y_training=y
@@ -499,7 +521,7 @@ class TestBayesianOptimizer(unittest.TestCase):
             # case 1. optimizer is uninitialized
             for n_samples in range(1, 100):
                 for n_features in range(1, 100):
-                    regressor = mock.MockClassifier()
+                    regressor = mock.MockEstimator()
                     learner = modAL.models.BayesianOptimizer(estimator=regressor)
 
                     X = np.random.rand(n_samples, 2)
@@ -512,7 +534,7 @@ class TestBayesianOptimizer(unittest.TestCase):
                     X = np.random.rand(n_samples, 2)
                     y = np.random.rand(n_samples)
 
-                    regressor = mock.MockClassifier()
+                    regressor = mock.MockEstimator()
                     learner = modAL.models.BayesianOptimizer(
                         estimator=regressor,
                         X_training=X, y_training=y
@@ -524,7 +546,7 @@ class TestCommittee(unittest.TestCase):
 
     def test_set_classes(self):
         for n_classes in range(1, 10):
-            learner_list = [modAL.models.ActiveLearner(estimator=mock.MockClassifier(classes_=np.asarray([idx])))
+            learner_list = [modAL.models.ActiveLearner(estimator=mock.MockEstimator(classes_=np.asarray([idx])))
                             for idx in range(n_classes)]
             committee = modAL.models.Committee(learner_list=learner_list)
             np.testing.assert_equal(
@@ -538,7 +560,7 @@ class TestCommittee(unittest.TestCase):
                 prediction = np.random.randint(10, size=(n_instances, n_learners))
                 committee = modAL.models.Committee(
                     learner_list=[mock.MockActiveLearner(
-                                      mock.MockClassifier(classes_=np.asarray([0])),
+                                      mock.MockEstimator(classes_=np.asarray([0])),
                                       predict_return=prediction[:, learner_idx]
                                   )
                                   for learner_idx in range(n_learners)]
@@ -556,7 +578,7 @@ class TestCommittee(unittest.TestCase):
                     # assembling the mock learners
                     learner_list = [mock.MockActiveLearner(
                         predict_proba_return=vote_proba_output[:, learner_idx, :],
-                        predictor=mock.MockClassifier(classes_=list(range(n_classes)))
+                        predictor=mock.MockEstimator(classes_=list(range(n_classes)))
                     ) for learner_idx in range(n_learners)]
                     committee = modAL.models.Committee(learner_list=learner_list)
                     np.testing.assert_almost_equal(
@@ -571,7 +593,7 @@ class TestCommittee(unittest.TestCase):
                 # assembling the Committee
                 learner_list = [mock.MockActiveLearner(
                                     predict_return=vote_output[:, member_idx],
-                                    predictor=mock.MockClassifier(classes_=[0])
+                                    predictor=mock.MockEstimator(classes_=[0])
                                 )
                                 for member_idx in range(n_members)]
                 committee = modAL.models.Committee(learner_list=learner_list)
@@ -588,7 +610,7 @@ class TestCommittee(unittest.TestCase):
                     # assembling the mock learners
                     learner_list = [mock.MockActiveLearner(
                         predict_proba_return=vote_proba_output[:, learner_idx, :],
-                        predictor=mock.MockClassifier(classes_=list(range(n_classes)))
+                        predictor=mock.MockEstimator(classes_=list(range(n_classes)))
                     ) for learner_idx in range(n_learners)]
                     committee = modAL.models.Committee(learner_list=learner_list)
                     np.testing.assert_almost_equal(
@@ -607,11 +629,11 @@ class TestCommittee(unittest.TestCase):
 
                 learner_1 = modAL.models.ActiveLearner(
                     X_training=X_training, y_training=y_training,
-                    estimator=mock.MockClassifier(classes_=[0, 1])
+                    estimator=mock.MockEstimator(classes_=[0, 1])
                 )
                 learner_2 = modAL.models.ActiveLearner(
                     X_training=X_training, y_training=y_training,
-                    estimator=mock.MockClassifier(classes_=[0, 1])
+                    estimator=mock.MockEstimator(classes_=[0, 1])
                 )
 
                 committee = modAL.models.Committee(

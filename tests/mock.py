@@ -9,7 +9,7 @@ class MockFunction:
         return self.return_val
 
 
-class MockClassifier:
+class MockEstimator:
     """
     Mock classifier object for testing.
     """
