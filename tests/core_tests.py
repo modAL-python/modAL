@@ -406,17 +406,17 @@ class TestActiveLearner(unittest.TestCase):
         X_training = np.random.rand(10, 2)
         y_training = np.random.randint(0, 2, size=10)
 
-        for n_samples in range(1, 10):
-            X = np.random.rand(n_samples, 2)
-            y = np.random.randint(0, 2, size=n_samples)
+        for bootstrap, only_new in product([True, False], [True, False]):
+            for n_samples in range(1, 10):
+                X = np.random.rand(n_samples, 2)
+                y = np.random.randint(0, 2, size=n_samples)
 
-            learner = modAL.models.ActiveLearner(
-                X_training=X_training, y_training=y_training,
-                estimator=mock.MockClassifier()
-            )
+                learner = modAL.models.ActiveLearner(
+                    X_training=X_training, y_training=y_training,
+                    estimator=mock.MockClassifier()
+                )
 
-            learner.teach(X, y, only_new=False)
-            learner.teach(X, y, only_new=True)
+                learner.teach(X, y, bootstrap=bootstrap, only_new=only_new)
 
     def test_keras(self):
         pass
@@ -495,8 +495,8 @@ class TestBayesianOptimizer(unittest.TestCase):
                 np.testing.assert_almost_equal(np.max(y_new), learner.max_val)
 
     def test_teach(self):
-        # case 1. optimizer is uninitialized
         for bootstrap, only_new in product([True, False], [True, False]):
+            # case 1. optimizer is uninitialized
             for n_samples in range(1, 100):
                 for n_features in range(1, 100):
                     regressor = mock.MockClassifier()
@@ -600,25 +600,25 @@ class TestCommittee(unittest.TestCase):
         X_training = np.random.rand(10, 2)
         y_training = np.random.randint(0, 2, size=10)
 
-        for n_samples in range(1, 10):
-            X = np.random.rand(n_samples, 2)
-            y = np.random.randint(0, 2, size=n_samples)
+        for bootstrap, only_new in product([True, False], [True, False]):
+            for n_samples in range(1, 10):
+                X = np.random.rand(n_samples, 2)
+                y = np.random.randint(0, 2, size=n_samples)
 
-            learner_1 = modAL.models.ActiveLearner(
-                X_training=X_training, y_training=y_training,
-                estimator=mock.MockClassifier(classes_=[0, 1])
-            )
-            learner_2 = modAL.models.ActiveLearner(
-                X_training=X_training, y_training=y_training,
-                estimator=mock.MockClassifier(classes_=[0, 1])
-            )
+                learner_1 = modAL.models.ActiveLearner(
+                    X_training=X_training, y_training=y_training,
+                    estimator=mock.MockClassifier(classes_=[0, 1])
+                )
+                learner_2 = modAL.models.ActiveLearner(
+                    X_training=X_training, y_training=y_training,
+                    estimator=mock.MockClassifier(classes_=[0, 1])
+                )
 
-            committee = modAL.models.Committee(
-                learner_list=[learner_1, learner_2]
-            )
+                committee = modAL.models.Committee(
+                    learner_list=[learner_1, learner_2]
+                )
 
-            committee.teach(X, y, only_new=False)
-            committee.teach(X, y, only_new=True)
+                committee.teach(X, y, bootstrap=bootstrap, only_new=only_new)
 
 
 class TestCommitteeRegressor(unittest.TestCase):
