@@ -1,4 +1,5 @@
 from .models import ActiveLearner, Committee, CommitteeRegressor
+from .acquisition import PI, max_PI
 from .uncertainty import classifier_uncertainty, classifier_margin, classifier_entropy, \
                          uncertainty_sampling, margin_sampling, entropy_sampling
 from .disagreement import vote_entropy, consensus_entropy, KL_max_disagreement, \
@@ -7,6 +8,7 @@ from .density import information_density
 
 __all__ = [
     'ActiveLearner', 'Committee', 'CommitteeRegressor',
+    'PI', 'max_PI',
     'classifier_uncertainty', 'classifier_margin', 'classifier_entropy',
     'uncertainty_sampling', 'margin_sampling', 'entropy_sampling',
     'vote_entropy', 'consensus_entropy', 'KL_max_disagreement',
