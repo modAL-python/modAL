@@ -295,7 +295,7 @@ class ActiveLearner(BaseEstimator):
             The instances from X_pool chosen to be labelled.
         """
 
-        query_idx, query_instances = self.query_strategy(self.estimator, X, **query_kwargs)
+        query_idx, query_instances = self.query_strategy(self, X, **query_kwargs)
         return query_idx, query_instances
 
     def score(self, X, y, **score_kwargs):
