@@ -433,6 +433,17 @@ class ActiveLearner(BaseLearner):
             self._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
 
 
+class BayesianOptimizer(BaseLearner):
+    def _set_max(self):
+        pass
+
+    def _check_max(self):
+        pass
+
+    def teach(self):
+        pass
+
+
 class BaseCommittee(ABC, BaseEstimator):
     def __init__(
             self,
