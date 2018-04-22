@@ -167,6 +167,44 @@ class TestAcquisitionFunctions(unittest.TestCase):
                 modAL.acquisition.EI(optimizer, np.random.rand(n_samples, 2), tradeoff)
             )
 
+    def test_UCB(self):
+        for n_samples in range(1, 100):
+            mean = np.random.rand(n_samples, )
+            std = np.random.rand(n_samples, )
+            beta = np.random.rand()
+
+            mock_estimator = mock.MockEstimator(
+                predict_return=(mean, std)
+            )
+
+            optimizer = modAL.models.BayesianOptimizer(estimator=mock_estimator)
+
+            true_UCB = mean + beta*std
+
+            np.testing.assert_almost_equal(
+                true_UCB,
+                modAL.acquisition.UCB(optimizer, np.random.rand(n_samples, 2), beta)
+            )
+
+    def test_selection(self):
+        for n_samples in range(1, 100):
+            for n_instances in range(1, n_samples):
+                X = np.random.rand(n_samples, 3)
+                mean = np.random.rand(n_samples, )
+                std = np.random.rand(n_samples, )
+                max_val = np.random.rand()
+
+                mock_estimator = mock.MockEstimator(
+                    predict_return=(mean, std)
+                )
+
+                optimizer = modAL.models.BayesianOptimizer(estimator=mock_estimator)
+                optimizer._set_max([max_val])
+
+                modAL.acquisition.max_PI(optimizer, X, tradeoff=np.random.rand(), n_instances=n_instances)
+                modAL.acquisition.max_EI(optimizer, X, tradeoff=np.random.rand(), n_instances=n_instances)
+                modAL.acquisition.max_UCB(optimizer, X, beta=np.random.rand(), n_instances=n_instances)
+
 
 class TestUncertainties(unittest.TestCase):
 
