@@ -438,7 +438,6 @@ class TestBayesianOptimizer(unittest.TestCase):
         # case 1: the estimator is not fitted yet
         regressor = mock.MockClassifier()
         learner = modAL.models.BayesianOptimizer(estimator=regressor)
-        #learner._set_max()
         self.assertEqual(None, learner.max_val)
 
         # case 2: the estimator is fitted already
@@ -452,8 +451,52 @@ class TestBayesianOptimizer(unittest.TestCase):
                 estimator=regressor,
                 X_training=X, y_training=y
             )
-            #learner._set_max()
             np.testing.assert_almost_equal(max_val, learner.max_val)
+
+    def test_check_max(self):
+        for n_reps in range(100):
+            # case 1: the learner is not fitted yet
+            for n_samples in range(1, 10):
+                y = np.random.rand(n_samples)
+                regressor = mock.MockClassifier()
+                learner = modAL.models.BayesianOptimizer(estimator=regressor)
+                learner._check_max(y)
+                self.assertEqual(learner.max_val, None)
+
+            # case 2: new value is not a maximum
+            for n_samples in range(1, 10):
+                X = np.random.rand(n_samples, 2)
+                y = np.random.rand(n_samples)
+
+                regressor = mock.MockClassifier()
+                learner = modAL.models.BayesianOptimizer(
+                    estimator=regressor,
+                    X_training=X, y_training=y
+                )
+
+                y_new = y - np.random.rand()
+                old_max = learner.max_val
+                learner._check_max(y_new)
+                np.testing.assert_almost_equal(old_max, learner.max_val)
+
+            # case 3: new value is a maximum
+            for n_samples in range(1, 10):
+                X = np.random.rand(n_samples, 2)
+                y = np.random.rand(n_samples)
+
+                regressor = mock.MockClassifier()
+                learner = modAL.models.BayesianOptimizer(
+                    estimator=regressor,
+                    X_training=X, y_training=y
+                )
+
+                y_new = y + np.random.rand()
+                learner._check_max(y_new)
+                np.testing.assert_almost_equal(np.max(y_new), learner.max_val)
+
+
+
+
 
 
 class TestCommittee(unittest.TestCase):
