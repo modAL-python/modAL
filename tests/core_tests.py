@@ -366,7 +366,7 @@ class TestQueries(unittest.TestCase):
             for n_instances in range(1, n_pool):
                 utility = np.zeros(n_pool)
                 max_idx = np.random.choice(range(n_pool), size=n_instances, replace=False)
-                utility[max_idx] = 1.0
+                utility[max_idx] = 1e-10 + np.random.rand(n_instances, )
                 np.testing.assert_equal(
                     np.sort(modAL.utils.selection.multi_argmax(utility, n_instances)),
                     np.sort(max_idx)
