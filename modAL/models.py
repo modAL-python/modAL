@@ -322,7 +322,7 @@ class BaseLearner(ABC, BaseEstimator):
         return self.estimator.score(X, y, **score_kwargs)
 
     @abc.abstractmethod
-    def teach(self):
+    def teach(self, *args, **kwargs):
         pass
 
 
@@ -444,8 +444,11 @@ class BayesianOptimizer(BaseLearner):
         else:
             self.max_val = None
 
-    def _check_max(self):
-        pass
+    def _check_max(self, y):
+        if self.max_val is not None:
+            y_max = np.max(y)
+            if y_max > self.max_val:
+                self.max_val = y_max
 
     def teach(self):
         pass
