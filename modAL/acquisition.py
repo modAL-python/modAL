@@ -14,12 +14,14 @@ from modAL.utils.selection import multi_argmax
 
 def PI(optimizer, X, tradeoff=0):
     mean, std = optimizer.predict(X, return_std=True)
+    std = std.reshape(-1, 1)
 
     return ndtr((mean - optimizer.max_val - tradeoff)/std)
 
 
 def EI(optimizer, X, tradeoff=0):
     mean, std = optimizer.predict(X, return_std=True)
+    std = std.reshape(-1, 1)
     z = (mean - optimizer.max_val - tradeoff)/std
 
     return (mean - optimizer.max_val - tradeoff)*ndtr(z) + std*norm.pdf(z)
@@ -30,6 +32,7 @@ def UCB(optimizer, X, beta=1):
     Ref: https://arxiv.org/abs/0912.3995
     """
     mean, std = optimizer.predict(X, return_std=True)
+    std = std.reshape(-1, 1)
 
     return mean + beta*std
 

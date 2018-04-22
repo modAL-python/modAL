@@ -128,8 +128,8 @@ class TestUtils(unittest.TestCase):
 class TestAcquisitionFunctions(unittest.TestCase):
     def test_PI(self):
         for n_samples in range(1, 100):
-            mean = np.random.rand(n_samples, )
-            std = np.random.rand(n_samples, )
+            mean = np.random.rand(n_samples, 1)
+            std = np.random.rand(n_samples, 1)
             tradeoff = np.random.rand()
             max_val = np.random.rand()
 
@@ -147,8 +147,8 @@ class TestAcquisitionFunctions(unittest.TestCase):
 
     def test_EI(self):
         for n_samples in range(1, 100):
-            mean = np.random.rand(n_samples, )
-            std = np.random.rand(n_samples, )
+            mean = np.random.rand(n_samples, 1)
+            std = np.random.rand(n_samples, 1)
             tradeoff = np.random.rand()
             max_val = np.random.rand()
 
@@ -169,8 +169,8 @@ class TestAcquisitionFunctions(unittest.TestCase):
 
     def test_UCB(self):
         for n_samples in range(1, 100):
-            mean = np.random.rand(n_samples, )
-            std = np.random.rand(n_samples, )
+            mean = np.random.rand(n_samples, 1)
+            std = np.random.rand(n_samples, 1)
             beta = np.random.rand()
 
             mock_estimator = mock.MockEstimator(
