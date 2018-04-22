@@ -96,11 +96,11 @@ class BaseLearner(ABC, BaseEstimator):
 
     def __init__(
             self,
-            estimator,  # scikit-learner estimator object
+            estimator,                            # scikit-learner estimator object
             query_strategy=uncertainty_sampling,  # callable to query labels
-            X_training=None, y_training=None,  # initial data if available
-            bootstrap_init=False,  # first training with bootstrapping
-            **fit_kwargs  # keyword arguments for fitting the initial data
+            X_training=None, y_training=None,     # initial data if available
+            bootstrap_init=False,                 # first training with bootstrapping
+            **fit_kwargs                          # keyword arguments for fitting the initial data
     ):
         assert callable(query_strategy), 'query_function must be callable'
 
@@ -445,7 +445,7 @@ class BayesianOptimizer(BaseLearner):
         if y_max > self.max_val:
             self.max_val = y_max
 
-    def teach(self):
+    def teach(self, X, y, bootstrap=False, only_new=False, **fit_kwargs):
         """
         Adds X and y to the known training data and retrains the predictor with the
         augmented dataset. This method also keeps track of the maximum value encountered
