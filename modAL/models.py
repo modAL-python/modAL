@@ -164,12 +164,12 @@ class BaseLearner(ABC, BaseEstimator):
         """
         if not bootstrap:
             self.estimator.fit(self.X_training, self.y_training, **fit_kwargs)
-            return self
         else:
             n_instances = len(self.X_training)
             bootstrap_idx = np.random.choice(range(n_instances), n_instances, replace=True)
             self.estimator.fit(self.X_training[bootstrap_idx], self.y_training[bootstrap_idx], **fit_kwargs)
-            return self
+
+        return self
 
     def _fit_on_new(self, X, y, bootstrap=False, **fit_kwargs):
         """
@@ -194,11 +194,11 @@ class BaseLearner(ABC, BaseEstimator):
 
         if not bootstrap:
             self.estimator.fit(X, y, **fit_kwargs)
-            return self
         else:
             bootstrap_idx = np.random.choice(range(len(X)), len(X), replace=True)
             self.estimator.fit(X[bootstrap_idx], y[bootstrap_idx])
-            return self
+
+        return self
 
     def fit(self, X, y, bootstrap=False, **fit_kwargs):
         """
@@ -407,8 +407,7 @@ class ActiveLearner(BaseLearner):
         Parameters
         ----------
         X: numpy.ndarray of shape (n_samples, n_features)
-            The new samples for which the labels are supplied
-            by the expert.
+            The new samples for which the labels are supplied by the expert.
 
         y: numpy.ndarray of shape (n_samples, )
             Labels corresponding to the new instances in X.
@@ -423,8 +422,7 @@ class ActiveLearner(BaseLearner):
             doesn't retrain the model from scratch. (For example, in tensorflow or keras.)
 
         fit_kwargs: keyword arguments
-            Keyword arguments to be passed to the fit method
-            of the predictor.
+            Keyword arguments to be passed to the fit method of the predictor.
         """
         self._add_training_data(X, y)
         if not only_new:
@@ -436,22 +434,50 @@ class ActiveLearner(BaseLearner):
 class BayesianOptimizer(BaseLearner):
     def __init__(self, *args, **kwargs):
         super(BayesianOptimizer, self).__init__(*args, **kwargs)
-        self._set_max()
-
-    def _set_max(self):
+        # setting the maximum value
         if self.y_training is not None:
             self.max_val = np.max(self.y_training)
         else:
-            self.max_val = None
+            self.max_val = -np.inf
 
-    def _check_max(self, y):
-        if self.max_val is not None:
-            y_max = np.max(y)
-            if y_max > self.max_val:
-                self.max_val = y_max
+    def _set_max(self, y):
+        y_max = np.max(y)
+        if y_max > self.max_val:
+            self.max_val = y_max
 
     def teach(self):
-        pass
+        """
+        Adds X and y to the known training data and retrains the predictor with the
+        augmented dataset. This method also keeps track of the maximum value encountered
+        in the training data.
+
+        Parameters
+        ----------
+        X: numpy.ndarray of shape (n_samples, n_features)
+            The new samples for which the values are supplied.
+
+        y: numpy.ndarray of shape (n_samples, )
+            Values corresponding to the new instances in X.
+
+        bootstrap: boolean
+            If True, training is done on a bootstrapped dataset. Useful for building
+            Committee models with bagging.
+
+        only_new: boolean
+            If True, the model is retrained using only X and y, ignoring the previously
+            provided examples. Useful when working with models where the .fit() method
+            doesn't retrain the model from scratch. (For example, in tensorflow or keras.)
+
+        fit_kwargs: keyword arguments
+            Keyword arguments to be passed to the fit method of the predictor.
+        """
+        self._add_training_data(X, y)
+        if not only_new:
+            self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
+            self._set_max(y)
+        else:
+            self._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
+            self._set_max(y)
 
 
 class BaseCommittee(ABC, BaseEstimator):
