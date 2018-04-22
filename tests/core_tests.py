@@ -12,7 +12,7 @@ import modAL.utils.validation
 import modAL.utils.combination
 
 from copy import deepcopy
-from itertools import chain
+from itertools import chain, product
 from collections import namedtuple
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix
@@ -493,6 +493,31 @@ class TestBayesianOptimizer(unittest.TestCase):
                 y_new = y + np.random.rand()
                 learner._set_max(y_new)
                 np.testing.assert_almost_equal(np.max(y_new), learner.max_val)
+
+    def test_teach(self):
+        # case 1. optimizer is uninitialized
+        for bootstrap, only_new in product([True, False], [True, False]):
+            for n_samples in range(1, 100):
+                for n_features in range(1, 100):
+                    regressor = mock.MockClassifier()
+                    learner = modAL.models.BayesianOptimizer(estimator=regressor)
+
+                    X = np.random.rand(n_samples, 2)
+                    y = np.random.rand(n_samples)
+                    learner.teach(X, y, bootstrap=bootstrap, only_new=only_new)
+
+            # case 2. optimizer is initialized
+            for n_samples in range(1, 100):
+                for n_features in range(1, 100):
+                    X = np.random.rand(n_samples, 2)
+                    y = np.random.rand(n_samples)
+
+                    regressor = mock.MockClassifier()
+                    learner = modAL.models.BayesianOptimizer(
+                        estimator=regressor,
+                        X_training=X, y_training=y
+                    )
+                    learner.teach(X, y, bootstrap=bootstrap, only_new=only_new)
 
 
 class TestCommittee(unittest.TestCase):
