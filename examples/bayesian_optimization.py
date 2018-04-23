@@ -14,6 +14,12 @@ y = np.sin(X)/2 - ((10 - X)**2)/50 + 2
 # assembling initial training set
 X_initial, y_initial = X[150].reshape(1, -1), y[150].reshape(1, -1)
 
+with plt.style.context('seaborn-white'):
+    plt.figure(figsize=(12.5*1.5, 7.5*1.5))
+    plt.plot(X, y, c='k', linewidth=6)
+    plt.title('The function to be optimized')
+    plt.show()
+
 # defining the kernel for the Gaussian process
 kernel = Matern(length_scale=1.0)
 
