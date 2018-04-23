@@ -26,6 +26,7 @@ X_initial, y_initial = X[150].reshape(1, -1), y[150].reshape(1, -1)
 # defining the kernel for the Gaussian process
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import Matern
+
 kernel = Matern(length_scale=1.0)
 regressor = GaussianProcessRegressor(kernel=kernel)
 ```
@@ -39,6 +40,7 @@ where $$ \mu(x) $$ and $$ \sigma(x) $$ are the mean and variance of the Gaussian
 # initializing the optimizer
 from modAL.models import BayesianOptimizer
 from modAL.acquisition import max_EI
+
 optimizer = BayesianOptimizer(
     estimator=regressor,
     X_training=X_initial, y_training=y_initial,
