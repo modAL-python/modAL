@@ -154,6 +154,7 @@ Including this, many examples are available:
 - [Stream-based sampling](Stream-based-sampling)  
 - [Active regression](Active-regression)  
 - [Ensemble regression](Ensemble-regression)  
+- [Bayesian optimization](Bayesian-optimization)  
 - [Query by committee](Query-by-committee)  
 - [Bootstrapping and bagging](Bootstrapping-and-bagging)  
 - [Keras integration](Keras-integration)
