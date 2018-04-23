@@ -38,13 +38,14 @@ for acquisition, query_strategy in acquisitions:
 
     # plotting the initial estimation
     with plt.style.context('seaborn-white'):
-        plt.figure(figsize=(30, 6))
+        plt.figure(figsize=(35, 7))
         for n_query in range(5):
             # plot current prediction
             plt.subplot(2, 5, n_query + 1)
             plt.title('Query no. %d' %(n_query + 1))
             if n_query == 0:
                 plt.ylabel('Predictions')
+            plt.xlim([-1.0, 21.0])
             plt.ylim([-1.5, 3])
             pred, std = optimizer.predict(X.reshape(-1, 1), return_std=True)
             utility_score = acquisition(optimizer, X)
@@ -59,7 +60,7 @@ for acquisition, query_strategy in acquisitions:
             if n_query == 0:
                 plt.ylabel(acquisition.__name__)
             plt.plot(X, 5 * utility_score, c='r')
-            #plt.ylim([-0.1, 1])
+            plt.xlim([-1.0, 21.0])
 
             # query
             query_idx, query_inst = optimizer.query(X)
