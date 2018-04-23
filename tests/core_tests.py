@@ -749,6 +749,7 @@ class TestExamples(unittest.TestCase):
         import example_tests.stream_based_sampling
         import example_tests.custom_query_strategies
         import example_tests.information_density
+        import example_tests.bayesian_optimization
 
 
 if __name__ == '__main__':
