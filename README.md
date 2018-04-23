@@ -95,7 +95,7 @@ learner = ActiveLearner(
 For more details on how to implement your custom strategies, visit the page [Extending modAL](Extending-modAL)!
 
 ## An example with active regression<a name="active-regression"></a>
-To see modAL in *real* action, let's consider an active regression problem with Gaussian Processes! In this example, we shall try to learn the *noisy sine* function:
+To see modAL in *real* action, let's consider an active regression problem with Gaussian processes! In this example, we shall try to learn the *noisy sine* function:
 ```python
 import numpy as np
 
