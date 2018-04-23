@@ -131,10 +131,10 @@ def uncertainty_sampling(classifier, X, n_instances=1, **uncertainty_measure_kwa
     Returns
     -------
     query_idx: numpy.ndarray of shape (n_instances, )
-        The indices of the instances from X_pool chosen to be labelled.
+        The indices of the instances from X chosen to be labelled.
 
-    X_pool[query_idx]: numpy.ndarray of shape (n_instances, n_features)
-        The instances from X_pool chosen to be labelled.
+    X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+        The instances from X chosen to be labelled.
     """
     uncertainty = classifier_uncertainty(classifier, X, **uncertainty_measure_kwargs)
     query_idx = multi_argmax(uncertainty, n_instances=n_instances)
@@ -164,10 +164,10 @@ def margin_sampling(classifier, X, n_instances=1, **uncertainty_measure_kwargs):
     Returns
     -------
     query_idx: numpy.ndarray of shape (n_instances, )
-        The indices of the instances from X_pool chosen to be labelled.
+        The indices of the instances from X chosen to be labelled.
 
     X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
-        The instances from X_pool chosen to be labelled.
+        The instances from X chosen to be labelled.
     """
     margin = classifier_margin(classifier, X, **uncertainty_measure_kwargs)
     query_idx = multi_argmax(-margin, n_instances=n_instances)
@@ -197,10 +197,10 @@ def entropy_sampling(classifier, X, n_instances=1, **uncertainty_measure_kwargs)
     Returns
     -------
     query_idx: numpy.ndarray of shape (n_instances, )
-        The indices of the instances from X_pool chosen to be labelled.
+        The indices of the instances from X chosen to be labelled.
 
     X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
-        The instances from X_pool chosen to be labelled.
+        The instances from X chosen to be labelled.
     """
     entropy = classifier_entropy(classifier, X, **uncertainty_measure_kwargs)
     query_idx = multi_argmax(entropy, n_instances=n_instances)
