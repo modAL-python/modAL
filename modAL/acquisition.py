@@ -51,7 +51,7 @@ def max_EI(optimizer, X, tradeoff=0, n_instances=1):
     return query_idx, X[query_idx]
 
 
-def max_UCB(optimizer, X, beta=0, n_instances=1):
+def max_UCB(optimizer, X, beta=1, n_instances=1):
     ucb = UCB(optimizer, X, beta=beta)
     query_idx = multi_argmax(ucb, n_instances=n_instances)
 
