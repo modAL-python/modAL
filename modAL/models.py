@@ -21,79 +21,6 @@ else:
 
 
 class BaseLearner(ABC, BaseEstimator):
-    """
-        This class is an abstract model of a general active learning algorithm.
-
-        Parameters
-        ----------
-        estimator: scikit-learn estimator
-            The estimator to be used in the active learning loop.
-
-        query_strategy: function
-            Function providing the query strategy for the active learning
-            loop, for instance modAL.uncertainty.uncertainty_sampling.
-
-        X_training: None or numpy.ndarray of shape (n_samples, n_features)
-            Initial training samples, if available.
-
-        y_training: None or numpy.ndarray of shape (n_samples, )
-            Initial training labels corresponding to initial training samples
-
-        bootstrap_init: boolean
-            If initial training data is available, bootstrapping can be done
-            during the first training. Useful when building Committee models
-            with bagging.
-
-        fit_kwargs: keyword arguments for the fit method
-
-        Attributes
-        ----------
-        estimator: scikit-learn estimator
-            The estimator to be used in the active learning loop.
-
-        query_strategy: function
-            Function providing the query strategy for the active learning
-            loop, for instance modAL.query.max_uncertainty.
-
-        X_training: None numpy.ndarray of shape (n_samples, n_features)
-            If the model hasn't been fitted yet: None
-            If the model has been fitted already: numpy.ndarray containing the
-            samples which the model has been trained on
-
-        y_training: None or numpy.ndarray of shape (n_samples, )
-            If the model hasn't been fitted yet: None
-            If the model has been fitted already: numpy.ndarray containing the
-            labels corresponding to _training_samples
-
-        Examples
-        --------
-        >>> from sklearn.datasets import load_iris
-        >>> from sklearn.ensemble import RandomForestClassifier
-        >>> from modAL.models import ActiveLearner
-        >>>
-        >>> iris = load_iris()
-        >>> # give initial training examples
-        >>> X_training = iris['data'][[0, 50, 100]]
-        >>> y_training = iris['target'][[0, 50, 100]]
-        >>>
-        >>> # initialize active learner
-        >>> learner = ActiveLearner(
-        ...     estimator=RandomForestClassifier(),
-        ...     X_training=X_training, y_training=y_training
-        ... )
-        >>>
-        >>> # querying for labels
-        >>> query_idx, query_sample = learner.query(iris['data'])
-        >>>
-        >>> # ...obtaining new labels from the Oracle...
-        >>>
-        >>> # teaching newly labelled examples
-        >>> learner.teach(
-        ...     X=iris['data'][query_idx].reshape(1, -1),
-        ...     y=iris['target'][query_idx].reshape(1, )
-        ... )
-        """
-
     def __init__(
             self,
             estimator,                            # scikit-learner estimator object
@@ -343,9 +270,9 @@ class ActiveLearner(BaseLearner):
         Initial training samples, if available.
 
     y_training: None or numpy.ndarray of shape (n_samples, )
-        Initial training labels corresponding to initial training samples
+        Initial training labels corresponding to initial training samples.
 
-    bootstrap_init: boolean-
+    bootstrap_init: boolean
         If initial training data is available, bootstrapping can be done
         during the first training. Useful when building Committee models
         with bagging.
@@ -399,6 +326,7 @@ class ActiveLearner(BaseLearner):
     ...     y=iris['target'][query_idx].reshape(1, )
     ... )
     """
+
     def teach(self, X, y, bootstrap=False, only_new=False, **fit_kwargs):
         """
         Adds X and y to the known training data and retrains the predictor
@@ -432,6 +360,92 @@ class ActiveLearner(BaseLearner):
 
 
 class BayesianOptimizer(BaseLearner):
+    """
+    This class is an abstract model of a Bayesian optimizer algorithm.
+
+    Parameters
+    ----------
+    estimator: scikit-learn regressor
+        The regressor to be used in the Bayesian optimization algorithm.
+
+    query_strategy: function
+        Function providing the query strategy for the Bayesian optimization
+        loop, for instance modAL.acquisition.max_PI.
+
+    X_training: None or numpy.ndarray of shape (n_samples, n_features)
+        Initial training samples, if available.
+
+    y_training: None or numpy.ndarray of shape (n_samples, )
+        Initial values corresponding to initial training samples.
+
+    bootstrap_init: boolean
+        If initial training data is available, bootstrapping can be done
+        during the first training.
+
+    fit_kwargs: keyword arguments for the fit method
+
+    Attributes
+    ----------
+    estimator: scikit-learn regressor
+        The regressor to be used in the Bayesian optimization algorithm.
+
+    query_strategy: function
+        Function providing the query strategy for the Bayesian optimization
+        loop, for instance modAL.acquisition.max_PI.
+
+    X_training: None numpy.ndarray of shape (n_samples, n_features)
+        If the model hasn't been fitted yet: None
+        If the model has been fitted already: numpy.ndarray containing the
+        samples which the model has been trained on
+
+    y_training: None or numpy.ndarray of shape (n_samples, )
+        If the model hasn't been fitted yet: None
+        If the model has been fitted already: numpy.ndarray containing the
+        labels corresponding to _training_samples
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from functools import partial
+    >>> from sklearn.gaussian_process import GaussianProcessRegressor
+    >>> from sklearn.gaussian_process.kernels import Matern
+    >>> from modAL.models import BayesianOptimizer
+    >>> from modAL.acquisition import PI, EI, UCB, max_PI, max_EI, max_UCB
+    >>>
+    >>> # generating the data
+    >>> X = np.linspace(0, 20, 1000).reshape(-1, 1)
+    >>> y = np.sin(X)/2 - ((10 - X)**2)/50 + 2
+    >>>
+    >>> # assembling initial training set
+    >>> X_initial, y_initial = X[150].reshape(1, -1), y[150].reshape(1, -1)
+    >>>
+    >>> # defining the kernel for the Gaussian process
+    >>> kernel = Matern(length_scale=1.0)
+    >>>
+    >>> tr = 0.1
+    >>> PI_tr = partial(PI, tradeoff=tr)
+    >>> PI_tr.__name__ = 'PI, tradeoff = %1.1f' % tr
+    >>> max_PI_tr = partial(max_PI, tradeoff=tr)
+    >>>
+    >>> acquisitions = zip(
+    ...     [PI_tr, EI, UCB],
+    ...     [max_PI_tr, max_EI, max_UCB],
+    ... )
+    >>>
+    >>> for acquisition, query_strategy in acquisitions:
+    ...     # initializing the optimizer
+    ...     optimizer = BayesianOptimizer(
+    ...         estimator=GaussianProcessRegressor(kernel=kernel),
+    ...         X_training=X_initial, y_training=y_initial,
+    ...         query_strategy=query_strategy
+    ...     )
+    ...
+    ...     for n_query in range(5):
+    ...         # query
+    ...         query_idx, query_inst = optimizer.query(X)
+    ...         optimizer.teach(X[query_idx].reshape(1, -1), y[query_idx].reshape(1, -1))
+    """
+
     def __init__(self, *args, **kwargs):
         super(BayesianOptimizer, self).__init__(*args, **kwargs)
         # setting the maximum value
@@ -834,7 +848,6 @@ class Committee(BaseCommittee):
         -------
         vote_proba: numpy.ndarray of shape (n_samples, n_learners, n_classes)
             Probabilities of each class for each learner and each instance.
-
         """
 
         # get dimensions
