@@ -6,7 +6,7 @@ When a function is expensive to evaluate, or when gradients are not available, o
 - [Acquisition functions](#acquisition-functions)
 
 # Initialization<a name="initialization"></a>
-Initializing a ```BayesianOptimizer``` is syntactically identical to the one of ```ActiveLearner```, although there are a few important differences.
+Initializing a ```BayesianOptimizer``` is syntactically identical to the initialization of ```ActiveLearner```, although there are a few important differences.
 
 ```python
 from modAL.models import BayesianOptimizer
