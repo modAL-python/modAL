@@ -155,8 +155,7 @@ class BaseLearner(ABC, BaseEstimator):
         """
         self.X_training = X
         self.y_training = y
-        self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
-        return self
+        return self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
     def predict(self, X, **predict_kwargs):
         """
@@ -618,6 +617,8 @@ class BaseCommittee(ABC, BaseEstimator):
         """
         for learner in self.learner_list:
             learner.fit(X, y, **fit_kwargs)
+
+        return self
 
     def query(self, X, **query_kwargs):
         """
