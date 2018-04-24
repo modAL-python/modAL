@@ -410,7 +410,7 @@ class BayesianOptimizer(BaseLearner):
     >>> from sklearn.gaussian_process import GaussianProcessRegressor
     >>> from sklearn.gaussian_process.kernels import Matern
     >>> from modAL.models import BayesianOptimizer
-    >>> from modAL.acquisition import PI, EI, UCB, max_PI, max_EI, max_UCB
+    >>> from modAL.acquisition import optimizer_PI, optimizer_EI, optimizer_UCB, max_PI, max_EI, max_UCB
     >>>
     >>> # generating the data
     >>> X = np.linspace(0, 20, 1000).reshape(-1, 1)
@@ -423,12 +423,12 @@ class BayesianOptimizer(BaseLearner):
     >>> kernel = Matern(length_scale=1.0)
     >>>
     >>> tr = 0.1
-    >>> PI_tr = partial(PI, tradeoff=tr)
+    >>> PI_tr = partial(optimizer_PI, tradeoff=tr)
     >>> PI_tr.__name__ = 'PI, tradeoff = %1.1f' % tr
     >>> max_PI_tr = partial(max_PI, tradeoff=tr)
     >>>
     >>> acquisitions = zip(
-    ...     [PI_tr, EI, UCB],
+    ...     [PI_tr, optimizer_EI, optimizer_UCB],
     ...     [max_PI_tr, max_EI, max_UCB],
     ... )
     >>>

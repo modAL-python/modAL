@@ -12,7 +12,20 @@ from scipy.special import ndtr
 from modAL.utils.selection import multi_argmax
 
 
-def PI(optimizer, X, tradeoff=0):
+def PI(mean, std, max_val, tradeoff):
+    return ndtr((mean - max_val - tradeoff)/std)
+
+
+def EI(mean, std, max_val, tradeoff):
+    z = (mean - max_val - tradeoff) / std
+    return (mean - max_val - tradeoff)*ndtr(z) + std*norm.pdf(z)
+
+
+def UCB(mean, std, beta):
+    return mean + beta*std
+
+
+def optimizer_PI(optimizer, X, tradeoff=0):
     """
     Probability of improvement acquisition function for Bayesian optimization.
 
@@ -35,10 +48,10 @@ def PI(optimizer, X, tradeoff=0):
     mean, std = optimizer.predict(X, return_std=True)
     std = std.reshape(-1, 1)
 
-    return ndtr((mean - optimizer.max_val - tradeoff)/std)
+    return PI(mean, std, optimizer.max_val, tradeoff)
 
 
-def EI(optimizer, X, tradeoff=0):
+def optimizer_EI(optimizer, X, tradeoff=0):
     """
     Expected improvement acquisition function for Bayesian optimization.
 
@@ -60,12 +73,11 @@ def EI(optimizer, X, tradeoff=0):
     """
     mean, std = optimizer.predict(X, return_std=True)
     std = std.reshape(-1, 1)
-    z = (mean - optimizer.max_val - tradeoff)/std
 
-    return (mean - optimizer.max_val - tradeoff)*ndtr(z) + std*norm.pdf(z)
+    return EI(mean, std, optimizer.max_val, tradeoff)
 
 
-def UCB(optimizer, X, beta=1):
+def optimizer_UCB(optimizer, X, beta=1):
     """
     Upper confidence bound acquisition function for Bayesian optimization.
 
@@ -88,7 +100,7 @@ def UCB(optimizer, X, beta=1):
     mean, std = optimizer.predict(X, return_std=True)
     std = std.reshape(-1, 1)
 
-    return mean + beta*std
+    return UCB(mean, std, beta)
 
 
 def max_PI(optimizer, X, tradeoff=0, n_instances=1):
@@ -117,7 +129,7 @@ def max_PI(optimizer, X, tradeoff=0, n_instances=1):
     X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
         The instances from X chosen to be labelled.
     """
-    pi = PI(optimizer, X, tradeoff=tradeoff)
+    pi = optimizer_PI(optimizer, X, tradeoff=tradeoff)
     query_idx = multi_argmax(pi, n_instances=n_instances)
 
     return query_idx, X[query_idx]
@@ -149,7 +161,7 @@ def max_EI(optimizer, X, tradeoff=0, n_instances=1):
     X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
         The instances from X chosen to be labelled.
     """
-    ei = EI(optimizer, X, tradeoff=tradeoff)
+    ei = optimizer_EI(optimizer, X, tradeoff=tradeoff)
     query_idx = multi_argmax(ei, n_instances=n_instances)
 
     return query_idx, X[query_idx]
@@ -182,7 +194,7 @@ def max_UCB(optimizer, X, beta=1, n_instances=1):
     X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
         The instances from X chosen to be labelled.
     """
-    ucb = UCB(optimizer, X, beta=beta)
+    ucb = optimizer_UCB(optimizer, X, beta=beta)
     query_idx = multi_argmax(ucb, n_instances=n_instances)
 
     return query_idx, X[query_idx]

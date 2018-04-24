@@ -126,7 +126,19 @@ class TestUtils(unittest.TestCase):
 
 
 class TestAcquisitionFunctions(unittest.TestCase):
-    def test_PI(self):
+    def test_acquisition_functions(self):
+        for n_samples in range(1, 100):
+            mean, std = np.random.rand(100, 1), np.random.rand(100, 1)
+            modAL.acquisition.PI(mean, std, 0, 0)
+            modAL.acquisition.EI(mean, std, 0, 0)
+            modAL.acquisition.UCB(mean, std, 0)
+
+            mean, std = np.random.rand(100, ), np.random.rand(100, )
+            modAL.acquisition.PI(mean, std, 0, 0)
+            modAL.acquisition.EI(mean, std, 0, 0)
+            modAL.acquisition.UCB(mean, std, 0)
+
+    def test_optimizer_PI(self):
         for n_samples in range(1, 100):
             mean = np.random.rand(n_samples, 1)
             std = np.random.rand(n_samples, 1)
@@ -142,10 +154,10 @@ class TestAcquisitionFunctions(unittest.TestCase):
 
             np.testing.assert_almost_equal(
                 ndtr((mean - max_val - tradeoff)/std),
-                modAL.acquisition.PI(optimizer, np.random.rand(n_samples, 2), tradeoff)
+                modAL.acquisition.optimizer_PI(optimizer, np.random.rand(n_samples, 2), tradeoff)
             )
 
-    def test_EI(self):
+    def test_optimizer_EI(self):
         for n_samples in range(1, 100):
             mean = np.random.rand(n_samples, 1)
             std = np.random.rand(n_samples, 1)
@@ -164,10 +176,10 @@ class TestAcquisitionFunctions(unittest.TestCase):
 
             np.testing.assert_almost_equal(
                 true_EI,
-                modAL.acquisition.EI(optimizer, np.random.rand(n_samples, 2), tradeoff)
+                modAL.acquisition.optimizer_EI(optimizer, np.random.rand(n_samples, 2), tradeoff)
             )
 
-    def test_UCB(self):
+    def test_optimizer_UCB(self):
         for n_samples in range(1, 100):
             mean = np.random.rand(n_samples, 1)
             std = np.random.rand(n_samples, 1)
@@ -183,7 +195,7 @@ class TestAcquisitionFunctions(unittest.TestCase):
 
             np.testing.assert_almost_equal(
                 true_UCB,
-                modAL.acquisition.UCB(optimizer, np.random.rand(n_samples, 2), beta)
+                modAL.acquisition.optimizer_UCB(optimizer, np.random.rand(n_samples, 2), beta)
             )
 
     def test_selection(self):
