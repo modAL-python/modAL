@@ -459,6 +459,23 @@ class BayesianOptimizer(BaseLearner):
         if y_max > self.max_val:
             self.max_val = y_max
 
+    def get_max(self):
+        """
+        Gives the highest value so far.
+
+        Returns
+        -------
+        X: np.ndarray of shape (n_features)
+            The location of the currently best value.
+
+        y: np.ndarray of shape (1)
+            The currently best value.
+
+        """
+        max_idx = np.argmax(self.y_training)
+
+        return self.X_training[max_idx], self.y_training[max_idx]
+
     def teach(self, X, y, bootstrap=False, only_new=False, **fit_kwargs):
         """
         Adds X and y to the known training data and retrains the predictor with the

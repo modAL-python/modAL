@@ -588,6 +588,19 @@ class TestBayesianOptimizer(unittest.TestCase):
                 learner._set_max(y_new)
                 np.testing.assert_almost_equal(np.max(y_new), learner.max_val)
 
+    def test_get_max(self):
+        for n_samples in range(1, 100):
+            for max_idx in range(0, n_samples):
+                X = np.random.rand(n_samples, 3)
+                y = np.random.rand(n_samples)
+                y[max_idx] = 10
+
+                regressor = mock.MockEstimator()
+                optimizer = modAL.models.BayesianOptimizer(regressor, X_training=X, y_training=y)
+                X_max, y_max = optimizer.get_max()
+                np.testing.assert_equal(X_max, X[max_idx])
+                np.testing.assert_equal(y_max, y[max_idx])
+
     def test_teach(self):
         for bootstrap, only_new in product([True, False], [True, False]):
             # case 1. optimizer is uninitialized
