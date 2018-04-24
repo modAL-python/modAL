@@ -402,6 +402,10 @@ class BayesianOptimizer(BaseLearner):
         If the model has been fitted already: numpy.ndarray containing the
         labels corresponding to _training_samples
 
+    X_max: None or numpy.ndarray of shape (n_samples, 3)
+
+    y_max: -np.inf or float
+
     Examples
     --------
     >>> import numpy as np
@@ -449,14 +453,19 @@ class BayesianOptimizer(BaseLearner):
         super(BayesianOptimizer, self).__init__(*args, **kwargs)
         # setting the maximum value
         if self.y_training is not None:
-            self.max_val = np.max(self.y_training)
+            max_idx = np.argmax(self.y_training)
+            self.X_max = self.X_training[max_idx]
+            self.y_max = self.y_training[max_idx]
         else:
-            self.max_val = -np.inf
+            self.X_max = None
+            self.y_max = -np.inf
 
-    def _set_max(self, y):
-        y_max = np.max(y)
-        if y_max > self.max_val:
-            self.max_val = y_max
+    def _set_max(self, X, y):
+        max_idx = np.argmax(y)
+        y_max = y[max_idx]
+        if y_max > self.y_max:
+            self.y_max = y_max
+            self.X_max = X[max_idx]
 
     def get_max(self):
         """
@@ -471,9 +480,8 @@ class BayesianOptimizer(BaseLearner):
             The currently best value.
 
         """
-        max_idx = np.argmax(self.y_training)
 
-        return self.X_training[max_idx], self.y_training[max_idx]
+        return self.X_max, self.y_max
 
     def teach(self, X, y, bootstrap=False, only_new=False, **fit_kwargs):
         """
@@ -504,10 +512,10 @@ class BayesianOptimizer(BaseLearner):
         self._add_training_data(X, y)
         if not only_new:
             self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
-            self._set_max(y)
         else:
             self._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
-            self._set_max(y)
+
+        self._set_max(X, y)
 
 
 class BaseCommittee(ABC, BaseEstimator):

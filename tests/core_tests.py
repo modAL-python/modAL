@@ -150,7 +150,7 @@ class TestAcquisitionFunctions(unittest.TestCase):
             )
             
             optimizer = modAL.models.BayesianOptimizer(estimator=mock_estimator)
-            optimizer._set_max([max_val])
+            optimizer._set_max([0], [max_val])
 
             np.testing.assert_almost_equal(
                 ndtr((mean - max_val - tradeoff)/std),
@@ -169,10 +169,10 @@ class TestAcquisitionFunctions(unittest.TestCase):
             )
 
             optimizer = modAL.models.BayesianOptimizer(estimator=mock_estimator)
-            optimizer._set_max([max_val])
+            optimizer._set_max([0], [max_val])
 
-            true_EI = (mean - optimizer.max_val - tradeoff) * ndtr((mean - optimizer.max_val - tradeoff)/std)\
-                      + std * norm.pdf((mean - optimizer.max_val - tradeoff)/std)
+            true_EI = (mean - optimizer.y_max - tradeoff) * ndtr((mean - optimizer.y_max - tradeoff) / std) \
+                      + std * norm.pdf((mean - optimizer.y_max - tradeoff) / std)
 
             np.testing.assert_almost_equal(
                 true_EI,
@@ -211,7 +211,7 @@ class TestAcquisitionFunctions(unittest.TestCase):
                 )
 
                 optimizer = modAL.models.BayesianOptimizer(estimator=mock_estimator)
-                optimizer._set_max([max_val])
+                optimizer._set_max([0], [max_val])
 
                 modAL.acquisition.max_PI(optimizer, X, tradeoff=np.random.rand(), n_instances=n_instances)
                 modAL.acquisition.max_EI(optimizer, X, tradeoff=np.random.rand(), n_instances=n_instances)
@@ -532,7 +532,7 @@ class TestBayesianOptimizer(unittest.TestCase):
         # case 1: the estimator is not fitted yet
         regressor = mock.MockEstimator()
         learner = modAL.models.BayesianOptimizer(estimator=regressor)
-        self.assertEqual(-np.inf, learner.max_val)
+        self.assertEqual(-np.inf, learner.y_max)
 
         # case 2: the estimator is fitted already
         for n_samples in range(1, 100):
@@ -545,17 +545,20 @@ class TestBayesianOptimizer(unittest.TestCase):
                 estimator=regressor,
                 X_training=X, y_training=y
             )
-            np.testing.assert_almost_equal(max_val, learner.max_val)
+            np.testing.assert_almost_equal(max_val, learner.y_max)
 
     def test_set_new_max(self):
         for n_reps in range(100):
             # case 1: the learner is not fitted yet
             for n_samples in range(1, 10):
+                X = np.random.rand(n_samples, 3)
                 y = np.random.rand(n_samples)
+                max_idx = np.argmax(y)
                 regressor = mock.MockEstimator()
                 learner = modAL.models.BayesianOptimizer(estimator=regressor)
-                learner._set_max(y)
-                self.assertEqual(learner.max_val, np.max(y))
+                learner._set_max(X, y)
+                np.testing.assert_equal(learner.X_max, X[max_idx])
+                np.testing.assert_equal(learner.y_max, y[max_idx])
 
             # case 2: new value is not a maximum
             for n_samples in range(1, 10):
@@ -568,10 +571,13 @@ class TestBayesianOptimizer(unittest.TestCase):
                     X_training=X, y_training=y
                 )
 
+                X_new = np.random.rand()
                 y_new = y - np.random.rand()
-                old_max = learner.max_val
-                learner._set_max(y_new)
-                np.testing.assert_almost_equal(old_max, learner.max_val)
+                X_old_max = learner.X_max
+                y_old_max = learner.y_max
+                learner._set_max(X_new, y_new)
+                np.testing.assert_equal(X_old_max, learner.X_max)
+                np.testing.assert_equal(y_old_max, learner.y_max)
 
             # case 3: new value is a maximum
             for n_samples in range(1, 10):
@@ -584,9 +590,12 @@ class TestBayesianOptimizer(unittest.TestCase):
                     X_training=X, y_training=y
                 )
 
+                X_new = np.random.rand(n_samples, 2)
                 y_new = y + np.random.rand()
-                learner._set_max(y_new)
-                np.testing.assert_almost_equal(np.max(y_new), learner.max_val)
+                max_idx = np.argmax(y_new)
+                learner._set_max(X_new, y_new)
+                np.testing.assert_equal(X_new[max_idx], learner.X_max)
+                np.testing.assert_equal(y_new[max_idx], learner.y_max)
 
     def test_get_max(self):
         for n_samples in range(1, 100):

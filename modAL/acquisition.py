@@ -48,7 +48,7 @@ def optimizer_PI(optimizer, X, tradeoff=0):
     mean, std = optimizer.predict(X, return_std=True)
     std = std.reshape(-1, 1)
 
-    return PI(mean, std, optimizer.max_val, tradeoff)
+    return PI(mean, std, optimizer.y_max, tradeoff)
 
 
 def optimizer_EI(optimizer, X, tradeoff=0):
@@ -74,7 +74,7 @@ def optimizer_EI(optimizer, X, tradeoff=0):
     mean, std = optimizer.predict(X, return_std=True)
     std = std.reshape(-1, 1)
 
-    return EI(mean, std, optimizer.max_val, tradeoff)
+    return EI(mean, std, optimizer.y_max, tradeoff)
 
 
 def optimizer_UCB(optimizer, X, beta=1):
