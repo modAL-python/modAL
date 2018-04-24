@@ -48,7 +48,7 @@ optimizer = BayesianOptimizer(
 )
 
 # Bayesian optimization
-for n_queries in range(4):
+for n_query in range(5):
     query_idx, query_inst = optimizer.query(X)
     optimizer.teach(X[query_idx].reshape(1, -1), y[query_idx].reshape(1, -1))
 ```

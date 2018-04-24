@@ -2,10 +2,10 @@
 When a function is expensive to evaluate, or when gradients are not available, optimalizing it requires more sophisticated methods than gradient descent. One such method is Bayesian optimization, which lies close to active learning. In Bayesian optimization, instead of picking queries by maximizing the uncertainty of predictions, function values are evaluated at points where the promise of finding a better value is large. In modAL, these algorithms are implemented with the ```BayesianOptimizer``` class, which is a sibling of ```ActiveLearner```. They are both children of the ```BaseLearner``` class and they have the same interface, although their uses differ. In the following, we are going to shortly review this.
 
 ## Page contents
-- [Initialization](#Initialization)
+- [Differences with ActiveLearner](#differences)
 - [Acquisition functions](#acquisition-functions)
 
-# Initialization<a name="initialization"></a>
+# Differences with ActiveLearner<a name="differences"></a>
 Initializing a ```BayesianOptimizer``` is syntactically identical to the initialization of ```ActiveLearner```, although there are a few important differences.
 
 ```python
@@ -27,12 +27,18 @@ Most importantly, ```BayesianOptimizer``` works with a regressor. You can use th
 The actual optimization loop is identical to the one you would use with the ```ActiveLearner```.
 ```python
 # Bayesian optimization: func is to be optimized
-for n_queries in range(4):
+for n_query in range(n_queries):
     query_idx, query_inst = optimizer.query(X)
     optimizer.teach(X[query_idx].reshape(1, -1), func(X[query_idx]).reshape(1, -1))
 ```
 
 Again, the bottleneck in Bayesian learning is not necessarily the availability of labels. The function to be optimized can take a long time and a lot of money to evaluate. For instance, when optimizing the hyperparameters of a deep neural network, evaluating the accuracy of the model can take a few days of training. This is a case when Bayesian optimization is very useful. For more details, see [this paper](http://www.cs.ox.ac.uk/people/nando.defreitas/publications/BayesOptLoop.pdf) for instance.
+
+To see the maximum value so far, use ```optimizer.get_max()```:
+
+```python
+X_max, y_max = optmizer.get_max()
+```
 
 # Acquisition functions<a name="acquisition-functions"></a>
 Currently, there are three built in acquisition functions in the ```modAL.acquisition``` module: *expected improvement*, *probability of improvement* and *upper confidence bounds*. [You can find them in detail here](https://github.com/cosmic-cortex/modAL/blob/master/modAL/acquisition.py).
