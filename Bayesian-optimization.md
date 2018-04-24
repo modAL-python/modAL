@@ -33,7 +33,7 @@ regressor = GaussianProcessRegressor(kernel=kernel)
 
 ## Optimizing using *expected improvement*
 During the optimization, the utility of each point is given by the so-called *acquisition function*. In this case, we are going to use the *expected improvement*, which is defined by
-<p align="center">$$ EI(x) = (\mu(x) - f(x^+)) \psi\Big( \frac{\mu(x) - f(x^+)}{\sigma(x)} \Big) + \sigma(x) \phi\Big( \frac{\mu(x) - f(x^+)}{\sigma(x)} \Big), $$ </p><br>
+<p align="center">$$ EI(x) = (\mu(x) - f(x^+)) \psi\Big( \frac{\mu(x) - f(x^+)}{\sigma(x)} \Big) + \sigma(x) \phi\Big( \frac{\mu(x) - f(x^+)}{\sigma(x)} \Big), $$ </p>
 where $$ \mu(x) $$ and $$ \sigma(x) $$ are the mean and variance of the Gaussian process regressor at $$ x $$, $$ f $$ is the function to be optimized with estimated maximum at $$ x^+ $$, and $$ \psi(z) $$, $$ \phi(z) $$ denotes the cumulative distribution function and density function of a standard Gaussian distribution. After each query, the acquisition function is reevaluated and the new query is chosen to maximize the acquisition function. 
 
 ```python

@@ -12,7 +12,9 @@ X = np.concatenate((np.random.rand(100)-1, np.random.rand(100)))
 y = np.abs(X) + np.random.normal(scale=0.2, size=X.shape)
 ```
 
-![er-data](img/er-data.png)
+<p align="center">
+  <img src="img/er-data.png" height="600px" width="600px"/>
+</p>
 
 ## Measuring disagreement with CommitteeRegression
 If you have several regressors, measuring disagreement can be done by calculating the standard deviation of the predictions for each point. This of course cannot be achieved with classifier algorithms, where averaging the class labels doesn't make sense. (Or it is undefined even, if the class labels are strings for example.) In the simplest setting, this is implemented in the function ```modAL.disagreement.max_std_sampling```. For more details on this, see the [disagreement sampling API reference](Disagreement-sampling-API).
@@ -49,7 +51,9 @@ committee = CommitteeRegressor(
 ```
 This is demonstrated in the figure below, where the transparent blue region represents the standard deviation of the predictions, which is our disagreement measure.
 
-![er-initial](img/er-initial.png)
+<p align="center">
+  <img src="img/er-initial.png"/>
+</p>
 
 After a few queries, the differences are smoothed out and the regressors reach an agreement.
 ```python
@@ -60,4 +64,6 @@ for idx in range(n_queries):
     committee.teach(X[query_idx].reshape(-1, 1), y[query_idx].reshape(-1, 1))
 ```
 
-![er-final](img/er-final.png)
+<p align="center">
+  <img src="img/er-final.png"/>
+</p>
