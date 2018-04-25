@@ -5,7 +5,7 @@ setup(
     version='0.3.0',
     author='Tivadar Danka',
     author_email='85a5187a@opayq.com',
-    description='Modular Active Learning framework for Python3',
+    description='A modular active learning framework for Python3',
     license='MIT',
     url='https://cosmic-cortex.github.io/modAL',
     packages=['modAL', 'modAL.utils'],
