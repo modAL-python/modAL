@@ -271,13 +271,13 @@ class TestUncertainties(unittest.TestCase):
 
     def test_margin_sampling(self):
         for n_samples in range(1, 10):
-            for n_classes in range(1, 10):
-                max_proba = np.zeros(n_classes)
+            for n_classes in range(2, 10):
                 for true_query_idx in range(n_samples):
-                    predict_proba = np.random.rand(n_samples, n_classes)
-                    predict_proba[true_query_idx] = max_proba
+                    predict_proba = np.zeros(shape=(n_samples, n_classes))
+                    predict_proba[:, 0] = 1.0
+                    predict_proba[true_query_idx, 0] = 0.0
                     classifier = mock.MockEstimator(predict_proba_return=predict_proba)
-                    query_idx, query_instance = modAL.uncertainty.uncertainty_sampling(
+                    query_idx, query_instance = modAL.uncertainty.margin_sampling(
                         classifier, np.random.rand(n_samples, n_classes)
                     )
                     np.testing.assert_array_equal(query_idx, true_query_idx)
@@ -291,7 +291,7 @@ class TestUncertainties(unittest.TestCase):
                     predict_proba[:, 0] = 1.0
                     predict_proba[true_query_idx] = max_proba
                     classifier = mock.MockEstimator(predict_proba_return=predict_proba)
-                    query_idx, query_instance = modAL.uncertainty.uncertainty_sampling(
+                    query_idx, query_instance = modAL.uncertainty.entropy_sampling(
                         classifier, np.random.rand(n_samples, n_classes)
                     )
                     np.testing.assert_array_equal(query_idx, true_query_idx)
