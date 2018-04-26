@@ -1,10 +1,5 @@
 """
-============================
-Information density measures
-============================
------------------------------------------------------------------
-Measures for estimating the information density of a given sample
------------------------------------------------------------------
+Measures for estimating the information density of a given sample.
 """
 
 import numpy as np
@@ -15,14 +10,13 @@ def similarize_distance(distance_measure):
     """
     Takes a distance measure and converts it into a information_density measure.
 
-    Parameters
-    ----------
-    distance_measure: function
+    :param distance_measure:
         The distance measure to be converted into information_density measure.
+    :type distance_measure:
+        function
 
-    Returns
-    -------
-    sim: function
+    :returns:
+      - **sim** *(function)* --
         The information_density measure obtained from the given disance measure.
     """
     def sim(*args, **kwargs):
@@ -39,17 +33,18 @@ def information_density(X, similarity_measure=cosine_similarity):
     Calculates the information density metric of the given data using the similarity
     measure given.
 
-    Parameters
-    ----------
-    X: numpy.ndarray of shape (n_samples, n_features)
+    :param X:
         The data for which the information density is to be calculated.
+    :type X:
+        numpy.ndarray of shape (n_samples, n_features)
 
-    similarity_measure: function
+    :param similarity_measure:
         The similarity measure to be used. Should take two 1d numpy.ndarrays for argument.
+    :type similarity_measure:
+        function
 
-    Returns
-    -------
-    inf_density: numpy.ndarray of shape (n_samples, )
+    :returns:
+      - **inf_density** *(numpy.ndarray of shape (n_samples, ))* --
         The information density for each sample.
 
     """

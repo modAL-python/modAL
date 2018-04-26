@@ -1,10 +1,5 @@
 """
-=====================
-Disagreement sampling
-=====================
--------------------------------------------------------------------------------------
-Disagreement measures and disagreement based query strategies for the Committee model
--------------------------------------------------------------------------------------
+Disagreement measures and disagreement based query strategies for the Committee model.
 """
 
 import numpy as np
@@ -20,25 +15,24 @@ def vote_entropy(committee, X, **predict_proba_kwargs):
     the probability distribution of the votes. The entropy of this distribution
     is the vote entropy of the Committee, which is returned.
 
-    Parameters
-    ----------
-    committee: modAL.models.Committee object
+    :param committee:
         The Committee instance for which the vote entropy is to be calculated.
+    :type committee:
+        modAL.models.Committee object
 
-    X: numpy.ndarray of shape (n_samples, n_features)
+    :param X:
         The data for which the vote entropy is to be calculated.
+    :type X:
+        numpy.ndarray of shape (n_samples, n_features)
 
-    predict_proba_kwargs: keyword arguments
+    :param predict_proba_kwargs:
         Keyword arguments for the predict_proba method of the Committee.
+    :type predict_proba_kwargs:
+        keyword arguments
 
-    Returns
-    -------
-    entr: numpy.ndarray of shape (n_samples, )
+    :returns:
+      - **entr** *(numpy.ndarray of shape (n_samples, ))* --
         Vote entropy of the Committee for the samples in X.
-
-    References
-    ----------
-    Settles, Burr: Active Learning, (Morgan & Claypool Publishers), equation no. (3.1)
     """
     n_learners = len(committee)
     votes = committee.vote(X, **predict_proba_kwargs)
@@ -64,25 +58,24 @@ def consensus_entropy(committee, X, **predict_proba_kwargs):
     learner. The entropy of the consensus probability distribution is the vote entropy
     of the Committee, which is returned.
 
-    Parameters
-    ----------
-    committee: modAL.models.Committee object
+    :param committee:
         The Committee instance for which the vote uncertainty entropy is to be calculated.
+    :type committee:
+        modAL.models.Committee object
 
-    X: numpy.ndarray of shape (n_samples, n_features)
+    :param X:
         The data for which the vote uncertainty entropy is to be calculated.
+    :type X:
+        numpy.ndarray of shape (n_samples, n_features)
 
-    predict_proba_kwargs: keyword arguments
+    :param predict_proba_kwargs:
         Keyword arguments for the predict_proba method of the Committee.
+    :type predict_proba_kwargs:
+        keyword arguments
 
-    Returns
-    -------
-    entr: numpy.ndarray of shape (n_samples, )
+    :returns:
+      - **entr** *(numpy.ndarray of shape (n_samples, ))* --
         Vote uncertainty entropy of the Committee for the samples in X.
-
-    References
-    ----------
-    Settles, Burr: Active Learning, (Morgan & Claypool Publishers), equation no. (3.2)
     """
     proba = committee.predict_proba(X, **predict_proba_kwargs)
     entr = np.transpose(entropy(np.transpose(proba)))
@@ -98,25 +91,24 @@ def KL_max_disagreement(committee, X, **predict_proba_kwargs):
     Kullback-Leibler divergence. The max disagreement for a given sample is the argmax of the
     KL divergences of the learners from the consensus probability.
 
-    Parameters
-    ----------
-    committee: modAL.models.Committee object
+    :param committee:
         The Committee instance for which the max disagreement is to be calculated.
+    :type committee:
+        modAL.models.Committee object
 
-    X: numpy.ndarray of shape (n_samples, n_features)
+    :param X:
         The data for which the max disagreement is to be calculated.
+    :type X:
+        numpy.ndarray of shape (n_samples, n_features)
 
-    predict_proba_kwargs: keyword arguments
+    :param predict_proba_kwargs:
         Keyword arguments for the predict_proba method of the Committee.
+    :type predict_proba_kwargs:
+        keyword arguments
 
-    Returns
-    -------
-    entr: numpy.ndarray of shape (n_samples, )
+    :returns:
+      - **entr** *(numpy.ndarray of shape (n_samples, ))* --
         Max disagreement of the Committee for the samples in X.
-
-    References
-    ----------
-    Settles, Burr: Active Learning, (Morgan & Claypool Publishers), equation no. (3.3)
     """
     p_vote = committee.vote_proba(X, **predict_proba_kwargs)
     p_consensus = np.mean(p_vote, axis=1)
@@ -132,26 +124,31 @@ def vote_entropy_sampling(committee, X, n_instances=1, **disagreement_measure_kw
     """
     Vote entropy sampling strategy.
 
-    Parameters
-    ----------
-    committee: Committee object
+    :param committee:
         The committee for which the labels are to be queried.
+    :type committee:
+        Committee object
 
-    X: numpy.ndarray of shape (n_samples, n_features)
+    :param X:
         The pool of samples to query from.
+    :type X:
+        numpy.ndarray of shape (n_samples, n_features)
 
-    n_instances: int
+    :param n_instances:
         Number of samples to be queried.
+    :type n_instances:
+        int
 
-    disagreement_measure_kwargs:
+    :param disagreement_measure_kwargs:
         Keyword arguments to be passed for the disagreement measure function.
+    :type disagreement_measure_kwargs:
+        keyword arguments
 
-    Returns
-    -------
-    query_idx: numpy.ndarray of shape (n_instances, )
+    :returns:
+      - **query_idx** *(numpy.ndarray of shape (n_instances, ))* --
         The indices of the instances from X chosen to be labelled.
 
-    X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+      - **X[query_idx]** *(numpy.ndarray of shape (n_instances, n_features))* --
         The instances from X chosen to be labelled.
     """
     disagreement = vote_entropy(committee, X, **disagreement_measure_kwargs)
@@ -164,26 +161,31 @@ def consensus_entropy_sampling(committee, X, n_instances=1, **disagreement_measu
     """
     Consensus entropy sampling strategy.
 
-    Parameters
-    ----------
-    committee: Committee object
+    :param committee:
         The committee for which the labels are to be queried.
+    :type committee:
+        Committee object
 
-    X: numpy.ndarray of shape (n_samples, n_features)
+    :param X:
         The pool of samples to query from.
+    :type X:
+        numpy.ndarray of shape (n_samples, n_features)
 
-    n_instances: int
+    :param n_instances:
         Number of samples to be queried.
+    :type n_instances:
+        int
 
-    disagreement_measure_kwargs:
+    :param disagreement_measure_kwargs:
         Keyword arguments to be passed for the disagreement measure function.
+    :type disagreement_measure_kwargs:
+        keyword arguments
 
-    Returns
-    -------
-    query_idx: numpy.ndarray of shape (n_instances, )
+    :returns:
+      - **query_idx** *(numpy.ndarray of shape (n_instances, ))* --
         The indices of the instances from X chosen to be labelled.
 
-    X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+      - **X[query_idx]** *(numpy.ndarray of shape (n_instances, n_features))* --
         The instances from X chosen to be labelled.
     """
     disagreement = consensus_entropy(committee, X, **disagreement_measure_kwargs)
@@ -196,26 +198,31 @@ def max_disagreement_sampling(committee, X, n_instances=1, **disagreement_measur
     """
     Maximum disagreement sampling strategy.
 
-    Parameters
-    ----------
-    committee: Committee object
+    :param committee:
         The committee for which the labels are to be queried.
+    :type committee:
+        Committee object
 
-    X: numpy.ndarray of shape (n_samples, n_features)
+    :param X:
         The pool of samples to query from.
+    :type X:
+        numpy.ndarray of shape (n_samples, n_features)
 
-    n_instances: int
+    :param n_instances:
         Number of samples to be queried.
+    :type n_instances:
+        int
 
-    disagreement_measure_kwargs:
+    :param disagreement_measure_kwargs:
         Keyword arguments to be passed for the disagreement measure function.
+    :type disagreement_measure_kwargs:
+        keyword arguments
 
-    Returns
-    -------
-    query_idx: numpy.ndarray of shape (n_instances, )
+    :returns:
+      - **query_idx** *(numpy.ndarray of shape (n_instances, ))* --
         The indices of the instances from X chosen to be labelled.
 
-    X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+      - **X[query_idx]** *(numpy.ndarray of shape (n_instances, n_features))* --
         The instances from X chosen to be labelled.
     """
     disagreement = KL_max_disagreement(committee, X, **disagreement_measure_kwargs)
@@ -228,23 +235,26 @@ def max_std_sampling(regressor, X, n_instances=1, **predict_kwargs):
     """
     Regressor standard deviation sampling strategy.
 
-    Parameters
-    ----------
-    X: numpy.ndarray of shape (n_samples, n_features)
+    :param X:
         The pool of samples to query from.
+    :type X:
+        numpy.ndarray of shape (n_samples, n_features)
 
-    n_instances: int
+    :param n_instances:
         Number of samples to be queried.
+    :type n_instances:
+        int
 
-    predict_kwargs:
+    :param predict_kwargs:
         Keyword arguments to be passed for the predict method.
+    :type predict_kwargs:
+        keyword arguments
 
-    Returns
-    -------
-    query_idx: numpy.ndarray of shape (n_instances, )
+    :returns:
+      - **query_idx** *(numpy.ndarray of shape (n_instances, ))* --
         The indices of the instances from X chosen to be labelled.
 
-    X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+      - **X[query_idx]** *(numpy.ndarray of shape (n_instances, n_features))* --
         The instances from X chosen to be labelled.
     """
     _, std = regressor.predict(X, return_std=True, **predict_kwargs)

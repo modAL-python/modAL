@@ -1,0 +1,503 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Committee &mdash; modAL  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="CommitteeRegressor" href="CommitteeRegressor.html" />
+    <link rel="prev" title="BayesianOptimizer" href="BayesianOptimizer.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> modAL
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="Models.html">Models</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="ActiveLearner.html">ActiveLearner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="BayesianOptimizer.html">BayesianOptimizer</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Committee</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="CommitteeRegressor.html">CommitteeRegressor</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="QueryStrategies.html">Query strategies</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">modAL</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="Models.html">Models</a> &raquo;</li>
+        
+      <li>Committee</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/Committee.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="committee">
+<h1>Committee<a class="headerlink" href="#committee" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<dl class="class">
+<dt id="modAL.models.Committee">
+<em class="property">class </em><code class="descclassname">modAL.models.</code><code class="descname">Committee</code><span class="sig-paren">(</span><em>learner_list</em>, <em>query_strategy=&lt;function vote_entropy_sampling&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/modAL/models.html#Committee"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modAL.models.Committee" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class is an abstract model of a committee-based active learning algorithm.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>learner_list</strong> (<em>list</em>) – A list of ActiveLearners forming the Committee.</li>
+<li><strong>query_strategy</strong> (<em>function</em>) – Query strategy function. Committee supports disagreement-based query strategies
+from modAL.disagreement, but uncertainty-based strategies from modAL.uncertainty
+are also supported.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><ul class="first last simple">
+<li><strong>classes_</strong> <em>(numpy.ndarray of shape (n_classes, ))</em> –
+Class labels known by the Committee.</li>
+<li><strong>n_classes_</strong> <em>(int)</em> –
+Number of classes known by the Committee</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="k">import</span> <span class="n">load_iris</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sklearn.neighbors</span> <span class="k">import</span> <span class="n">KNeighborsClassifier</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="k">import</span> <span class="n">RandomForestClassifier</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">modAL.models</span> <span class="k">import</span> <span class="n">ActiveLearner</span><span class="p">,</span> <span class="n">Committee</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">iris</span> <span class="o">=</span> <span class="n">load_iris</span><span class="p">()</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># initialize ActiveLearners</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">learner_1</span> <span class="o">=</span> <span class="n">ActiveLearner</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">estimator</span><span class="o">=</span><span class="n">RandomForestClassifier</span><span class="p">(),</span>
+<span class="gp">... </span>    <span class="n">X_training</span><span class="o">=</span><span class="n">iris</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">]],</span> <span class="n">y_training</span><span class="o">=</span><span class="n">iris</span><span class="p">[</span><span class="s1">&#39;target&#39;</span><span class="p">][[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">]]</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">learner_2</span> <span class="o">=</span> <span class="n">ActiveLearner</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">estimator</span><span class="o">=</span><span class="n">KNeighborsClassifier</span><span class="p">(</span><span class="n">n_neighbors</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">X_training</span><span class="o">=</span><span class="n">iris</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">51</span><span class="p">,</span> <span class="mi">101</span><span class="p">]],</span> <span class="n">y_training</span><span class="o">=</span><span class="n">iris</span><span class="p">[</span><span class="s1">&#39;target&#39;</span><span class="p">][[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">51</span><span class="p">,</span> <span class="mi">101</span><span class="p">]]</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># initialize the Committee</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">committee</span> <span class="o">=</span> <span class="n">Committee</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">learner_list</span><span class="o">=</span><span class="p">[</span><span class="n">learner_1</span><span class="p">,</span> <span class="n">learner_2</span><span class="p">]</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># querying for labels</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">query_idx</span><span class="p">,</span> <span class="n">query_sample</span> <span class="o">=</span> <span class="n">committee</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">iris</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">])</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># ...obtaining new labels from the Oracle...</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># teaching newly labelled examples</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">committee</span><span class="o">.</span><span class="n">teach</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">X</span><span class="o">=</span><span class="n">iris</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="n">query_idx</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">y</span><span class="o">=</span><span class="n">iris</span><span class="p">[</span><span class="s1">&#39;target&#39;</span><span class="p">][</span><span class="n">query_idx</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">)</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="modAL.models.Committee.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y</em>, <em>**fit_kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#modAL.models.Committee.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fits every learner to a subset sampled with replacement from X.
+Calling this method makes the learner forget the data it has seen up until this point and
+replaces it with X! If you would like to perform bootstrapping on each learner using the
+data it has seen, use the method .rebag()!</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>X</strong> (<em>numpy.ndarray of shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – The samples to be fitted.</li>
+<li><strong>y</strong> (<em>numpy.ndarray of shape</em><em> (</em><em>n_samples</em><em>, </em><em>)</em>) – The corresponding labels.</li>
+<li><strong>fit_kwargs</strong> (<em>keyword arguments</em>) – Keyword arguments to be passed to the fit method of the predictor.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Calling this method makes the learner forget the data it has seen up until this point and
+replaces it with X!</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="modAL.models.Committee.predict">
+<code class="descname">predict</code><span class="sig-paren">(</span><em>X</em>, <em>**predict_proba_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/modAL/models.html#Committee.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modAL.models.Committee.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predicts the class of the samples by picking the consensus prediction.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> (<em>numpy.ndarray of shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – The samples to be predicted.</li>
+<li><strong>predict_proba_kwargs</strong> (<em>keyword arguments</em>) – Keyword arguments to be passed to the predict_proba method of the
+Committee.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>prediction</strong> <em>(numpy.ndarray of shape (n_samples, ))</em> –
+The predicted class labels for X.</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="modAL.models.Committee.predict_proba">
+<code class="descname">predict_proba</code><span class="sig-paren">(</span><em>X</em>, <em>**predict_proba_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/modAL/models.html#Committee.predict_proba"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modAL.models.Committee.predict_proba" title="Permalink to this definition">¶</a></dt>
+<dd><p>Consensus probabilities of the Committee.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> (<em>numpy.ndarray of shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – The samples for which the class probabilities are
+to be predicted.</li>
+<li><strong>predict_proba_kwargs</strong> (<em>keyword arguments</em>) – Keyword arguments to be passed to the predict_proba method of the
+Committee.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>proba</strong> <em>(numpy.ndarray of shape (n_samples, n_classes))</em> –
+Class probabilities for X.</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="modAL.models.Committee.query">
+<code class="descname">query</code><span class="sig-paren">(</span><em>X</em>, <em>**query_kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#modAL.models.Committee.query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the n_instances most informative point in the data provided by calling
+the query_strategy function. Returns the queried instances and its indices.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> (<em>numpy.ndarray of shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – The pool of samples from which the query strategy should choose
+instances to request labels.</li>
+<li><strong>query_kwargs</strong> – Keyword arguments for the query strategy function</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><p class="first">keyword arguments</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>query_idx</strong> <em>(numpy.ndarray of shape (n_instances, ))</em> –
+The indices of the instances from X_pool chosen to be labelled.</li>
+<li><strong>X[query_idx]</strong> <em>(numpy.ndarray of shape (n_instances, n_features))</em> –
+The instances from X_pool chosen to be labelled.</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="modAL.models.Committee.rebag">
+<code class="descname">rebag</code><span class="sig-paren">(</span><em>**fit_kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#modAL.models.Committee.rebag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Refits every learner with a dataset bootstrapped from its training instances. Contrary to
+.bag(), it bootstraps the training data for each learner based on its own examples.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fit_kwargs</strong> (<em>keyword arguments</em>) – Keyword arguments to be passed to the fit method of the predictor.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="modAL.models.Committee.teach">
+<code class="descname">teach</code><span class="sig-paren">(</span><em>X</em>, <em>y</em>, <em>bootstrap=False</em>, <em>only_new=False</em>, <em>**fit_kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#modAL.models.Committee.teach" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds X and y to the known training data for each learner
+and retrains learners with the augmented dataset.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> (<em>numpy.ndarray of shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – The new samples for which the labels are supplied
+by the expert.</li>
+<li><strong>y</strong> (<em>numpy.ndarray of shape</em><em> (</em><em>n_samples</em><em>, </em><em>)</em>) – Labels corresponding to the new instances in X.</li>
+<li><strong>bootstrap</strong> (<em>boolean</em>) – If True, trains each learner on a bootstrapped set. Useful
+when building the ensemble by bagging.</li>
+<li><strong>fit_kwargs</strong> – Keyword arguments to be passed to the fit method
+of the predictor.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Type:</th><td class="field-body"><p class="first last">keyword arguments</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="modAL.models.Committee.vote">
+<code class="descname">vote</code><span class="sig-paren">(</span><em>X</em>, <em>**predict_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/modAL/models.html#Committee.vote"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modAL.models.Committee.vote" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predicts the labels for the supplied data for each learner in
+the Committee.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> (<em>numpy.ndarray of shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – The samples to cast votes.</li>
+<li><strong>predict_kwargs</strong> (<em>keyword arguments</em>) – Keyword arguments to be passed for the learners .predict() method.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>vote</strong> <em>(numpy.ndarray of shape (n_samples, n_learners))</em> –
+The predicted class for each learner in the Committee
+and each sample in X.</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="modAL.models.Committee.vote_proba">
+<code class="descname">vote_proba</code><span class="sig-paren">(</span><em>X</em>, <em>**predict_proba_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/modAL/models.html#Committee.vote_proba"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modAL.models.Committee.vote_proba" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predicts the probabilities of the classes for each sample and each learner.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> (<em>numpy.ndarray of shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – The samples for which class probabilities are to be calculated.</li>
+<li><strong>predict_proba_kwargs</strong> (<em>keyword arguments</em>) – Keyword arguments for the .predict_proba() method of the learners.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>vote_proba</strong> <em>(numpy.ndarray of shape (n_samples, n_learners, n_classes))</em> –
+Probabilities of each class for each learner and each instance.</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="CommitteeRegressor.html" class="btn btn-neutral float-right" title="CommitteeRegressor" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="BayesianOptimizer.html" class="btn btn-neutral" title="BayesianOptimizer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, cosmic-cortex.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script> 
+
+</body>
+</html>

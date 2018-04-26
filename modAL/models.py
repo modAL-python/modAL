@@ -47,14 +47,12 @@ class BaseLearner(ABC, BaseEstimator):
         Adds the new data and label to the known data, but does
         not retrain the model.
 
-        Parameters
-        ----------
-        X: numpy.ndarray of shape (n_samples, n_features)
-            The new samples for which the labels are supplied
+        :param X: The new samples for which the labels are supplied
             by the expert.
+        :type X: numpy.ndarray of shape (n_samples, n_features)
 
-        y: numpy.ndarray of shape (n_samples, )
-            Labels corresponding to the new instances in X.
+        :param y: Labels corresponding to the new instances in X.
+        :type y: numpy.ndarray of shape (n_samples, )
 
         Note
         ----
@@ -80,14 +78,12 @@ class BaseLearner(ABC, BaseEstimator):
         """
         Fits self.estimator to the training data and labels provided to it so far.
 
-        Parameters
-        ----------
-        bootstrap: boolean
-            If True, the method trains the model on a set bootstrapped from the
-            known training instances.
+        :param bootstrap: If True, the method trains the model on a set bootstrapped
+            from the known training instances.
+        :type bootstrap: boolean
 
-        fit_kwargs: keyword arguments
-            Keyword arguments to be passed to the fit method of the predictor.
+        :param fit_kwargs: Keyword arguments to be passed to the fit method of the predictor.
+        :param fit_kwargs: keyword arguments
         """
         if not bootstrap:
             self.estimator.fit(self.X_training, self.y_training, **fit_kwargs)
@@ -102,20 +98,18 @@ class BaseLearner(ABC, BaseEstimator):
         """
         Fits self.estimator to the given data and labels.
 
-        Parameters
-        ----------
-        X: numpy.ndarray of shape (n_samples, n_features)
-            The new samples for which the labels are supplied
+        :param X: The new samples for which the labels are supplied
             by the expert.
+        :type X: numpy.ndarray of shape (n_samples, n_features)
 
-        y: numpy.ndarray of shape (n_samples, )
-            Labels corresponding to the new instances in X.
+        :param y: Labels corresponding to the new instances in X.
+        :type y: numpy.ndarray of shape (n_samples, )
 
-        bootstrap: boolean
-            If True, the method trains the model on a set bootstrapped from X.
+        :param bootstrap: If True, the method trains the model on a set bootstrapped from X.
+        :type bootstrap: boolean
 
-        fit_kwargs: keyword arguments
-            Keyword arguments to be passed to the fit method of the predictor.
+        :param fit_kwargs: Keyword arguments to be passed to the fit method of the predictor.
+        :type fit_kwargs: keyword arguments
         """
         assert len(X) == len(y), 'the length of X and y must match'
 
@@ -133,20 +127,18 @@ class BaseLearner(ABC, BaseEstimator):
         to the supplied data, then stores it internally for the active
         learning loop.
 
-        Parameters
-        ----------
-        X: numpy.ndarray of shape (n_samples, n_features)
-            The samples to be fitted.
+        :param X: The samples to be fitted.
+        :type X: numpy.ndarray of shape (n_samples, n_features)
 
-        y: numpy.ndarray of shape (n_samples, )
-            The corresponding labels.
+        :param y: The corresponding labels.
+        :type y: numpy.ndarray of shape (n_samples, )
 
-        bootstrap: boolean
-            If true, trains the estimator on a set bootstrapped from X. Useful for building
-            Committee models with bagging.
+        :param bootstrap: If true, trains the estimator on a set bootstrapped from X.
+            Useful for building Committee models with bagging.
+        :type bootstrap: boolean
 
-        fit_kwargs: keyword arguments
-            Keyword arguments to be passed to the fit method of the predictor.
+        :param fit_kwargs: Keyword arguments to be passed to the fit method of the predictor.
+        :type fit_kwargs: keyword arguments
 
         DANGER ZONE
         -----------
@@ -162,18 +154,16 @@ class BaseLearner(ABC, BaseEstimator):
         Estimator predictions for X. Interface with the predict
         method of the estimator.
 
-        Parameters
-        ----------
-        X: numpy.ndarray of shape (n_samples, n_features)
-            The samples to be predicted.
+        :param X: The samples to be predicted.
+        :type X: numpy.ndarray of shape (n_samples, n_features)
 
-        predict_kwargs: keyword arguments
-            Keyword arguments to be passed to the predict method of the classifier.
+        :param predict_kwargs: Keyword arguments to be passed to the predict method
+            of the classifier.
+        :type predict_kwargs: keyword arguments
 
-        Returns
-        -------
-        pred: numpy.ndarray of shape (n_samples, )
-            Estimator predictions for X.
+        :returns:
+          - **pred** *(numpy.ndarray of shape (n_samples, ))* -- Estimator predictions for X.
+
         """
         return self.estimator.predict(X, **predict_kwargs)
 
@@ -182,20 +172,17 @@ class BaseLearner(ABC, BaseEstimator):
         Class probabilities if the predictor is a classifier.
         Interface with the predict_proba method of the classifier.
 
-        Parameters
-        ----------
-        X: numpy.ndarray of shape (n_samples, n_features)
-            The samples for which the class probabilities are
+        :param X: The samples for which the class probabilities are
             to be predicted.
+        :type X: numpy.ndarray of shape (n_samples, n_features)
 
-        predict_proba_kwargs: keyword arguments
-            Keyword arguments to be passed to the predict_proba method of the
-            classifier.
+        :param predict_proba_kwargs: Keyword arguments to be passed to the
+            predict_proba method of the classifier.
+        :param predict_proba_kwargs: keyword arguments
 
-        Returns
-        -------
-        proba: numpy.ndarray of shape (n_samples, n_classes)
-            Class probabilities for X.
+        :returns:
+         - **proba** *(numpy.ndarray of shape (n_samples, n_classes))* --
+           Class probabilities for X.
         """
         return self.estimator.predict_proba(X, **predict_proba_kwargs)
 
@@ -204,22 +191,18 @@ class BaseLearner(ABC, BaseEstimator):
         Finds the n_instances most informative point in the data provided by calling
         the query_strategy function. Returns the queried instances and its indices.
 
-        Parameters
-        ----------
-        X: numpy.ndarray of shape (n_samples, n_features)
-            The pool of samples from which the query strategy should choose
+        :param X: The pool of samples from which the query strategy should choose
             instances to request labels.
+        :type X: numpy.ndarray of shape (n_samples, n_features).
 
-        query_kwargs: keyword arguments
-            Keyword arguments for the query strategy function.
+        :param query_kwargs: Keyword arguments for the query strategy function.
+        :type query_kwargs: keyword arguments
 
-        Returns
-        -------
-        query_idx: numpy.ndarray of shape (n_instances, )
-            The indices of the instances from X_pool chosen to be labelled.
-
-        X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
-            The instances from X_pool chosen to be labelled.
+        :returns:
+         - **query_idx** *(numpy.ndarray of shape (n_instances, ))* –
+           The indices of the instances from X_pool chosen to be labelled.
+         - **X[query_idx]** *(numpy.ndarray of shape (n_instances, n_features))*
+           The instances from X_pool chosen to be labelled.
         """
 
         query_idx, query_instances = self.query_strategy(self, X, **query_kwargs)
@@ -229,21 +212,18 @@ class BaseLearner(ABC, BaseEstimator):
         """
         Interface for the score method of the predictor.
 
-        Parameters
-        ----------
-        X: numpy.ndarray of shape (n_samples, n_features)
-            The samples for which prediction accuracy is to be calculated
+        :param X: The samples for which prediction accuracy is to be calculated.
+        :type X: numpy.ndarray of shape (n_samples, n_features)
 
-        y: numpy.ndarray of shape (n_samples, )
-            Ground truth labels for X
+        :param y: Ground truth labels for X.
+        :type y: numpy.ndarray of shape (n_samples, )
 
-        score_kwargs: keyword arguments
-            Keyword arguments to be passed to the .score() method of the
-            classifier
+        :param score_kwargs: Keyword arguments to be passed to the .score() method
+            of theclassifier.
+        :type score_kwargs: keyword arguments
 
-        Returns
-        -------
-        mean_accuracy: numpy.float containing the mean accuracy of the predictor
+        :returns:
+         - **mean_accuracy** *(numpy.float)* -- The mean accuracy of the predictor.
         """
         return self.estimator.score(X, y, **score_kwargs)
 
@@ -256,43 +236,43 @@ class ActiveLearner(BaseLearner):
     """
     This class is an abstract model of a general active learning algorithm.
 
-    Parameters
-    ----------
-    estimator: scikit-learn estimator
-        The estimator to be used in the active learning loop.
+    :param estimator: The estimator to be used in the active learning loop.
+    :type estimator: scikit-learn estimator
 
-    query_strategy: function
+    :param query_strategy:
         Function providing the query strategy for the active learning
         loop, for instance modAL.uncertainty.uncertainty_sampling.
+    :type query_strategy: function
 
-    X_training: None or numpy.ndarray of shape (n_samples, n_features)
-        Initial training samples, if available.
+    :param X_training: Initial training samples, if available.
+    :type X_training: None or numpy.ndarray of shape (n_samples, n_features)
 
-    y_training: None or numpy.ndarray of shape (n_samples, )
-        Initial training labels corresponding to initial training samples.
+    :param y_training: Initial training labels corresponding to initial training samples.
+    :type y_training: None or numpy.ndarray of shape (n_samples, )
 
-    bootstrap_init: boolean
+    :param bootstrap_init:
         If initial training data is available, bootstrapping can be done
         during the first training. Useful when building Committee models
         with bagging.
+    :type bootstrap_init: boolean
 
-    fit_kwargs: keyword arguments for the fit method
+    :param fit_kwargs: keyword arguments for the fit method
+    :type fit_kwargs: keyword arguments
 
-    Attributes
-    ----------
-    estimator: scikit-learn estimator
+    :attributes:
+      - **estimator** *(scikit-learn estimator)* --
         The estimator to be used in the active learning loop.
 
-    query_strategy: function
+      - **query_strategy** *(function)* --
         Function providing the query strategy for the active learning
         loop, for instance modAL.query.max_uncertainty.
 
-    X_training: None numpy.ndarray of shape (n_samples, n_features)
+      - **X_training** *(None numpy.ndarray of shape (n_samples, n_features))* --
         If the model hasn't been fitted yet: None
         If the model has been fitted already: numpy.ndarray containing the
         samples which the model has been trained on
 
-    y_training: None or numpy.ndarray of shape (n_samples, )
+      - **y_training** *(None or numpy.ndarray of shape (n_samples, ))* --
         If the model hasn't been fitted yet: None
         If the model has been fitted already: numpy.ndarray containing the
         labels corresponding to _training_samples
@@ -327,29 +307,31 @@ class ActiveLearner(BaseLearner):
     """
 
     def teach(self, X, y, bootstrap=False, only_new=False, **fit_kwargs):
+
         """
         Adds X and y to the known training data and retrains the predictor
         with the augmented dataset.
 
-        Parameters
-        ----------
-        X: numpy.ndarray of shape (n_samples, n_features)
-            The new samples for which the labels are supplied by the expert.
+        :param X: The new samples for which the labels are supplied by the expert.
+        :type X: numpy.ndarray of shape (n_samples, n_features)
 
-        y: numpy.ndarray of shape (n_samples, )
-            Labels corresponding to the new instances in X.
+        :param y: Labels corresponding to the new instances in X.
+        :type y: numpy.ndarray of shape (n_samples, )
 
-        bootstrap: boolean
+        :param bootstrap:
             If True, training is done on a bootstrapped dataset. Useful for building
             Committee models with bagging.
+        :type bootstrap: boolean
 
-        only_new: boolean
+        :param only_new:
             If True, the model is retrained using only X and y, ignoring the previously
             provided examples. Useful when working with models where the .fit() method
             doesn't retrain the model from scratch. (For example, in tensorflow or keras.)
+        :type only_new: boolean
 
-        fit_kwargs: keyword arguments
+        :param fit_kwargs:
             Keyword arguments to be passed to the fit method of the predictor.
+        :type fit_kwargs: keyword arguments
         """
         self._add_training_data(X, y)
         if not only_new:
@@ -362,49 +344,61 @@ class BayesianOptimizer(BaseLearner):
     """
     This class is an abstract model of a Bayesian optimizer algorithm.
 
-    Parameters
-    ----------
-    estimator: scikit-learn regressor
+    :param estimator:
         The regressor to be used in the Bayesian optimization algorithm.
+    :type estimator:
+        scikit-learn regressor
 
-    query_strategy: function
+    :param query_strategy:
         Function providing the query strategy for the Bayesian optimization
         loop, for instance modAL.acquisition.max_PI.
+    :type query_strategy:
+        function
 
-    X_training: None or numpy.ndarray of shape (n_samples, n_features)
+    :param X_training:
         Initial training samples, if available.
+    :type X_training:
+        None or numpy.ndarray of shape (n_samples, n_features)
 
-    y_training: None or numpy.ndarray of shape (n_samples, )
+    :param y_training:
         Initial values corresponding to initial training samples.
+    :type y_training:
+        None or numpy.ndarray of shape (n_samples, )
 
-    bootstrap_init: boolean
+    :param bootstrap_init:
         If initial training data is available, bootstrapping can be done
         during the first training.
+    :type bootstrap_init:
+        boolean
 
-    fit_kwargs: keyword arguments for the fit method
+    :param fit_kwargs:
+        Keyword arguments for the fit method.
+    :type fit_kwargs:
+        keyword arguments
 
-    Attributes
-    ----------
-    estimator: scikit-learn regressor
+    :attributes:
+      - **estimator** *(scikit-learn regressor)* --
         The regressor to be used in the Bayesian optimization algorithm.
 
-    query_strategy: function
+      - **query_strategy** *(function)* --
         Function providing the query strategy for the Bayesian optimization
         loop, for instance modAL.acquisition.max_PI.
 
-    X_training: None numpy.ndarray of shape (n_samples, n_features)
+      - **X_training** *(None numpy.ndarray of shape (n_samples, n_features))* --
         If the model hasn't been fitted yet: None
         If the model has been fitted already: numpy.ndarray containing the
         samples which the model has been trained on
 
-    y_training: None or numpy.ndarray of shape (n_samples, )
+      - **y_training** *(None or numpy.ndarray of shape (n_samples, ))* --
         If the model hasn't been fitted yet: None
         If the model has been fitted already: numpy.ndarray containing the
         labels corresponding to _training_samples
 
-    X_max: None or numpy.ndarray of shape (n_samples, 3)
+      - **X_max** *(None or numpy.ndarray of shape (n_samples, 3))* --
+        argmax of the function so far.
 
-    y_max: -np.inf or float
+      - **y_max** *(-np.inf or float)* --
+        Max of the function so far.
 
     Examples
     --------
@@ -471,12 +465,11 @@ class BayesianOptimizer(BaseLearner):
         """
         Gives the highest value so far.
 
-        Returns
-        -------
-        X: np.ndarray of shape (n_features)
+        :returns:
+          - **X** *(np.ndarray of shape (n_features))* --
             The location of the currently best value.
 
-        y: np.ndarray of shape (1)
+          - **y** *(np.ndarray of shape (1))* --
             The currently best value.
 
         """
@@ -489,25 +482,33 @@ class BayesianOptimizer(BaseLearner):
         augmented dataset. This method also keeps track of the maximum value encountered
         in the training data.
 
-        Parameters
-        ----------
-        X: numpy.ndarray of shape (n_samples, n_features)
+        :param X:
             The new samples for which the values are supplied.
+        :type X:
+            numpy.ndarray of shape (n_samples, n_features)
 
-        y: numpy.ndarray of shape (n_samples, )
+        :param y:
             Values corresponding to the new instances in X.
+        :type y:
+            numpy.ndarray of shape (n_samples, )
 
-        bootstrap: boolean
+        :param bootstrap:
             If True, training is done on a bootstrapped dataset. Useful for building
             Committee models with bagging.
+        :type bootstrap:
+            boolean
 
-        only_new: boolean
+        :param only_new:
             If True, the model is retrained using only X and y, ignoring the previously
             provided examples. Useful when working with models where the .fit() method
             doesn't retrain the model from scratch. (For example, in tensorflow or keras.)
+        :type only_new:
+            boolean
 
-        fit_kwargs: keyword arguments
+        :param fit_kwargs:
             Keyword arguments to be passed to the fit method of the predictor.
+        :type fit_kwargs:
+            keyword arguments
         """
         self._add_training_data(X, y)
         if not only_new:
@@ -542,14 +543,16 @@ class BaseCommittee(ABC, BaseEstimator):
         Adds the new data and label to the known data for each learner,
         but does not retrain the model.
 
-        Parameters
-        ----------
-        X: numpy.ndarray of shape (n_samples, n_features)
+        :param X:
             The new samples for which the labels are supplied
             by the expert.
+        :type X:
+            numpy.ndarray of shape (n_samples, n_features)
 
-        y: numpy.ndarray of shape (n_samples, )
+        :param y:
             Labels corresponding to the new instances in X.
+        :type y:
+            numpy.ndarray of shape (n_samples, )
 
         Note
         ----
@@ -564,14 +567,16 @@ class BaseCommittee(ABC, BaseEstimator):
         """
         Fits all learners to the training data and labels provided to it so far.
 
-        Parameters
-        ----------
-        bootstrap: boolean
+        :param bootstrap:
             If True, each estimator is trained on a bootstrapped dataset. Useful when
             using bagging to build the ensemble.
+        :type bootstrap:
+            boolean
 
-        fit_kwargs: keyword arguments
+        :param fit_kwargs:
             Keyword arguments to be passed to the fit method of the predictor.
+        :type fit_kwargs:
+            keyword arguments
         """
         for learner in self.learner_list:
             learner._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
@@ -580,20 +585,26 @@ class BaseCommittee(ABC, BaseEstimator):
         """
         Fits all learners to the given data and labels.
 
-        Parameters
-        ----------
-        X: numpy.ndarray of shape (n_samples, n_features)
+        :param X:
             The new samples for which the labels are supplied
             by the expert.
+        :type X:
+            numpy.ndarray of shape (n_samples, n_features)
 
-        y: numpy.ndarray of shape (n_samples, )
+        :param y:
             Labels corresponding to the new instances in X.
+        :type y:
+            numpy.ndarray of shape (n_samples, )
 
-        bootstrap: boolean
+        :param bootstrap:
             If True, the method trains the model on a set bootstrapped from X.
+        :type bootstrap:
+            boolean
 
-        fit_kwargs: keyword arguments
+        :param fit_kwargs:
             Keyword arguments to be passed to the fit method of the predictor.
+        :type fit_kwargs:
+            keyword arguments
         """
         assert len(X) == len(y), 'the length of X and y must match'
 
@@ -607,16 +618,20 @@ class BaseCommittee(ABC, BaseEstimator):
         replaces it with X! If you would like to perform bootstrapping on each learner using the
         data it has seen, use the method .rebag()!
 
-        Parameters
-        ----------
-        X: numpy.ndarray of shape (n_samples, n_features)
+        :param X:
             The samples to be fitted.
+        :type X:
+            numpy.ndarray of shape (n_samples, n_features)
 
-        y: numpy.ndarray of shape (n_samples, )
+        :param y:
             The corresponding labels.
+        :type y:
+            numpy.ndarray of shape (n_samples, )
 
-        fit_kwargs: keyword arguments
+        :param fit_kwargs:
             Keyword arguments to be passed to the fit method of the predictor.
+        :type fit_kwargs:
+            keyword arguments
 
         DANGER ZONE
         -----------
@@ -633,21 +648,21 @@ class BaseCommittee(ABC, BaseEstimator):
         Finds the n_instances most informative point in the data provided by calling
         the query_strategy function. Returns the queried instances and its indices.
 
-        Parameters
-        ----------
-        X: numpy.ndarray of shape (n_samples, n_features)
+        :param X:
             The pool of samples from which the query strategy should choose
             instances to request labels.
+        :type X:
+            numpy.ndarray of shape (n_samples, n_features)
 
-        query_kwargs: keyword arguments
+        :param query_kwargs:
             Keyword arguments for the query strategy function
+        :type: keyword arguments
 
-        Returns
-        -------
-        query_idx: numpy.ndarray of shape (n_instances, )
+        :returns:
+          - **query_idx** *(numpy.ndarray of shape (n_instances, ))* --
             The indices of the instances from X_pool chosen to be labelled.
 
-        X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+          - **X[query_idx]** *(numpy.ndarray of shape (n_instances, n_features))* --
             The instances from X_pool chosen to be labelled.
         """
         query_idx, query_instances = self.query_strategy(self, X, **query_kwargs)
@@ -658,10 +673,10 @@ class BaseCommittee(ABC, BaseEstimator):
         Refits every learner with a dataset bootstrapped from its training instances. Contrary to
         .bag(), it bootstraps the training data for each learner based on its own examples.
 
-        Parameters
-        ----------
-        fit_kwargs: keyword arguments
+        :param fit_kwargs:
             Keyword arguments to be passed to the fit method of the predictor.
+        :type fit_kwargs:
+            keyword arguments
         """
         self._fit_to_known(bootstrap=True, **fit_kwargs)
 
@@ -670,22 +685,28 @@ class BaseCommittee(ABC, BaseEstimator):
         Adds X and y to the known training data for each learner
         and retrains learners with the augmented dataset.
 
-        Parameters
-        ----------
-        X: numpy.ndarray of shape (n_samples, n_features)
+        :param X:
             The new samples for which the labels are supplied
             by the expert.
+        :type X:
+            numpy.ndarray of shape (n_samples, n_features)
 
-        y: numpy.ndarray of shape (n_samples, )
+        :param y:
             Labels corresponding to the new instances in X.
+        :type y:
+            numpy.ndarray of shape (n_samples, )
 
-        bootstrap: boolean
+        :param bootstrap:
             If True, trains each learner on a bootstrapped set. Useful
             when building the ensemble by bagging.
+        :type bootstrap:
+            boolean
 
-        fit_kwargs: keyword arguments
+        :param fit_kwargs:
             Keyword arguments to be passed to the fit method
             of the predictor.
+        :type:
+            keyword arguments
         """
         self._add_training_data(X, y)
         if not only_new:
@@ -706,22 +727,22 @@ class Committee(BaseCommittee):
     """
     This class is an abstract model of a committee-based active learning algorithm.
 
-    Parameters
-    ----------
-    learner_list: list
+    :param learner_list:
         A list of ActiveLearners forming the Committee.
+    :type learner_list:
+        list
 
-    query_strategy: function
+    :param query_strategy:
         Query strategy function. Committee supports disagreement-based query strategies
         from modAL.disagreement, but uncertainty-based strategies from modAL.uncertainty
         are also supported.
+    :type query_strategy:
+        function
 
-    Attributes
-    ----------
-    classes_: numpy.ndarray of shape (n_classes, )
+    :attributes:
+      - **classes_** *(numpy.ndarray of shape (n_classes, ))* --
         Class labels known by the Committee.
-
-    n_classes_: int
+      - **n_classes_** *(int)* --
         Number of classes known by the Committee
 
     Examples
@@ -790,18 +811,19 @@ class Committee(BaseCommittee):
         """
         Predicts the class of the samples by picking the consensus prediction.
 
-        Parameters
-        ----------
-        X: numpy.ndarray of shape (n_samples, n_features)
+        :param X:
             The samples to be predicted.
+        :type X:
+            numpy.ndarray of shape (n_samples, n_features)
 
-        predict_proba_kwargs: keyword arguments
+        :param predict_proba_kwargs:
             Keyword arguments to be passed to the predict_proba method of the
             Committee.
+        :type predict_proba_kwargs:
+            keyword arguments
 
-        Returns
-        -------
-        prediction: numpy.ndarray of shape (n_samples, )
+        :returns:
+          - **prediction** *(numpy.ndarray of shape (n_samples, ))* --
             The predicted class labels for X.
         """
         # getting average certainties
@@ -815,19 +837,20 @@ class Committee(BaseCommittee):
         """
         Consensus probabilities of the Committee.
 
-        Parameters
-        ----------
-        X: numpy.ndarray of shape (n_samples, n_features)
+        :param X:
             The samples for which the class probabilities are
             to be predicted.
+        :type X:
+            numpy.ndarray of shape (n_samples, n_features)
 
-        predict_proba_kwargs: keyword arguments
+        :param predict_proba_kwargs:
             Keyword arguments to be passed to the predict_proba method of the
             Committee.
+        :type predict_proba_kwargs:
+            keyword arguments
 
-        Returns
-        -------
-        proba: numpy.ndarray of shape (n_samples, n_classes)
+        :returns:
+          - **proba** *(numpy.ndarray of shape (n_samples, n_classes))* --
             Class probabilities for X.
         """
         return np.mean(self.vote_proba(X, **predict_proba_kwargs), axis=1)
@@ -837,17 +860,18 @@ class Committee(BaseCommittee):
         Predicts the labels for the supplied data for each learner in
         the Committee.
 
-        Parameters
-        ----------
-        X: numpy.ndarray of shape (n_samples, n_features)
+        :param X:
             The samples to cast votes.
+        :type X:
+            numpy.ndarray of shape (n_samples, n_features)
 
-        predict_kwargs: keyword arguments
+        :param predict_kwargs:
             Keyword arguments to be passed for the learners .predict() method.
+        :type predict_kwargs:
+            keyword arguments
 
-        Returns
-        -------
-        vote: numpy.ndarray of shape (n_samples, n_learners)
+        :returns:
+          - **vote** *(numpy.ndarray of shape (n_samples, n_learners))* --
             The predicted class for each learner in the Committee
             and each sample in X.
         """
@@ -862,17 +886,18 @@ class Committee(BaseCommittee):
         """
         Predicts the probabilities of the classes for each sample and each learner.
 
-        Parameters
-        ----------
-        X: numpy.ndarray of shape (n_samples, n_features)
+        :param X:
             The samples for which class probabilities are to be calculated.
+        :type X:
+            numpy.ndarray of shape (n_samples, n_features)
 
-        predict_proba_kwargs: keyword arguments
+        :param predict_proba_kwargs:
             Keyword arguments for the .predict_proba() method of the learners.
+        :type predict_proba_kwargs:
+            keyword arguments
 
-        Returns
-        -------
-        vote_proba: numpy.ndarray of shape (n_samples, n_learners, n_classes)
+        :returns:
+          - **vote_proba** *(numpy.ndarray of shape (n_samples, n_learners, n_classes))* --
             Probabilities of each class for each learner and each instance.
         """
 
@@ -904,13 +929,15 @@ class CommitteeRegressor(BaseCommittee):
     """
     This class is an abstract model of a committee-based active learning regression.
 
-    Parameters
-    ----------
-    learner_list: list
+    :param learner_list:
         A list of ActiveLearners forming the CommitteeRegressor.
+    :type learner_list:
+        list
 
-    query_strategy: function
+    :param query_strategy:
         Query strategy function.
+    :type query_strategy:
+        function
 
     Examples
     --------
@@ -967,17 +994,18 @@ class CommitteeRegressor(BaseCommittee):
         """
         Predicts the values of the samples by averaging the prediction of each regressor.
 
-        Parameters
-        ----------
-        X: numpy.ndarray of shape (n_samples, n_features)
+        :param X:
             The samples to be predicted.
+        :type X:
+            numpy.ndarray of shape (n_samples, n_features)
 
-        predict_kwargs: keyword arguments
+        :param predict_kwargs:
             Keyword arguments to be passed to the .vote() method of the CommitteeRegressor.
+        :type predict_kwargs:
+            keyword arguments
 
-        Returns
-        -------
-        prediction: numpy.ndarray of shape (n_samples, )
+        :returns:
+          - **prediction** *(numpy.ndarray of shape (n_samples, ))* --
             The predicted class labels for X.
         """
         vote = self.vote(X, **predict_kwargs)

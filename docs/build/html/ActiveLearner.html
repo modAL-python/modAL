@@ -1,0 +1,467 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ActiveLearner &mdash; modAL  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="BayesianOptimizer" href="BayesianOptimizer.html" />
+    <link rel="prev" title="Models" href="Models.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> modAL
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="Models.html">Models</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">ActiveLearner</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="BayesianOptimizer.html">BayesianOptimizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Committee.html">Committee</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CommitteeRegressor.html">CommitteeRegressor</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="QueryStrategies.html">Query strategies</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">modAL</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="Models.html">Models</a> &raquo;</li>
+        
+      <li>ActiveLearner</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/ActiveLearner.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="activelearner">
+<h1>ActiveLearner<a class="headerlink" href="#activelearner" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<dl class="class">
+<dt id="modAL.models.ActiveLearner">
+<em class="property">class </em><code class="descclassname">modAL.models.</code><code class="descname">ActiveLearner</code><span class="sig-paren">(</span><em>estimator</em>, <em>query_strategy=&lt;function uncertainty_sampling&gt;</em>, <em>X_training=None</em>, <em>y_training=None</em>, <em>bootstrap_init=False</em>, <em>**fit_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/modAL/models.html#ActiveLearner"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modAL.models.ActiveLearner" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class is an abstract model of a general active learning algorithm.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>estimator</strong> (<em>scikit-learn estimator</em>) – The estimator to be used in the active learning loop.</li>
+<li><strong>query_strategy</strong> (<em>function</em>) – Function providing the query strategy for the active learning
+loop, for instance modAL.uncertainty.uncertainty_sampling.</li>
+<li><strong>X_training</strong> (<em>None</em><em> or </em><em>numpy.ndarray of shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – Initial training samples, if available.</li>
+<li><strong>y_training</strong> (<em>None</em><em> or </em><em>numpy.ndarray of shape</em><em> (</em><em>n_samples</em><em>, </em><em>)</em>) – Initial training labels corresponding to initial training samples.</li>
+<li><strong>bootstrap_init</strong> (<em>boolean</em>) – If initial training data is available, bootstrapping can be done
+during the first training. Useful when building Committee models
+with bagging.</li>
+<li><strong>fit_kwargs</strong> (<em>keyword arguments</em>) – keyword arguments for the fit method</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Attributes:</th><td class="field-body"><ul class="first last simple">
+<li><strong>estimator</strong> <em>(scikit-learn estimator)</em> –
+The estimator to be used in the active learning loop.</li>
+<li><strong>query_strategy</strong> <em>(function)</em> –
+Function providing the query strategy for the active learning
+loop, for instance modAL.query.max_uncertainty.</li>
+<li><strong>X_training</strong> <em>(None numpy.ndarray of shape (n_samples, n_features))</em> –
+If the model hasn’t been fitted yet: None
+If the model has been fitted already: numpy.ndarray containing the
+samples which the model has been trained on</li>
+<li><strong>y_training</strong> <em>(None or numpy.ndarray of shape (n_samples, ))</em> –
+If the model hasn’t been fitted yet: None
+If the model has been fitted already: numpy.ndarray containing the
+labels corresponding to _training_samples</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sklearn.datasets</span> <span class="k">import</span> <span class="n">load_iris</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sklearn.ensemble</span> <span class="k">import</span> <span class="n">RandomForestClassifier</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">modAL.models</span> <span class="k">import</span> <span class="n">ActiveLearner</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">iris</span> <span class="o">=</span> <span class="n">load_iris</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># give initial training examples</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_training</span> <span class="o">=</span> <span class="n">iris</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y_training</span> <span class="o">=</span> <span class="n">iris</span><span class="p">[</span><span class="s1">&#39;target&#39;</span><span class="p">][[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">]]</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># initialize active learner</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">learner</span> <span class="o">=</span> <span class="n">ActiveLearner</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">estimator</span><span class="o">=</span><span class="n">RandomForestClassifier</span><span class="p">(),</span>
+<span class="gp">... </span>    <span class="n">X_training</span><span class="o">=</span><span class="n">X_training</span><span class="p">,</span> <span class="n">y_training</span><span class="o">=</span><span class="n">y_training</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># querying for labels</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">query_idx</span><span class="p">,</span> <span class="n">query_sample</span> <span class="o">=</span> <span class="n">learner</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">iris</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">])</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># ...obtaining new labels from the Oracle...</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># teaching newly labelled examples</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">learner</span><span class="o">.</span><span class="n">teach</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">X</span><span class="o">=</span><span class="n">iris</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="n">query_idx</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="n">y</span><span class="o">=</span><span class="n">iris</span><span class="p">[</span><span class="s1">&#39;target&#39;</span><span class="p">][</span><span class="n">query_idx</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">)</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="modAL.models.ActiveLearner.fit">
+<code class="descname">fit</code><span class="sig-paren">(</span><em>X</em>, <em>y</em>, <em>bootstrap=False</em>, <em>**fit_kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#modAL.models.ActiveLearner.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interface for the fit method of the predictor. Fits the predictor
+to the supplied data, then stores it internally for the active
+learning loop.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>X</strong> (<em>numpy.ndarray of shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – The samples to be fitted.</li>
+<li><strong>y</strong> (<em>numpy.ndarray of shape</em><em> (</em><em>n_samples</em><em>, </em><em>)</em>) – The corresponding labels.</li>
+<li><strong>bootstrap</strong> (<em>boolean</em>) – If true, trains the estimator on a set bootstrapped from X.
+Useful for building Committee models with bagging.</li>
+<li><strong>fit_kwargs</strong> (<em>keyword arguments</em>) – Keyword arguments to be passed to the fit method of the predictor.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>When using scikit-learn estimators, calling this method will make the
+ActiveLearner forget all training data it has seen!</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="modAL.models.ActiveLearner.predict">
+<code class="descname">predict</code><span class="sig-paren">(</span><em>X</em>, <em>**predict_kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#modAL.models.ActiveLearner.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimator predictions for X. Interface with the predict
+method of the estimator.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> (<em>numpy.ndarray of shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – The samples to be predicted.</li>
+<li><strong>predict_kwargs</strong> (<em>keyword arguments</em>) – Keyword arguments to be passed to the predict method
+of the classifier.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>pred</strong> <em>(numpy.ndarray of shape (n_samples, ))</em> – Estimator predictions for X.</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="modAL.models.ActiveLearner.predict_proba">
+<code class="descname">predict_proba</code><span class="sig-paren">(</span><em>X</em>, <em>**predict_proba_kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#modAL.models.ActiveLearner.predict_proba" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class probabilities if the predictor is a classifier.
+Interface with the predict_proba method of the classifier.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> (<em>numpy.ndarray of shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – The samples for which the class probabilities are
+to be predicted.</li>
+<li><strong>predict_proba_kwargs</strong> – Keyword arguments to be passed to the
+predict_proba method of the classifier.</li>
+<li><strong>predict_proba_kwargs</strong> – keyword arguments</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>proba</strong> <em>(numpy.ndarray of shape (n_samples, n_classes))</em> –
+Class probabilities for X.</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="modAL.models.ActiveLearner.query">
+<code class="descname">query</code><span class="sig-paren">(</span><em>X</em>, <em>**query_kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#modAL.models.ActiveLearner.query" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the n_instances most informative point in the data provided by calling
+the query_strategy function. Returns the queried instances and its indices.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> (<em>numpy.ndarray of shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em><em></em>) – The pool of samples from which the query strategy should choose
+instances to request labels.</li>
+<li><strong>query_kwargs</strong> (<em>keyword arguments</em>) – Keyword arguments for the query strategy function.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>query_idx</strong> <em>(numpy.ndarray of shape (n_instances, ))</em> –
+The indices of the instances from X_pool chosen to be labelled.</li>
+<li><strong>X[query_idx]</strong> <em>(numpy.ndarray of shape (n_instances, n_features))</em>
+The instances from X_pool chosen to be labelled.</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="modAL.models.ActiveLearner.score">
+<code class="descname">score</code><span class="sig-paren">(</span><em>X</em>, <em>y</em>, <em>**score_kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#modAL.models.ActiveLearner.score" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interface for the score method of the predictor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>X</strong> (<em>numpy.ndarray of shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – The samples for which prediction accuracy is to be calculated.</li>
+<li><strong>y</strong> (<em>numpy.ndarray of shape</em><em> (</em><em>n_samples</em><em>, </em><em>)</em>) – Ground truth labels for X.</li>
+<li><strong>score_kwargs</strong> (<em>keyword arguments</em>) – Keyword arguments to be passed to the .score() method
+of theclassifier.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>mean_accuracy</strong> <em>(numpy.float)</em> – The mean accuracy of the predictor.</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="modAL.models.ActiveLearner.teach">
+<code class="descname">teach</code><span class="sig-paren">(</span><em>X</em>, <em>y</em>, <em>bootstrap=False</em>, <em>only_new=False</em>, <em>**fit_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/modAL/models.html#ActiveLearner.teach"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#modAL.models.ActiveLearner.teach" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds X and y to the known training data and retrains the predictor
+with the augmented dataset.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>X</strong> (<em>numpy.ndarray of shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – The new samples for which the labels are supplied by the expert.</li>
+<li><strong>y</strong> (<em>numpy.ndarray of shape</em><em> (</em><em>n_samples</em><em>, </em><em>)</em>) – Labels corresponding to the new instances in X.</li>
+<li><strong>bootstrap</strong> (<em>boolean</em>) – If True, training is done on a bootstrapped dataset. Useful for building
+Committee models with bagging.</li>
+<li><strong>only_new</strong> (<em>boolean</em>) – If True, the model is retrained using only X and y, ignoring the previously
+provided examples. Useful when working with models where the .fit() method
+doesn’t retrain the model from scratch. (For example, in tensorflow or keras.)</li>
+<li><strong>fit_kwargs</strong> (<em>keyword arguments</em>) – Keyword arguments to be passed to the fit method of the predictor.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="BayesianOptimizer.html" class="btn btn-neutral float-right" title="BayesianOptimizer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Models.html" class="btn btn-neutral" title="Models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, cosmic-cortex.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script> 
+
+</body>
+</html>

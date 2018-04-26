@@ -1,10 +1,5 @@
 """
-====================
-Uncertainty sampling
-====================
----------------------------------------------------------------------------------------------
-Uncertainty measures and uncertainty based sampling strategies for the active learning models
----------------------------------------------------------------------------------------------
+Uncertainty measures and uncertainty based sampling strategies for the active learning models.
 """
 
 import numpy as np
@@ -16,25 +11,24 @@ def classifier_uncertainty(classifier, X, **predict_proba_kwargs):
     """
     Classification uncertainty of the classifier for the provided samples.
 
-    Parameters
-    ----------
-    classifier: sklearn classifier object, for instance sklearn.ensemble.RandomForestClassifier
+    :param classifier:
         The classifier for which the uncertainty is to be measured.
+    :type classifier:
+        sklearn classifier object, for instance sklearn.ensemble.RandomForestClassifier
 
-    X: numpy.ndarray of shape (n_samples, n_features)
+    :param X:
         The samples for which the uncertainty of classification is to be measured.
+    :type X:
+        numpy.ndarray of shape (n_samples, n_features)
 
-    predict_proba_kwargs: keyword arguments
+    :param predict_proba_kwargs:
         Keyword arguments to be passed for the predict_proba method of the classifier.
+    :type predict_proba_kwargs:
+        keyword arguments
 
-    Returns
-    -------
-    uncertainty: numpy.ndarray of shape (n_samples, )
+    :returns:
+      - **uncertainty** *(numpy.ndarray of shape (n_samples, ))* --
         Classifier uncertainty, which is 1 - P(prediction is correct).
-
-    References
-    ----------
-    [1] Settles, Burr: Active Learning, (Morgan & Claypool Publishers), equation no. (2.1)
     """
     # calculate uncertainty for each point provided
     classwise_uncertainty = classifier.predict_proba(X, **predict_proba_kwargs)
@@ -50,26 +44,25 @@ def classifier_margin(classifier, X, **predict_proba_kwargs):
     This uncertainty measure takes the first and second most likely predictions
     and takes the difference of their probabilities, which is the margin.
 
-    Parameters
-    ----------
-    classifier: sklearn classifier object, for instance sklearn.ensemble.RandomForestClassifier
+    :param classifier:
         The classifier for which the uncertainty is to be measured
+    :type classifier:
+        sklearn classifier object, for instance sklearn.ensemble.RandomForestClassifier
 
-    X: numpy.ndarray of shape (n_samples, n_features)
+    :param X:
         The samples for which the uncertainty of classification is to be measured
+    :type X:
+        numpy.ndarray of shape (n_samples, n_features)
 
-    predict_proba_kwargs: keyword arguments
+    :param predict_proba_kwargs:
         Keyword arguments to be passed for the predict_proba method of the classifier
+    :type predict_proba_kwargs:
+        keyword arguments
 
-    Returns
-    -------
-    margin: numpy.ndarray of shape (n_samples, )
+    :returns:
+      - **margin** *(numpy.ndarray of shape (n_samples, ))* --
         Margin uncertainty, which is the difference of the probabilities of first
         and second most likely predictions.
-
-    References
-    ----------
-    [1] Settles, Burr: Active Learning, (Morgan & Claypool Publishers), equation no. (2.2)
     """
     classwise_uncertainty = classifier.predict_proba(X, **predict_proba_kwargs)
 
@@ -86,25 +79,24 @@ def classifier_entropy(classifier, X, **predict_proba_kwargs):
     """
     Entropy of predictions of the for the provided samples.
 
-    Parameters
-    ----------
-    classifier: sklearn classifier object, for instance sklearn.ensemble.RandomForestClassifier
+    :param classifier:
         The classifier for which the prediction entropy is to be measured.
+    :type classifier:
+        sklearn classifier object, for instance sklearn.ensemble.RandomForestClassifier
 
-    X: numpy.ndarray of shape (n_samples, n_features)
+    :param X:
         The samples for which the prediction entropy is to be measured.
+    :type X:
+        numpy.ndarray of shape (n_samples, n_features)
 
-    predict_proba_kwargs: keyword arguments
+    :param predict_proba_kwargs:
         Keyword arguments to be passed for the predict_proba method of the classifier.
+    :type predict_proba_kwargs:
+        keyword arguments
 
-    Returns
-    -------
-    entr: numpy.ndarray of shape (n_samples, )
+    :returns:
+      - **entr** *(numpy.ndarray of shape (n_samples, ))* --
         Entropy of the class probabilities.
-
-    References
-    ----------
-    [1] Settles, Burr: Active Learning, (Morgan & Claypool Publishers), equation no. (2.3)
     """
     classwise_uncertainty = classifier.predict_proba(X, **predict_proba_kwargs)
     return np.transpose(entropy(np.transpose(classwise_uncertainty)))
@@ -114,26 +106,30 @@ def uncertainty_sampling(classifier, X, n_instances=1, **uncertainty_measure_kwa
     """
     Uncertainty sampling query strategy. Selects the least sure instances for labelling.
 
-    Parameters
-    ----------
-    classifier: sklearn classifier object, for instance sklearn.ensemble.RandomForestClassifier
+    :param classifier:
         The classifier for which the labels are to be queried.
+    :type classifier:
+        sklearn classifier object, for instance sklearn.ensemble.RandomForestClassifier
 
-    X: numpy.ndarray of shape (n_samples, n_features)
+    :param X:
         The pool of samples to query from.
+    :type X:
+        numpy.ndarray of shape (n_samples, n_features)
 
-    n_instances: int
+    :param n_instances:
         Number of samples to be queried.
+    :type n_instances:
+        int
 
-    uncertainty_measure_kwargs: keyword arguments
+    :param uncertainty_measure_kwargs:
         Keyword arguments to be passed for the uncertainty measure function.
+    :type uncertainty_measure_kwargs:
+        keyword arguments
 
-    Returns
-    -------
-    query_idx: numpy.ndarray of shape (n_instances, )
+    :returns:
+      - **query_idx** *(numpy.ndarray of shape (n_instances, ))* --
         The indices of the instances from X chosen to be labelled.
-
-    X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+      - **X[query_idx]** *(numpy.ndarray of shape (n_instances, n_features))* --
         The instances from X chosen to be labelled.
     """
     uncertainty = classifier_uncertainty(classifier, X, **uncertainty_measure_kwargs)
@@ -147,26 +143,30 @@ def margin_sampling(classifier, X, n_instances=1, **uncertainty_measure_kwargs):
     Margin sampling query strategy. Selects the instances where the difference between
     the first most likely and second most likely classes are the smallest.
 
-    Parameters
-    ----------
-    classifier: sklearn classifier object, for instance sklearn.ensemble.RandomForestClassifier
+    :param classifier:
         The classifier for which the labels are to be queried.
+    :type classifier:
+        sklearn classifier object, for instance sklearn.ensemble.RandomForestClassifier
 
-    X: numpy.ndarray of shape (n_samples, n_features)
+    :param X:
         The pool of samples to query from.
+    :type X:
+        numpy.ndarray of shape (n_samples, n_features)
 
-    n_instances: int
+    :param n_instances:
         Number of samples to be queried.
+    :type n_instances:
+        int
 
-    uncertainty_measure_kwargs: keyword arguments
+    :param uncertainty_measure_kwargs:
         Keyword arguments to be passed for the uncertainty measure function.
+    :type uncertainty_measure_kwargs:
+        keyword arguments
 
-    Returns
-    -------
-    query_idx: numpy.ndarray of shape (n_instances, )
+    :returns:
+      - **query_idx** *(numpy.ndarray of shape (n_instances, ))* --
         The indices of the instances from X chosen to be labelled.
-
-    X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+      - **X[query_idx]** *(numpy.ndarray of shape (n_instances, n_features))* --
         The instances from X chosen to be labelled.
     """
     margin = classifier_margin(classifier, X, **uncertainty_measure_kwargs)
@@ -180,26 +180,30 @@ def entropy_sampling(classifier, X, n_instances=1, **uncertainty_measure_kwargs)
     Entropy sampling query strategy. Selects the instances where the class probabilities
     have the largest entropy.
 
-    Parameters
-    ----------
-    classifier: sklearn classifier object, for instance sklearn.ensemble.RandomForestClassifier
+    :param classifier:
         The classifier for which the labels are to be queried.
+    :type classifier:
+        sklearn classifier object, for instance sklearn.ensemble.RandomForestClassifier
 
-    X: numpy.ndarray of shape (n_samples, n_features)
+    :param X:
         The pool of samples to query from.
+    :type X:
+        numpy.ndarray of shape (n_samples, n_features)
 
-    n_instances: int
+    :param n_instances:
         Number of samples to be queried.
+    :type n_instances:
+        int
 
-    uncertainty_measure_kwargs: keyword arguments
+    :param uncertainty_measure_kwargs:
         Keyword arguments to be passed for the uncertainty measure function.
+    :type uncertainty_measure_kwargs:
+        keyword arguments
 
-    Returns
-    -------
-    query_idx: numpy.ndarray of shape (n_instances, )
+    :returns:
+      - **query_idx** *(numpy.ndarray of shape (n_instances, ))* --
         The indices of the instances from X chosen to be labelled.
-
-    X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+      - **X[query_idx]** *(numpy.ndarray of shape (n_instances, n_features))* --
         The instances from X chosen to be labelled.
     """
     entropy = classifier_entropy(classifier, X, **uncertainty_measure_kwargs)

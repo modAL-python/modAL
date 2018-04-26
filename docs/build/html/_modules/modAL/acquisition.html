@@ -1,0 +1,438 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>modAL.acquisition &mdash; modAL  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> modAL
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../Models.html">Models</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../QueryStrategies.html">Query strategies</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">modAL</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>modAL.acquisition</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for modAL.acquisition</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Acquisition functions for Bayesian optimization.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="k">import</span> <span class="n">norm</span>
+<span class="kn">from</span> <span class="nn">scipy.special</span> <span class="k">import</span> <span class="n">ndtr</span>
+<span class="kn">from</span> <span class="nn">modAL.utils.selection</span> <span class="k">import</span> <span class="n">multi_argmax</span>
+
+
+<span class="k">def</span> <span class="nf">PI</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">,</span> <span class="n">max_val</span><span class="p">,</span> <span class="n">tradeoff</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">ndtr</span><span class="p">((</span><span class="n">mean</span> <span class="o">-</span> <span class="n">max_val</span> <span class="o">-</span> <span class="n">tradeoff</span><span class="p">)</span><span class="o">/</span><span class="n">std</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">EI</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">,</span> <span class="n">max_val</span><span class="p">,</span> <span class="n">tradeoff</span><span class="p">):</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="p">(</span><span class="n">mean</span> <span class="o">-</span> <span class="n">max_val</span> <span class="o">-</span> <span class="n">tradeoff</span><span class="p">)</span> <span class="o">/</span> <span class="n">std</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">mean</span> <span class="o">-</span> <span class="n">max_val</span> <span class="o">-</span> <span class="n">tradeoff</span><span class="p">)</span><span class="o">*</span><span class="n">ndtr</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="o">+</span> <span class="n">std</span><span class="o">*</span><span class="n">norm</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">UCB</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">,</span> <span class="n">beta</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">mean</span> <span class="o">+</span> <span class="n">beta</span><span class="o">*</span><span class="n">std</span>
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">---------------------</span>
+<span class="sd">Acquisition functions</span>
+<span class="sd">---------------------</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="optimizer_PI"><a class="viewcode-back" href="../../Acquisition.html#modAL.acquisition.optimizer_PI">[docs]</a><span class="k">def</span> <span class="nf">optimizer_PI</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">tradeoff</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Probability of improvement acquisition function for Bayesian optimization.</span>
+
+<span class="sd">    :param optimizer:</span>
+<span class="sd">        The BayesianEstimator object for which the utility is to be calculated.</span>
+<span class="sd">    :type optimizer:</span>
+<span class="sd">        modAL.models.BayesianEstimator object</span>
+
+<span class="sd">    :param X:</span>
+<span class="sd">        The samples for which the probability of improvement is to be calculated.</span>
+<span class="sd">    :type X:</span>
+<span class="sd">        numpy.ndarray of shape (n_samples, n_features)</span>
+
+<span class="sd">    :param tradeoff:</span>
+<span class="sd">        Value controlling the tradeoff parameter.</span>
+<span class="sd">    :type tradeoff:</span>
+<span class="sd">        float</span>
+
+<span class="sd">    :returns:</span>
+<span class="sd">      - **pi** *(numpy.ndarray of shape (n_samples, ))* --</span>
+<span class="sd">        Probability of improvement utility score.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mean</span><span class="p">,</span> <span class="n">std</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">return_std</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">std</span> <span class="o">=</span> <span class="n">std</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">PI</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">y_max</span><span class="p">,</span> <span class="n">tradeoff</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="optimizer_EI"><a class="viewcode-back" href="../../Acquisition.html#modAL.acquisition.optimizer_EI">[docs]</a><span class="k">def</span> <span class="nf">optimizer_EI</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">tradeoff</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Expected improvement acquisition function for Bayesian optimization.</span>
+
+<span class="sd">    :param optimizer:</span>
+<span class="sd">        The BayesianEstimator object for which the utility is to be calculated.</span>
+<span class="sd">    :type optimizer:</span>
+<span class="sd">        modAL.models.BayesianEstimator object</span>
+
+<span class="sd">    :param X:</span>
+<span class="sd">        The samples for which the expected improvement is to be calculated.</span>
+<span class="sd">    :type X:</span>
+<span class="sd">        numpy.ndarray of shape (n_samples, n_features)</span>
+
+<span class="sd">    :param tradeoff:</span>
+<span class="sd">        Value controlling the tradeoff parameter.</span>
+<span class="sd">    :type tradeoff:</span>
+<span class="sd">        float</span>
+
+<span class="sd">    :returns:</span>
+<span class="sd">      - **ei** *(numpy.ndarray of shape (n_samples, ))* --</span>
+<span class="sd">        Expected improvement utility score.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mean</span><span class="p">,</span> <span class="n">std</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">return_std</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">std</span> <span class="o">=</span> <span class="n">std</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">EI</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">y_max</span><span class="p">,</span> <span class="n">tradeoff</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="optimizer_UCB"><a class="viewcode-back" href="../../Acquisition.html#modAL.acquisition.optimizer_UCB">[docs]</a><span class="k">def</span> <span class="nf">optimizer_UCB</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Upper confidence bound acquisition function for Bayesian optimization.</span>
+
+<span class="sd">    :param optimizer:</span>
+<span class="sd">        The BayesianEstimator object for which the utility is to be calculated.</span>
+<span class="sd">    :type optimizer:</span>
+<span class="sd">        modAL.models.BayesianEstimator object</span>
+
+<span class="sd">    :param X:</span>
+<span class="sd">        The samples for which the upper confidence bound is to be calculated.</span>
+<span class="sd">    :type X:</span>
+<span class="sd">        numpy.ndarray of shape (n_samples, n_features)</span>
+
+<span class="sd">    :param beta:</span>
+<span class="sd">        Value controlling the beta parameter.</span>
+<span class="sd">    :type beta:</span>
+<span class="sd">        float</span>
+
+<span class="sd">    :returns:</span>
+<span class="sd">      - **ucb** *(numpy.ndarray of shape (n_samples, ))* --</span>
+<span class="sd">        Upper confidence bound utility score.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mean</span><span class="p">,</span> <span class="n">std</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">return_std</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">std</span> <span class="o">=</span> <span class="n">std</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">UCB</span><span class="p">(</span><span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">,</span> <span class="n">beta</span><span class="p">)</span></div>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">--------------------------------------------</span>
+<span class="sd">Query strategies using acquisition functions</span>
+<span class="sd">--------------------------------------------</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="max_PI"><a class="viewcode-back" href="../../Acquisition.html#modAL.acquisition.max_PI">[docs]</a><span class="k">def</span> <span class="nf">max_PI</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">tradeoff</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_instances</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Maximum PI query strategy. Selects the instance with highest probability of improvement.</span>
+
+<span class="sd">    :param optimizer:</span>
+<span class="sd">        The BayesianEstimator object for which the utility is to be calculated.</span>
+<span class="sd">    :type optimizer:</span>
+<span class="sd">        modAL.models.BayesianEstimator object</span>
+
+<span class="sd">    :param X:</span>
+<span class="sd">        The samples for which the probability of improvement is to be calculated.</span>
+<span class="sd">    :type X:</span>
+<span class="sd">        numpy.ndarray of shape (n_samples, n_features)</span>
+
+<span class="sd">    :param tradeoff:</span>
+<span class="sd">        Value controlling the tradeoff parameter.</span>
+<span class="sd">    :type tradeoff:</span>
+<span class="sd">        float</span>
+
+<span class="sd">    :param n_instances:</span>
+<span class="sd">        Number of samples to be queried.</span>
+<span class="sd">    :type n_instances:</span>
+<span class="sd">        int</span>
+
+<span class="sd">    :returns:</span>
+<span class="sd">      - **query_idx** *(numpy.ndarray of shape (n_instances, ))* --</span>
+<span class="sd">        The indices of the instances from X chosen to be labelled.</span>
+<span class="sd">      - **X[query_idx]** *(numpy.ndarray of shape (n_instances, n_features))* --</span>
+<span class="sd">        The instances from X chosen to be labelled.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pi</span> <span class="o">=</span> <span class="n">optimizer_PI</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">tradeoff</span><span class="o">=</span><span class="n">tradeoff</span><span class="p">)</span>
+    <span class="n">query_idx</span> <span class="o">=</span> <span class="n">multi_argmax</span><span class="p">(</span><span class="n">pi</span><span class="p">,</span> <span class="n">n_instances</span><span class="o">=</span><span class="n">n_instances</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">query_idx</span><span class="p">,</span> <span class="n">X</span><span class="p">[</span><span class="n">query_idx</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="max_EI"><a class="viewcode-back" href="../../Acquisition.html#modAL.acquisition.max_EI">[docs]</a><span class="k">def</span> <span class="nf">max_EI</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">tradeoff</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_instances</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Maximum EI query strategy. Selects the instance with highest expected improvement.</span>
+
+<span class="sd">    :param optimizer:</span>
+<span class="sd">        The BayesianEstimator object for which the utility is to be calculated.</span>
+<span class="sd">    :type optimizer:</span>
+<span class="sd">        modAL.models.BayesianEstimator object</span>
+
+<span class="sd">    :param X:</span>
+<span class="sd">        The samples for which the expected improvement is to be calculated.</span>
+<span class="sd">    :type X:</span>
+<span class="sd">        numpy.ndarray of shape (n_samples, n_features)</span>
+
+<span class="sd">    :param tradeoff:</span>
+<span class="sd">        Value controlling the tradeoff parameter.</span>
+<span class="sd">    :type tradeoff:</span>
+<span class="sd">        float</span>
+
+<span class="sd">    :param n_instances:</span>
+<span class="sd">        Number of samples to be queried.</span>
+<span class="sd">    :type n_instances:</span>
+<span class="sd">        int</span>
+
+<span class="sd">    :returns:</span>
+<span class="sd">      - **query_idx** *(numpy.ndarray of shape (n_instances, )*) --</span>
+<span class="sd">        The indices of the instances from X chosen to be labelled.</span>
+<span class="sd">      - **X[query_idx]** *(numpy.ndarray of shape (n_instances, n_features)*) --</span>
+<span class="sd">        The instances from X chosen to be labelled.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ei</span> <span class="o">=</span> <span class="n">optimizer_EI</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">tradeoff</span><span class="o">=</span><span class="n">tradeoff</span><span class="p">)</span>
+    <span class="n">query_idx</span> <span class="o">=</span> <span class="n">multi_argmax</span><span class="p">(</span><span class="n">ei</span><span class="p">,</span> <span class="n">n_instances</span><span class="o">=</span><span class="n">n_instances</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">query_idx</span><span class="p">,</span> <span class="n">X</span><span class="p">[</span><span class="n">query_idx</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="max_UCB"><a class="viewcode-back" href="../../Acquisition.html#modAL.acquisition.max_UCB">[docs]</a><span class="k">def</span> <span class="nf">max_UCB</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_instances</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Maximum UCB query strategy. Selects the instance with highest upper confidence</span>
+<span class="sd">    bound.</span>
+
+<span class="sd">    :param optimizer:</span>
+<span class="sd">        The BayesianEstimator object for which the utility is to be calculated.</span>
+<span class="sd">    :type optimizer:</span>
+<span class="sd">        modAL.models.BayesianEstimator object</span>
+
+<span class="sd">    :param X:</span>
+<span class="sd">        The samples for which the probability of improvement is to be calculated.</span>
+<span class="sd">    :type X:</span>
+<span class="sd">        numpy.ndarray of shape (n_samples, n_features)</span>
+
+<span class="sd">    :param beta:</span>
+<span class="sd">        Value controlling the beta parameter.</span>
+<span class="sd">    :type beta:</span>
+<span class="sd">        float</span>
+
+<span class="sd">    :param n_instances:</span>
+<span class="sd">        Number of samples to be queried.</span>
+<span class="sd">    :type n_instances:</span>
+<span class="sd">        int</span>
+
+<span class="sd">    :returns:</span>
+<span class="sd">      - **query_idx** *(numpy.ndarray of shape (n_instances, ))* --</span>
+<span class="sd">        The indices of the instances from X chosen to be labelled.</span>
+<span class="sd">      - **X[query_idx]** *(numpy.ndarray of shape (n_instances, n_features))* --</span>
+<span class="sd">        The instances from X chosen to be labelled.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ucb</span> <span class="o">=</span> <span class="n">optimizer_UCB</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="n">beta</span><span class="p">)</span>
+    <span class="n">query_idx</span> <span class="o">=</span> <span class="n">multi_argmax</span><span class="p">(</span><span class="n">ucb</span><span class="p">,</span> <span class="n">n_instances</span><span class="o">=</span><span class="n">n_instances</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">query_idx</span><span class="p">,</span> <span class="n">X</span><span class="p">[</span><span class="n">query_idx</span><span class="p">]</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, cosmic-cortex.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script> 
+
+</body>
+</html>

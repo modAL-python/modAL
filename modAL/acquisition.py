@@ -1,10 +1,5 @@
 """
-=====================
-Acquisition functions
-=====================
------------------------------------------------
-Acquisition functions for Bayesian optimization
------------------------------------------------
+Acquisition functions for Bayesian optimization.
 """
 
 from scipy.stats import norm
@@ -25,24 +20,33 @@ def UCB(mean, std, beta):
     return mean + beta*std
 
 
+"""
+---------------------
+Acquisition functions
+---------------------
+"""
+
 def optimizer_PI(optimizer, X, tradeoff=0):
     """
     Probability of improvement acquisition function for Bayesian optimization.
 
-    Parameters
-    ----------
-    optimizer: modAL.models.BayesianEstimator object
+    :param optimizer:
         The BayesianEstimator object for which the utility is to be calculated.
+    :type optimizer:
+        modAL.models.BayesianEstimator object
 
-    X: numpy.ndarray of shape (n_samples, n_features)
+    :param X:
         The samples for which the probability of improvement is to be calculated.
+    :type X:
+        numpy.ndarray of shape (n_samples, n_features)
 
-    tradeoff: float
+    :param tradeoff:
         Value controlling the tradeoff parameter.
+    :type tradeoff:
+        float
 
-    Returns
-    -------
-    pi: numpy.ndarray of shape (n_samples, )
+    :returns:
+      - **pi** *(numpy.ndarray of shape (n_samples, ))* --
         Probability of improvement utility score.
     """
     mean, std = optimizer.predict(X, return_std=True)
@@ -55,20 +59,23 @@ def optimizer_EI(optimizer, X, tradeoff=0):
     """
     Expected improvement acquisition function for Bayesian optimization.
 
-    Parameters
-    ----------
-    optimizer: modAL.models.BayesianEstimator object
+    :param optimizer:
         The BayesianEstimator object for which the utility is to be calculated.
+    :type optimizer:
+        modAL.models.BayesianEstimator object
 
-    X: numpy.ndarray of shape (n_samples, n_features)
+    :param X:
         The samples for which the expected improvement is to be calculated.
+    :type X:
+        numpy.ndarray of shape (n_samples, n_features)
 
-    tradeoff: float
+    :param tradeoff:
         Value controlling the tradeoff parameter.
+    :type tradeoff:
+        float
 
-    Returns
-    -------
-    ei: numpy.ndarray of shape (n_samples, )
+    :returns:
+      - **ei** *(numpy.ndarray of shape (n_samples, ))* --
         Expected improvement utility score.
     """
     mean, std = optimizer.predict(X, return_std=True)
@@ -81,20 +88,23 @@ def optimizer_UCB(optimizer, X, beta=1):
     """
     Upper confidence bound acquisition function for Bayesian optimization.
 
-    Parameters
-    ----------
-    optimizer: modAL.models.BayesianEstimator object
+    :param optimizer:
         The BayesianEstimator object for which the utility is to be calculated.
+    :type optimizer:
+        modAL.models.BayesianEstimator object
 
-    X: numpy.ndarray of shape (n_samples, n_features)
+    :param X:
         The samples for which the upper confidence bound is to be calculated.
+    :type X:
+        numpy.ndarray of shape (n_samples, n_features)
 
-    beta: float
+    :param beta:
         Value controlling the beta parameter.
+    :type beta:
+        float
 
-    Returns
-    -------
-    ucb: numpy.ndarray of shape (n_samples, )
+    :returns:
+      - **ucb** *(numpy.ndarray of shape (n_samples, ))* --
         Upper confidence bound utility score.
     """
     mean, std = optimizer.predict(X, return_std=True)
@@ -102,31 +112,40 @@ def optimizer_UCB(optimizer, X, beta=1):
 
     return UCB(mean, std, beta)
 
+"""
+--------------------------------------------
+Query strategies using acquisition functions
+--------------------------------------------
+"""
 
 def max_PI(optimizer, X, tradeoff=0, n_instances=1):
     """
     Maximum PI query strategy. Selects the instance with highest probability of improvement.
 
-    Parameters
-    ----------
-    optimizer: modAL.models.BayesianEstimator object
+    :param optimizer:
         The BayesianEstimator object for which the utility is to be calculated.
+    :type optimizer:
+        modAL.models.BayesianEstimator object
 
-    X: numpy.ndarray of shape (n_samples, n_features)
+    :param X:
         The samples for which the probability of improvement is to be calculated.
+    :type X:
+        numpy.ndarray of shape (n_samples, n_features)
 
-    tradeoff: float
+    :param tradeoff:
         Value controlling the tradeoff parameter.
+    :type tradeoff:
+        float
 
-    n_instances: int
+    :param n_instances:
         Number of samples to be queried.
+    :type n_instances:
+        int
 
-    Returns
-    -------
-    query_idx: numpy.ndarray of shape (n_instances, )
+    :returns:
+      - **query_idx** *(numpy.ndarray of shape (n_instances, ))* --
         The indices of the instances from X chosen to be labelled.
-
-    X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+      - **X[query_idx]** *(numpy.ndarray of shape (n_instances, n_features))* --
         The instances from X chosen to be labelled.
     """
     pi = optimizer_PI(optimizer, X, tradeoff=tradeoff)
@@ -139,26 +158,30 @@ def max_EI(optimizer, X, tradeoff=0, n_instances=1):
     """
     Maximum EI query strategy. Selects the instance with highest expected improvement.
 
-    Parameters
-    ----------
-    optimizer: modAL.models.BayesianEstimator object
+    :param optimizer:
         The BayesianEstimator object for which the utility is to be calculated.
+    :type optimizer:
+        modAL.models.BayesianEstimator object
 
-    X: numpy.ndarray of shape (n_samples, n_features)
+    :param X:
         The samples for which the expected improvement is to be calculated.
+    :type X:
+        numpy.ndarray of shape (n_samples, n_features)
 
-    tradeoff: float
+    :param tradeoff:
         Value controlling the tradeoff parameter.
+    :type tradeoff:
+        float
 
-    n_instances: int
+    :param n_instances:
         Number of samples to be queried.
+    :type n_instances:
+        int
 
-    Returns
-    -------
-    query_idx: numpy.ndarray of shape (n_instances, )
+    :returns:
+      - **query_idx** *(numpy.ndarray of shape (n_instances, )*) --
         The indices of the instances from X chosen to be labelled.
-
-    X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+      - **X[query_idx]** *(numpy.ndarray of shape (n_instances, n_features)*) --
         The instances from X chosen to be labelled.
     """
     ei = optimizer_EI(optimizer, X, tradeoff=tradeoff)
@@ -172,26 +195,30 @@ def max_UCB(optimizer, X, beta=1, n_instances=1):
     Maximum UCB query strategy. Selects the instance with highest upper confidence
     bound.
 
-    Parameters
-    ----------
-    optimizer: modAL.models.BayesianEstimator object
+    :param optimizer:
         The BayesianEstimator object for which the utility is to be calculated.
+    :type optimizer:
+        modAL.models.BayesianEstimator object
 
-    X: numpy.ndarray of shape (n_samples, n_features)
+    :param X:
         The samples for which the probability of improvement is to be calculated.
+    :type X:
+        numpy.ndarray of shape (n_samples, n_features)
 
-    beta: float
+    :param beta:
         Value controlling the beta parameter.
+    :type beta:
+        float
 
-    n_instances: int
+    :param n_instances:
         Number of samples to be queried.
+    :type n_instances:
+        int
 
-    Returns
-    -------
-    query_idx: numpy.ndarray of shape (n_instances, )
+    :returns:
+      - **query_idx** *(numpy.ndarray of shape (n_instances, ))* --
         The indices of the instances from X chosen to be labelled.
-
-    X[query_idx]: numpy.ndarray of shape (n_instances, n_features)
+      - **X[query_idx]** *(numpy.ndarray of shape (n_instances, n_features))* --
         The instances from X chosen to be labelled.
     """
     ucb = optimizer_UCB(optimizer, X, beta=beta)
