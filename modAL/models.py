@@ -199,7 +199,7 @@ class BaseLearner(ABC, BaseEstimator):
         :type query_kwargs: keyword arguments
 
         :returns:
-         - **query_idx** *(numpy.ndarray of shape (n_instances, ))* –
+         - **query_idx** *(numpy.ndarray of shape (n_instances, ))* --
            The indices of the instances from X_pool chosen to be labelled.
          - **X[query_idx]** *(numpy.ndarray of shape (n_instances, n_features))*
            The instances from X_pool chosen to be labelled.
