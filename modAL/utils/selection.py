@@ -9,17 +9,18 @@ def multi_argmax(values, n_instances=1):
     """
     Selects the indices of the n_instances highest values.
 
-    Parameters
-    ----------
-    values: numpy.ndarray of shape = (n_samples, 1)
+    :param values:
         Contains the values to be selected from.
+    :type values:
+        numpy.ndarray of shape = (n_samples, 1)
 
-    n_instances: int
+    :param n_instances:
         Specifies how many indices to return.
+    :type n_instances:
+        int
 
-    Returns
-    -------
-    max_idx: numpy.ndarray of shape = (n_samples, 1)
+    :returns:
+    **max_idx** *(numpy.ndarray of shape = (n_samples, 1))* --
         Contains the indices of the n_instances largest values.
 
     """
@@ -33,17 +34,18 @@ def weighted_random(weights, n_instances=1):
     """
     Returns n_instances indices based on the weights.
 
-    Parameters
-    ----------
-    weights: numpy.ndarray of shape = (n_samples, 1)
+    :param weights:
         Contains the weights of the sampling.
+    :type weights:
+        numpy.ndarray of shape = (n_samples, 1)
 
-    n_instances: int
+    :param n_instances:
         Specifies how many indices to return.
+    :type n_instances:
+        int
 
-    Returns
-    -------
-    random_idx: numpy.ndarray of shape = (n_instances, 1)
+    :returns:
+      - **random_idx** *(numpy.ndarray of shape = (n_instances, 1))* --
         n_instances random indices based on the weights.
     """
     assert n_instances <= len(weights), 'n_instances must be less or equal than the size of utility'

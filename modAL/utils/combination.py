@@ -7,19 +7,21 @@ def make_linear_combination(*functions, weights=None):
     of the output of original functions. It works well with functions returning numpy
     arrays of the same shape.
 
-    Parameters
-    ----------
-    *functions: base functions for the linear combination
-        The functions shall have the same argument and if they return numpy arrays,
-        the returned arrays shall have the same shape.
+    :param functions:
+        Base functions for the linear combination.The functions shall have the same
+        argument and if they return numpy arrays, the returned arrays shall have the same shape.
+    :type functions:
+        function
 
-    weights: array-like, length shall match the number of functions given
+    :param weights:
         Coefficients of the functions in the linear combination. The i-th given function
-        will be multiplied with with weights[i]
+        will be multiplied with with weights[i].
+    :type weights:
+        array-like, length shall match the number of functions given
 
-    Returns
-    -------
-    linear_combination: function
+
+    :returns:
+      - **linear_combination** *(function)* --
         A function which returns the linear combination of the given functions output.
     """
 
@@ -42,19 +44,20 @@ def make_product(*functions, exponents=None):
     of original functions. It works well with functions returning numpy arrays of the same
     shape.
 
-    Parameters
-    ----------
-    *functions: base functions for the product
-        The functions shall have the same argument and if they return numpy arrays,
-        the returned arrays shall have the same shape.
+    :param functions:
+        Base functions for the product. The functions shall have the same argument and if
+        they return numpy arrays, the returned arrays shall have the same shape.
+    :type functions:
+        function
 
-    exponents: array-like, length shall match the number of functions given
+    :param exponents:
         Exponents of the functions in the product. The i-th given function in the product
-        will be raised to the power of exponents[i]
+        will be raised to the power of exponents[i].
+    :type exponents:
+        array-like, length shall match the number of functions given
 
-    Returns
-    -------
-    product_function: function
+    :returns:
+      - **product_function** *(function)* --
         A function which returns the product function of the given functions output.
     """
 
@@ -76,20 +79,21 @@ def make_query_strategy(utility_measure, selector):
     Takes the given utility measure and selector functions and makes a query strategy
     by combining them.
 
-    Parameters
-    ----------
-    utility_measure: function
+    :param utility_measure:
         Utility measure, for instance modAL.disagreement.vote_entropy, but it can be
         a custom function as well. Should take a classifier and the unlabelled data
         and should return an array containing the utility scores.
+    :type utility_measure:
+        function
 
-    selector: function
+    :param selector:
         Function selecting instances for query. Should take an array of utility scores
         and should return an array containing the queried items.
+    :type selector:
+        function
 
-    Returns
-    -------
-    query_strategy: function
+    :returns:
+      - **query_strategy** *(function)* --
         A function which returns queried instances given a classifier and an unlabelled
         pool.
     """
