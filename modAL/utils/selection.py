@@ -20,7 +20,7 @@ def multi_argmax(values, n_instances=1):
         int
 
     :returns:
-    **max_idx** *(numpy.ndarray of shape = (n_samples, 1))* --
+      - **max_idx** *(numpy.ndarray of shape = (n_samples, 1))* --
         Contains the indices of the n_instances largest values.
 
     """

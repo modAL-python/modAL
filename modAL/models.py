@@ -705,7 +705,7 @@ class BaseCommittee(ABC, BaseEstimator):
         :param fit_kwargs:
             Keyword arguments to be passed to the fit method
             of the predictor.
-        :type:
+        :type fit_kwargs:
             keyword arguments
         """
         self._add_training_data(X, y)
