@@ -1,0 +1,4 @@
+numpy
+scipy
+scikit-learn
+sphinx_rtd_theme
