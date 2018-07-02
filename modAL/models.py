@@ -656,7 +656,7 @@ class BaseCommittee(ABC, BaseEstimator):
 
         :param query_kwargs:
             Keyword arguments for the query strategy function
-        :type: keyword arguments
+        :type query_kwargs: keyword arguments
 
         :returns:
           - **query_idx** *(numpy.ndarray of shape (n_instances, ))* --
@@ -1018,17 +1018,18 @@ class CommitteeRegressor(BaseCommittee):
         """
         Predicts the values for the supplied data for each regressor in the CommitteeRegressor.
 
-        Parameters
-        ----------
-        X: numpy.ndarray of shape (n_samples, n_features)
+        :param X: 
             The samples to cast votes.
+        :type X:
+            numpy.ndarray of shape (n_samples, n_features)
 
-        predict_kwargs: keyword arguments
+        :param predict_kwargs: 
             Keyword arguments to be passed for the learners .predict() method.
+        :type predict_kwargs:
+            keyword arguments
 
-        Returns
-        -------
-        vote: numpy.ndarray of shape (n_samples, n_regressors)
+        :returns:
+          - **vote** *(numpy.ndarray of shape (n_samples, n_regressors))* --
             The predicted value for each regressor in the CommitteeRegressor and each sample in X.
         """
         prediction = np.zeros(shape=(len(X), len(self.learner_list)))
