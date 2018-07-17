@@ -9,6 +9,7 @@ import sys
 import numpy as np
 
 from sklearn.base import BaseEstimator
+from sklearn.metrics import accuracy_score
 from modAL.utils.validation import check_class_labels, check_class_proba
 from modAL.uncertainty import uncertainty_sampling
 from modAL.disagreement import vote_entropy_sampling, max_std_sampling
@@ -854,6 +855,32 @@ class Committee(BaseCommittee):
             Class probabilities for X.
         """
         return np.mean(self.vote_proba(X, **predict_proba_kwargs), axis=1)
+
+    def score(self, X, y, sample_weight=None):
+        """
+        Returns the mean accuracy on the given test data and labels.
+
+        :param X:
+            The samples to score.
+        :type X:
+            numpy.ndarray of shape (n_samples, n_features)
+
+        :param y:
+            Ground truth labels corresponding to X.
+        :type y:
+            numpy.ndarray of shape (n_samples, )
+
+        :param sample_weight:
+            Sample weights.
+        :type sample_weight:
+            numpy.ndarray of shape (n_samples, )
+
+        :returns:
+          - **score** *float* --
+            Mean accuracy of the classifier.
+        """
+        y_pred = self.predict(X)
+        return accuracy_score(y, y_pred, sample_weight=sample_weight)
 
     def vote(self, X, **predict_kwargs):
         """

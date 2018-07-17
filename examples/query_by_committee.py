@@ -60,7 +60,7 @@ with plt.style.context('seaborn-white'):
     plt.figure(figsize=(7, 7))
     prediction = committee.predict(iris['data'])
     plt.scatter(x=pca[:, 0], y=pca[:, 1], c=prediction, cmap='viridis', s=50)
-    plt.title('Committee initial predictions')
+    plt.title('Committee initial predictions, accuracy = %1.3f' % committee.score(iris['data'], iris['target']))
     plt.show()
 
 # query by committee
@@ -89,5 +89,6 @@ with plt.style.context('seaborn-white'):
     plt.figure(figsize=(7, 7))
     prediction = committee.predict(iris['data'])
     plt.scatter(x=pca[:, 0], y=pca[:, 1], c=prediction, cmap='viridis', s=50)
-    plt.title('Committee predictions after %d queries' % n_queries)
+    plt.title('Committee predictions after %d queries, accuracy = %1.3f'
+              % (n_queries, committee.score(iris['data'], iris['target'])))
     plt.show()
