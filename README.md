@@ -13,6 +13,7 @@
   - [An example with active regression](#active-regression)  
   - [Additional examples](#additional-examples)  
 - [Installation](#installation)  
+- [Citing](#citing)  
 - [About the developer](#about-the-developer)
 
 # Introduction<a name="introduction"></a>
@@ -176,6 +177,16 @@ pip install git+https://github.com/cosmic-cortex/modAL.git
 ```
 For running the examples, Matplotlib >= 2.0 is recommended.
 
+# Citing<a name="citing"></a>
+If you use modAL in your projects, you can cite it as
+```
+@article{modAL2018,
+    title={mod{AL}: {A} modular active learning framework for {P}ython},
+    author={Tivadar Danka and Peter Horvath},
+    url={https://github.com/cosmic-cortex/modAL},
+    note={available on arXiv at \url{https://arxiv.org/abs/1805.00979}}
+}
+```
 
 # About the developer<a name="about-the-developer">
 modAL is developed by me, [Tivadar Danka](https://www.tivadardanka.com) (aka [cosmic-cortex](https://github.com/cosmic-cortex) in GitHub). I have a PhD in pure mathematics, but I fell in love with biology and machine learning right after I finished my PhD. I have changed fields and now I work in the [Bioimage Analysis and Machine Learning Group of Peter Horvath](http://group.szbk.u-szeged.hu/sysbiol/horvath-peter-lab-index.html), where I am working to develop active learning strategies for intelligent sample analysis in biology. During my work I realized that in Python, creating and prototyping active learning workflows can be made really easy and fast with scikit-learn, so I ended up developing a general framework for this. The result is modAL :) If you have any questions, requests or suggestions, you can contact me at <a href="mailto:85a5187a@opayq.com">85a5187a@opayq.com</a>! I hope you'll find modAL useful!
