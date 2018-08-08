@@ -3,7 +3,7 @@ Measures for estimating the information density of a given sample.
 """
 
 import numpy as np
-from scipy.spatial.distance import cosine
+from scipy.spatial.distance import cosine, euclidean
 
 
 def similarize_distance(distance_measure):
@@ -26,6 +26,7 @@ def similarize_distance(distance_measure):
 
 
 cosine_similarity = similarize_distance(cosine)
+euclidean_similarity = similarize_distance(euclidean)
 
 
 def information_density(X, similarity_measure=cosine_similarity):
