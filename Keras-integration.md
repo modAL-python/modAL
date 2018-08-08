@@ -47,12 +47,12 @@ from keras.datasets import mnist
 (X_train, y_train), (X_test, y_test) = mnist.load_data()
 X_train = X_train.reshape(60000, 784).astype('float32') / 255
 X_test = X_test.reshape(10000, 784).astype('float32') / 255
-y_train = keras.utils.to_categorical(y_training, 10)
+y_train = keras.utils.to_categorical(y_train, 10)
 y_test = keras.utils.to_categorical(y_test, 10)
 
 # assemble initial data
 n_initial = 1000
-initial_idx = np.random.choice(range(len(X_training)), size=n_initial, replace=False)
+initial_idx = np.random.choice(range(len(X_train)), size=n_initial, replace=False)
 X_training = X_train[initial_idx]
 y_training = y_train[initial_idx]
 
