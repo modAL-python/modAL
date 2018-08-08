@@ -44,22 +44,22 @@ In this example, we are going to use the famous MNIST dataset, which is availabl
 from keras.datasets import mnist
 
 # read training data
-(X_training, y_training), (X_test, y_test) = mnist.load_data()
-X_training = X_training.reshape(60000, 784).astype('float32') / 255
+(X_train, y_train), (X_test, y_test) = mnist.load_data()
+X_train = X_train.reshape(60000, 784).astype('float32') / 255
 X_test = X_test.reshape(10000, 784).astype('float32') / 255
-y_training = keras.utils.to_categorical(y_training, 10)
+y_train = keras.utils.to_categorical(y_training, 10)
 y_test = keras.utils.to_categorical(y_test, 10)
 
 # assemble initial data
 n_initial = 1000
 initial_idx = np.random.choice(range(len(X_training)), size=n_initial, replace=False)
-X_training = X_training[initial_idx]
-y_training = y_training[initial_idx]
+X_training = X_train[initial_idx]
+y_training = y_train[initial_idx]
 
 # generate the pool
 # remove the initial data from the training dataset
-X_pool = np.delete(X_training, initial_idx, axis=0)
-y_pool = np.delete(y_training, initial_idx, axis=0)
+X_pool = np.delete(X_train, initial_idx, axis=0)
+y_pool = np.delete(y_train, initial_idx, axis=0)
 ```
 Active learning with data and classifier ready is as easy as always. Because training is *very* expensive in large neural networks, this time we are going to query the best 200 instances each time we measure the uncertainty of the pool.
 ```python
