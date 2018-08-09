@@ -38,6 +38,8 @@ learner.teach(X, y)
 ```
 If you would like to start from scratch, you can use the ```.fit(X, y)``` method to make the learner forget everything it has seen and fit the model to the newly provided data.
 
+To train only on the newly acquired data, you should pass ```only_new=True``` to the ```.teach()``` method. This is useful when the ```.fit()``` method of the classifier does not retrain the model from scratch, like in Keras.
+
 # Bootstrapping<a name="bootstrapping"></a>
 Training is also available with bootstrapping by passing ```bootstrap=True``` for ```learner.teach()``` or ```learner.fit()```. In this case, a random set is sampled with replacement from the training data available (or the data provided in the case of ```.fit()```), which is used to train the estimator. Bootstrapping is mostly useful when building ensemble models with bagging, for instance in a *query by committee* setting.
 
