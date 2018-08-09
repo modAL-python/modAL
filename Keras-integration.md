@@ -71,18 +71,19 @@ learner = ActiveLearner(
     X_training=X_training, y_training=y_training,
     verbose=0
 )
-
+```
+To make sure that you train only on newly queried labels, pass ```only_new=True``` to the ```.teach()``` method of the learner.
+```python
 # the active learning loop
 n_queries = 10
 for idx in range(n_queries):
     query_idx, query_instance = learner.query(X_pool, n_instances=200, verbose=0)
     learner.teach(
         X=X_pool[query_idx], y=y_pool[query_idx],
+        only_new=True
         verbose=0
     )
     # remove queried instance from pool
     X_pool = np.delete(X_pool, query_idx, axis=0)
     y_pool = np.delete(y_pool, query_idx, axis=0)
-
 ```
-
