@@ -13,6 +13,7 @@
   - [An example with active regression](#active-regression)  
   - [Additional examples](#additional-examples)  
 - [Installation](#installation)  
+- [Documentation](#documentation)  
 - [Citing](#citing)  
 - [About the developer](#about-the-developer)
 
@@ -176,6 +177,9 @@ Alternatively, you can install modAL directly from source:
 pip install git+https://github.com/cosmic-cortex/modAL.git
 ```
 For running the examples, Matplotlib >= 2.0 is recommended.
+
+# Documentation<a name="documentation"></a>
+You can find the documentation of modAL at [https://cosmic-cortex.github.io/modAL](https://cosmic-cortex.github.io/modAL), where several tutorials and working examples are available, along with a complete API reference. For running the examples, Matplotlib >= 2.0 is recommended.
 
 # Citing<a name="citing"></a>
 If you use modAL in your projects, you can cite it as
