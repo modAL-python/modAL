@@ -5,6 +5,7 @@
 from typing import Callable, Dict, Optional, Tuple, Union
 
 import numpy as np
+from scipy.spatial.distance import pdist, squareform
 
 from modAL.density import euclidean_similarity
 from modAL.models import BaseCommittee, BaseLearner
@@ -12,9 +13,36 @@ from modAL.uncertainty import classifier_uncertainty
 
 # TODO
 # - Add unit tests
-# - Add support for cold-start batch learning.
-# - Add notebook showing how to invoke the batch-mode sampling
-# - Add notebook for Active Learning bake-off (passive vs active serial vs active + wrong batch, ranked batch)
+
+
+def select_cold_start_instance(X: np.ndarray, similarity_fn: Callable = euclidean_similarity) -> np.ndarray:
+    """Define what to do if our batch-mode sampling doesn't have any labeled data -- a cold start.
+
+    If our ranked batch sampling algorithm doesn't have any labeled data to determine
+    similarity among the uncertainty set,
+
+    TODO:
+        - Figure out how to test this! E.g. how to create modAL model without training data.
+
+    Refer to Cardoso et al.'s "Ranked batch-mode active learning":
+        https://www.sciencedirect.com/science/article/pii/S0020025516313949
+
+    :param X: the set of unlabeled records. numpy.ndarray of shape (n_records, n_features).
+    :param similarity_fn: a function that takes two N-length vectors and returns a similarity in
+        range [0, 1].
+    :return: X[best_instance_index]
+    """
+
+    # Compute all pairwise similarities in our unlabeled data.
+    pairwise_similarities = squareform(pdist(X, similarity_fn))
+
+    # Obtain the row-wise average for each of our records in X.
+    average_similarity = np.mean(pairwise_similarities, axis=0)
+
+    # Isolate and return our best instance for labeling as the
+    # record with the greatest average similarity.
+    best_coldstart_instance_index = np.argmax(average_similarity)
+    return X[best_coldstart_instance_index]
 
 
 def select_instance(X_training: np.ndarray,
@@ -28,6 +56,9 @@ def select_instance(X_training: np.ndarray,
 
     Refer to Cardoso et al.'s "Ranked batch-mode active learning":
         https://www.sciencedirect.com/science/article/pii/S0020025516313949
+
+    TODO:
+        - Add notebook for Active Learning bake-off (passive vs interactive vs batch vs ranked batch)
 
     :param X_training: mix of both labeled and unlabeled records.
         Array of shape (D + batch_iteration, n_features).
@@ -91,7 +122,8 @@ def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
     """
 
     # Make a local copy of our classifier's training data.
-    labeled = np.copy(classifier.X_training)
+    n_training_records = classifier.X_training.shape[0]
+    labeled = np.copy(classifier.X_training) if n_training_records > 0 else select_cold_start_instance(unlabeled)
 
     # Add uncertainty scores to our unlabeled data, and keep a copy of our unlabeled data.
     unlabeled_uncertainty = np.concatenate((unlabeled, np.expand_dims(uncertainty_scores, axis=1)), axis=1)
