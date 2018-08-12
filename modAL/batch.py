@@ -11,9 +11,6 @@ from modAL.density import euclidean_similarity
 from modAL.models import BaseCommittee, BaseLearner
 from modAL.uncertainty import classifier_uncertainty
 
-# TODO
-# - Add unit tests
-
 
 def select_cold_start_instance(X: np.ndarray, similarity_fn: Callable = euclidean_similarity) -> np.ndarray:
     """Define what to do if our batch-mode sampling doesn't have any labeled data -- a cold start.
