@@ -10,3 +10,4 @@ Contents:
    Uncertainty sampling <Uncertainty>
    Disagreement sampling <Disagreement>
    Information density measures <InformationDensity>
+   Ranked batch-mode queries <Batch>
