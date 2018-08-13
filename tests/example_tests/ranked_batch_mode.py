@@ -33,24 +33,27 @@ y_train = y_raw[training_indices]
 X_pool = np.delete(X_raw, training_indices, axis=0)
 y_pool = np.delete(y_raw, training_indices, axis=0)
 
-# Specify our core estimator.
-knn = KNeighborsClassifier(n_neighbors=3)
-
 # Pre-set our batch sampling to retrieve 3 samples at a time.
 BATCH_SIZE = 3
 preset_batch = partial(uncertainty_batch_sampling, n_instances=BATCH_SIZE)
 
+# Testing the cold-start
+learner = ActiveLearner(
+    estimator=KNeighborsClassifier(n_neighbors=3),
+    query_strategy=preset_batch
+)
+cold_start_idx, cold_start_inst = learner.query(X_raw)
+learner.teach(X_raw[cold_start_idx], y_raw[cold_start_idx])
+
 # Specify our active learning model.
 learner = ActiveLearner(
-    estimator=knn,
+    estimator=KNeighborsClassifier(n_neighbors=3),
     X_training=X_train,
     y_training=y_train,
     query_strategy=preset_batch
 )
 
-# Isolate the data we'll need for plotting.
 predictions = learner.predict(X_raw)
-is_correct = (predictions == y_raw)
 
 # Record our learner's score on the raw data.
 unqueried_score = learner.score(X_raw, y_raw)
@@ -73,5 +76,4 @@ for index in range(N_QUERIES):
     # Calculate and report our model's accuracy.
     model_accuracy = learner.score(X_raw, y_raw)
 
-# Isolate the data we'll need for plotting.
 predictions = learner.predict(X_raw)

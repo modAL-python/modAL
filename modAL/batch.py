@@ -169,8 +169,10 @@ def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
     """
 
     # Make a local copy of our classifier's training data.
-    n_training_records = classifier.X_training.shape[0]
-    labeled = np.copy(classifier.X_training) if n_training_records > 0 else select_cold_start_instance(unlabeled)
+    if classifier.X_training is None:
+        labeled = select_cold_start_instance(unlabeled).reshape(1, -1)
+    elif classifier.X_training.shape[0] > 0:
+        labeled = np.copy(classifier.X_training)
 
     # Add uncertainty scores to our unlabeled data, and keep a copy of our unlabeled data.
     unlabeled_uncertainty = np.concatenate((unlabeled, np.expand_dims(uncertainty_scores, axis=1)), axis=1)
