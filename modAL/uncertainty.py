@@ -4,6 +4,8 @@ Uncertainty measures and uncertainty based sampling strategies for the active le
 
 import numpy as np
 from scipy.stats import entropy
+from sklearn.exceptions import NotFittedError
+
 from modAL.utils.selection import multi_argmax
 
 
@@ -31,7 +33,10 @@ def classifier_uncertainty(classifier, X, **predict_proba_kwargs):
         Classifier uncertainty, which is 1 - P(prediction is correct).
     """
     # calculate uncertainty for each point provided
-    classwise_uncertainty = classifier.predict_proba(X, **predict_proba_kwargs)
+    try:
+        classwise_uncertainty = classifier.predict_proba(X, **predict_proba_kwargs)
+    except NotFittedError:
+        return np.ones(shape=(len(X), ))
 
     # for each point, select the maximum uncertainty
     uncertainty = 1 - np.max(classwise_uncertainty, axis=1)
@@ -64,7 +69,10 @@ def classifier_margin(classifier, X, **predict_proba_kwargs):
         Margin uncertainty, which is the difference of the probabilities of first
         and second most likely predictions.
     """
-    classwise_uncertainty = classifier.predict_proba(X, **predict_proba_kwargs)
+    try:
+        classwise_uncertainty = classifier.predict_proba(X, **predict_proba_kwargs)
+    except NotFittedError:
+        return np.zeros(shape=(len(X), ))
 
     if classwise_uncertainty.shape[1] == 1:
         return np.zeros(shape=(classwise_uncertainty.shape[0],))
@@ -98,7 +106,11 @@ def classifier_entropy(classifier, X, **predict_proba_kwargs):
       - **entr** *(numpy.ndarray of shape (n_samples, ))* --
         Entropy of the class probabilities.
     """
-    classwise_uncertainty = classifier.predict_proba(X, **predict_proba_kwargs)
+    try:
+        classwise_uncertainty = classifier.predict_proba(X, **predict_proba_kwargs)
+    except NotFittedError:
+        return np.zeros(shape=(len(X), ))
+
     return np.transpose(entropy(np.transpose(classwise_uncertainty)))
 
 

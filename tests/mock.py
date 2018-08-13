@@ -1,3 +1,5 @@
+from sklearn.exceptions import NotFittedError
+
 class MockFunction:
     """
     Mock utility function for testing.
@@ -15,7 +17,7 @@ class MockEstimator:
     """
     def __init__(
             self, predict_proba_return=None, predict_return=None, score_return=None,
-            classes_=None
+            classes_=None, fitted=True
     ):
         self.classes_ = classes_
 
@@ -23,13 +25,21 @@ class MockEstimator:
         self.predict_proba_return = predict_proba_return
         self.score_return = score_return
 
+        self.fitted = fitted
+
     def fit(self, *args, **kwargs):
         pass
 
     def predict(self, *args, **kwargs):
+        if not self.fitted:
+            raise NotFittedError
+
         return self.predict_return
 
     def predict_proba(self, *args, **kwargs):
+        if not self.fitted:
+            raise NotFittedError
+
         return self.predict_proba_return
 
     def score(self, *args, **kwargs):

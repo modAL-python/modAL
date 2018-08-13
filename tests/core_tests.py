@@ -224,10 +224,18 @@ class TestUncertainties(unittest.TestCase):
         test_cases = (Test(p * np.ones(shape=(k, l)), (1 - p) * np.ones(shape=(k, )))
                       for k in range(1, 100) for l in range(1, 10) for p in np.linspace(0, 1, 11))
         for case in test_cases:
-            mock_classifier = mock.MockEstimator(predict_proba_return=case.input)
+            # fitted estimator
+            fitted_estimator = mock.MockEstimator(predict_proba_return=case.input)
             np.testing.assert_almost_equal(
-                modAL.uncertainty.classifier_uncertainty(mock_classifier, np.random.rand(10)),
+                modAL.uncertainty.classifier_uncertainty(fitted_estimator, np.random.rand(10)),
                 case.output
+            )
+
+            # not fitted estimator
+            not_fitted_estimator = mock.MockEstimator(fitted=False)
+            np.testing.assert_almost_equal(
+                modAL.uncertainty.classifier_uncertainty(not_fitted_estimator, case.input),
+                np.ones(shape=(len(case.output)))
             )
 
     def test_classifier_margin(self):
@@ -237,10 +245,18 @@ class TestUncertainties(unittest.TestCase):
                              p * np.ones(shape=(l, ))*int(k!=1))
                         for k in range(1, 10) for l in range(1, 100) for p in np.linspace(0, 1, 11))
         for case in chain(test_cases_1, test_cases_2):
-            mock_classifier = mock.MockEstimator(predict_proba_return=case.input)
+            # fitted estimator
+            fitted_estimator = mock.MockEstimator(predict_proba_return=case.input)
             np.testing.assert_almost_equal(
-                modAL.uncertainty.classifier_margin(mock_classifier, np.random.rand(10)),
+                modAL.uncertainty.classifier_margin(fitted_estimator, np.random.rand(10)),
                 case.output
+            )
+
+            # not fitted estimator
+            not_fitted_estimator = mock.MockEstimator(fitted=False)
+            np.testing.assert_almost_equal(
+                modAL.uncertainty.classifier_margin(not_fitted_estimator, case.input),
+                np.zeros(shape=(len(case.output)))
             )
 
     def test_classifier_entropy(self):
@@ -250,9 +266,17 @@ class TestUncertainties(unittest.TestCase):
                 for sample_idx in range(n_samples):
                     proba[sample_idx, np.random.choice(range(n_classes))] = 1.0
 
-                classifier = mock.MockEstimator(predict_proba_return=proba)
+                # fitted estimator
+                fitted_estimator = mock.MockEstimator(predict_proba_return=proba)
                 np.testing.assert_equal(
-                    modAL.uncertainty.classifier_entropy(classifier, np.random.rand(n_samples, 1)),
+                    modAL.uncertainty.classifier_entropy(fitted_estimator, np.random.rand(n_samples, 1)),
+                    np.zeros(shape=(n_samples, ))
+                )
+
+                # not fitted estimator
+                not_fitted_estimator = mock.MockEstimator(fitted=False)
+                np.testing.assert_almost_equal(
+                    modAL.uncertainty.classifier_entropy(not_fitted_estimator, np.random.rand(n_samples, 1)),
                     np.zeros(shape=(n_samples, ))
                 )
 
