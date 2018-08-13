@@ -1,5 +1,5 @@
 """
-    Uncertainty measures that explicitly support batch-mode sampling for active learning models.
+Uncertainty measures that explicitly support batch-mode sampling for active learning models.
 """
 
 from typing import Callable, Dict, Optional, Tuple, Union
@@ -13,10 +13,12 @@ from modAL.uncertainty import classifier_uncertainty
 
 
 def select_cold_start_instance(X: np.ndarray, similarity_fn: Callable = euclidean_similarity) -> np.ndarray:
-    """Define what to do if our batch-mode sampling doesn't have any labeled data -- a cold start.
+    """
+    Define what to do if our batch-mode sampling doesn't have any labeled data -- a cold start.
 
     If our ranked batch sampling algorithm doesn't have any labeled data to determine
-    similarity among the uncertainty set,
+    similarity among the uncertainty set, this function finds the element with highest
+    average similarity to cold-start the batch selection.
 
     TODO:
         - Figure out how to test this! E.g. how to create modAL model without training data.
@@ -24,10 +26,18 @@ def select_cold_start_instance(X: np.ndarray, similarity_fn: Callable = euclidea
     Refer to Cardoso et al.'s "Ranked batch-mode active learning":
         https://www.sciencedirect.com/science/article/pii/S0020025516313949
 
-    :param X: the set of unlabeled records. numpy.ndarray of shape (n_records, n_features).
-    :param similarity_fn: a function that takes two N-length vectors and returns a similarity in
-        range [0, 1].
-    :return: X[best_instance_index]
+    :param X:
+        The set of unlabeled records.
+    :type X:
+        numpy.ndarray of shape (n_records, n_features)
+
+    :param similarity_fn:
+        A function that takes two N-length vectors and returns a similarity in range [0, 1].
+    :type similarity_fn:
+        Callable
+
+    :returns:
+      - **X[best_instance_index]** *(numpy.ndarray of shape (n_features, ))* -- Best instance for cold-start.
     """
 
     # Compute all pairwise similarities in our unlabeled data.
@@ -45,7 +55,8 @@ def select_cold_start_instance(X: np.ndarray, similarity_fn: Callable = euclidea
 def select_instance(X_training: np.ndarray,
                     X_uncertainty: np.ndarray,
                     similarity_fn: Callable = euclidean_similarity) -> np.ndarray:
-    """Core iteration strategy for selecting another record from our unlabeled records.
+    """
+    Core iteration strategy for selecting another record from our unlabeled records.
 
     Given a set of labeled records (X_training) and unlabeled records with uncertainty
     scores (X_uncertainty), we'd like to identify the best instance in X_uncertainty
@@ -57,24 +68,45 @@ def select_instance(X_training: np.ndarray,
     TODO:
         - Add notebook for Active Learning bake-off (passive vs interactive vs batch vs ranked batch)
 
-    :param X_training: mix of both labeled and unlabeled records.
-        Array of shape (D + batch_iteration, n_features).
-    :param X_uncertainty: unlabeled records to be selected for labeling.
-        Array of shape (U - batch_iteration, n_features).
-    :param similarity_fn: a function that takes two N-length vectors and returns a similarity in
-        range [0, 1]. Note: any distance function can be a similarity function as 1 / (1 + d)
+    :param X_training:
+        Mix of both labeled and unlabeled records.
+    :type X_training:
+        numpy.ndarray of shape (D + batch_iteration, n_features)
+
+    :param X_uncertainty:
+        Unlabeled records to be selected for labeling.
+    :type X_uncertainty:
+        numpy.ndarray of shape (U - batch_iteration, n_features)
+
+    :param similarity_fn:
+        A function that takes two N-length vectors and returns a similarity in range [0, 1].
+        Note: any distance function can be a similarity function as 1 / (1 + d)
         where d is the distance.
-    :return: unlabeled_records[best_instance_index]: a single record from our unlabeled set that
-        is considered the most optimal incremental record for including in our query set.
-        numpy.ndarray of shape (n_features, ).
+
+    :returns:
+      - **unlabeled_records[best_instance_index]** *(numpy.ndarray of shape (n_features, ))*
+        -- A single record from our unlabeled set that is considered the most optimal incremental
+        record for including in our query set.
+
     """
 
     def max_vector_matrix_distance(arr: np.ndarray, pool: np.ndarray) -> np.float:
-        """Compute the maximum of pairwise similarity between a flat array and a matrix.
+        """
+        Compute the maximum of pairwise similarity between a flat array and a matrix.
 
-        :param arr: single vector of shape (n_features, ).
-        :param pool: matrix of shape (n_features, n_records).
-        :return: numeric corresponding to the maximum similarity between our vector and matrix.
+        :param arr:
+            Single vector of shape (n_features, ).
+        :type arr:
+            numpy.ndarray of shape (n_features, )
+
+        :param pool:
+            Matrix of shape (n_features, n_records).
+        :type pool:
+            numpy.ndarray of shape (n_features, n_records)
+
+        :returns:
+          - **max_dist** *(np.float)* -- Numeric corresponding to the maximum similarity
+            between our vector and matrix.
         """
         return np.max([similarity_fn(arr, x_i) for x_i in pool])
 
@@ -104,18 +136,36 @@ def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
                  unlabeled: np.ndarray,
                  uncertainty_scores: np.ndarray,
                  n_instances: int) -> np.ndarray:
-    """Query our top :n_instances: to request for labeling.
+    """
+    Query our top :n_instances: to request for labeling.
 
     Refer to Cardoso et al.'s "Ranked batch-mode active learning":
         https://www.sciencedirect.com/science/article/pii/S0020025516313949
 
-    :param classifier: one of modAL's supported active learning models.
-    :param unlabeled: set of records to be considered for our active learning model.
-        Shape: (n_samples, n_features).
-    :param uncertainty_scores: our classifier's predictions over the response variable.
-        Shape (n_samples, ).
-    :param n_instances: limit on the number of records to query from our unlabeled set.
-    :return:
+    :param classifier:
+        One of modAL's supported active learning models.
+    :type classifier:
+        modAL.models.BaseLearner or modAL.models.BaseCommittee
+
+    :param unlabeled:
+        Set of records to be considered for our active learning model.
+    :type unlabeled:
+        numpy.ndarray of shape: (n_samples, n_features).
+
+    :param uncertainty_scores:
+        Our classifier's predictions over the response variable.
+    :type uncertainty_scores:
+        numpy.ndarray of shape (n_samples, )
+
+    :param n_instances:
+        Limit on the number of records to query from our unlabeled set.
+    :type n_instances:
+        int
+
+    :returns:
+      - **instance_index_ranking** *(numpy.ndarray of shape (n_instances, ))* -- The indices of
+        the top n_instances ranked unlabelled samples.
+
     """
 
     # Make a local copy of our classifier's training data.
@@ -158,7 +208,8 @@ def uncertainty_batch_sampling(classifier: Union[BaseLearner, BaseCommittee],
                                X: np.ndarray,
                                n_instances: int = 20,
                                **uncertainty_measure_kwargs: Optional[Dict]) -> Tuple[np.ndarray, np.ndarray]:
-    """Batch sampling query strategy. Selects the least sure instances for labelling.
+    """
+    Batch sampling query strategy. Selects the least sure instances for labelling.
 
     This strategy differs from `modAL.uncertainty.uncertainty_sampling` because, although
     it is supported, traditional active learning query strategies suffer from sub-optimal
@@ -170,14 +221,31 @@ def uncertainty_batch_sampling(classifier: Union[BaseLearner, BaseCommittee],
     Refer to Cardoso et al.'s "Ranked batch-mode active learning":
         https://www.sciencedirect.com/science/article/pii/S0020025516313949
 
-    :param classifier: one of modAL's supported active learning models.
-    :param X: set of records to be considered for our active learning model. Shape: (n_samples, n_features).
-    :param n_instances: indicator for the number of records to return for labeling from `X`.
-    :param uncertainty_measure_kwargs: keyword arguments to be passed for the predict_proba method of the classifier.
+    :param classifier:
+        One of modAL's supported active learning models.
+    :type classifier:
+        modAL.models.BaseLearner or modAL.models.BaseCommittee
 
-    :returns tuple (query_indices, X[query_indices)
-        query_indices: indices of the instances from X chosen to be labelled. numpy.ndarray of shape (n_instances, ).
-        X[query_indices]: records from X chosen to be labelled. numpy.ndarray of shape (n_instances, n_features).
+    :param X:
+        Set of records to be considered for our active learning model.
+    :type X:
+        numpy.ndarray of shape (n_samples, n_features)
+
+    :param n_instances:
+        Number of records to return for labeling from `X`.
+    :type n_instances:
+        int
+
+    :param uncertainty_measure_kwargs:
+        Keyword arguments to be passed for the predict_proba method of the classifier.
+    :type uncertainty_measure_kwargs:
+        keyword arguments
+
+    :returns :
+      - **query_indices** *(numpy.ndarray of shape (n_instances, ))* -- Indices of the
+        instances from X chosen to be labelled.
+      - **X[query_indices]** *(numpy.ndarray of shape (n_instances, n_features))*
+        -- Records from X chosen to be labelled.
     """
 
     uncertainty = classifier_uncertainty(classifier, X, **uncertainty_measure_kwargs)
