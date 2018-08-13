@@ -80,7 +80,7 @@ for idx in range(n_queries):
     query_idx, query_instance = learner.query(X_pool, n_instances=200, verbose=0)
     learner.teach(
         X=X_pool[query_idx], y=y_pool[query_idx],
-        only_new=True
+        only_new=True,
         verbose=0
     )
     # remove queried instance from pool
