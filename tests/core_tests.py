@@ -784,6 +784,7 @@ class TestExamples(unittest.TestCase):
         import example_tests.custom_query_strategies
         import example_tests.information_density
         import example_tests.bayesian_optimization
+        import example_tests.ranked_batch_mode
 
 
 if __name__ == '__main__':
