@@ -100,24 +100,33 @@ In this case, one of the learner highly disagrees with the others in the class o
 Since regressors in general don't provide a way to calculate prediction probabilities, disagreement measures for classifiers may not work with regressors. Despite of this, ensemble regression models can be always used in an active learning scenario, because the standard deviation of the predictions at a given point can be thought of as a measure of disagreement.
 
 ## Standard deviation sampling<a name="std-sampling"></a>
-
-![er-iniial](img/er-initial.png)
+<p align="center">
+  <img src="img/er-initial.png" alt="er-initial"><br>
+</p>
 
 When a committee of regressors is available, uncertainty of predictions can be estimated by calculating the standard deviation of predictions. This is done by the ```modAL.disagreement.max_std_sampling``` function.
 
 # Disagreement measures in action<a name="disagreement-measures-in-action"></a>
 To visualize the disagreement measures, let's consider a toy example! Suppose that we would like to learn these two objects:
 
-![dis-data](img/dis-data.png)
+<p align="center">
+  <img src="img/dis-data.png" alt="dis-data"><br>
+</p>
 
 We train two random forest classifiers:
 
-![dis-learners](img/dis-learners.png)
+<p align="center">
+  <img src="img/dis-learners.png" alt="dis-learners"><br>
+</p>
 
 The consensus predictions of these learners are
 
-![dis-consensus](img/dis-consensus.png)
+<p align="center">
+  <img src="img/dis-consensus.png" alt="dis-consensus"><br>
+</p>
 
 In this case, the disagreement measures from left to right are vote entropy, consensus entropy and max disagreement.
 
-![dis-measures](img/dis-measures.png)
+<p align="center">
+  <img src="img/dis-measures.png" alt="dis-measures"><br>
+</p>
