@@ -265,7 +265,7 @@ def uncertainty_batch_sampling(classifier: Union[BaseLearner, BaseCommittee],
     :type uncertainty_measure_kwargs:
         keyword arguments
 
-    :returns :
+    :returns:
       - **query_indices** *(numpy.ndarray of shape (n_instances, ))* -- Indices of the
         instances from X chosen to be labelled.
       - **X[query_indices]** *(numpy.ndarray of shape (n_instances, n_features))*
