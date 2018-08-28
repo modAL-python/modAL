@@ -65,7 +65,7 @@ class BaseLearner(ABC, BaseEstimator):
 
         if type(self.X_training) != type(None):
             try:
-                self.X_training = np.vstack((self.X_training, X))
+                self.X_training = np.concatenate((self.X_training, X))
                 self.y_training = np.concatenate((self.y_training, y))
             except ValueError:
                 raise ValueError('the dimensions of the new training data and label must'

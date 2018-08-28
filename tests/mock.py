@@ -1,5 +1,6 @@
 from sklearn.exceptions import NotFittedError
 
+
 class MockFunction:
     """
     Mock utility function for testing.

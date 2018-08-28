@@ -456,6 +456,18 @@ class TestActiveLearner(unittest.TestCase):
                         learner.y_training,
                         np.concatenate((y_initial, y_new))
                     )
+                    # 3. data with shape (n, )
+                    X_initial = np.random.rand(n_samples, )
+                    y_initial = np.random.randint(0, 2, size=(n_samples,))
+                    learner = modAL.models.ActiveLearner(
+                        estimator=mock.MockEstimator(),
+                        X_training=X_initial, y_training=y_initial
+                    )
+                    X_new = np.random.rand(n_new_samples,)
+                    y_new = np.random.randint(0, 2, size=(n_new_samples,))
+                    learner._add_training_data(X_new, y_new)
+
+
 
                     # testing for invalid cases
                     # 1. len(X_new) != len(y_new)
