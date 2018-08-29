@@ -187,27 +187,29 @@ class BaseLearner(ABC, BaseEstimator):
         """
         return self.estimator.predict_proba(X, **predict_proba_kwargs)
 
-    def query(self, X, **query_kwargs):
+    def query(self, *query_args, **query_kwargs):
         """
         Finds the n_instances most informative point in the data provided by calling
         the query_strategy function. Returns the queried instances and its indices.
 
-        :param X: The pool of samples from which the query strategy should choose
-            instances to request labels.
-        :type X: numpy.ndarray of shape (n_samples, n_features).
+        :param query_args: The arguments for the query strategy. For instance, in the
+            case of modAL.uncertainty.uncertainty_sampling, it is the pool of samples
+            from which the query strategy should choose instances to request labels.
+        :type query_args: function arguments
 
         :param query_kwargs: Keyword arguments for the query strategy function.
         :type query_kwargs: keyword arguments
 
         :returns:
-         - **query_idx** *(numpy.ndarray of shape (n_instances, ))* --
-           The indices of the instances from X_pool chosen to be labelled.
-         - **X[query_idx]** *(numpy.ndarray of shape (n_instances, n_features))*
-           The instances from X_pool chosen to be labelled.
+         - **query_result** --
+           Return value of the query_strategy function. Should be the indices of the
+           instances from the pool chosen to be labelled and the instances themselves.
+           (Can be different in other cases, for instance only the instance to be
+           labelled upon query synthesis.)
         """
 
-        query_idx, query_instances = self.query_strategy(self, X, **query_kwargs)
-        return query_idx, query_instances
+        query_result = self.query_strategy(self, *query_args, **query_kwargs)
+        return query_result
 
     def score(self, X, y, **score_kwargs):
         """
