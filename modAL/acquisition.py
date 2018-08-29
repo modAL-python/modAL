@@ -2,8 +2,11 @@
 Acquisition functions for Bayesian optimization.
 """
 
+import numpy as np
+
 from scipy.stats import norm
 from scipy.special import ndtr
+from sklearn.exceptions import NotFittedError
 from modAL.utils.selection import multi_argmax
 
 
@@ -25,6 +28,7 @@ def UCB(mean, std, beta):
 Acquisition functions
 ---------------------
 """
+
 
 def optimizer_PI(optimizer, X, tradeoff=0):
     """
@@ -49,8 +53,11 @@ def optimizer_PI(optimizer, X, tradeoff=0):
       - **pi** *(numpy.ndarray of shape (n_samples, ))* --
         Probability of improvement utility score.
     """
-    mean, std = optimizer.predict(X, return_std=True)
-    std = std.reshape(-1, 1)
+    try:
+        mean, std = optimizer.predict(X, return_std=True)
+        std = std.reshape(-1, 1)
+    except NotFittedError:
+        mean, std = np.zeros(shape=(len(X), 1)), np.ones(shape=(len(X), 1))
 
     return PI(mean, std, optimizer.y_max, tradeoff)
 

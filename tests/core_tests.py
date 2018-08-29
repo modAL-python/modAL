@@ -145,15 +145,23 @@ class TestAcquisitionFunctions(unittest.TestCase):
             tradeoff = np.random.rand()
             max_val = np.random.rand()
 
-            mock_estimator = mock.MockEstimator(
-                predict_return=(mean, std)
-            )
-            
+            # 1. fitted estimator
+            mock_estimator = mock.MockEstimator(predict_return=(mean, std))
             optimizer = modAL.models.BayesianOptimizer(estimator=mock_estimator)
             optimizer._set_max([0], [max_val])
 
             np.testing.assert_almost_equal(
                 ndtr((mean - max_val - tradeoff)/std),
+                modAL.acquisition.optimizer_PI(optimizer, np.random.rand(n_samples, 2), tradeoff)
+            )
+
+            # 2. unfitted estimator
+            mock_estimator = mock.MockEstimator(fitted=False)
+            optimizer = modAL.models.BayesianOptimizer(estimator=mock_estimator)
+            optimizer._set_max([0], [max_val])
+
+            np.testing.assert_almost_equal(
+                ndtr((np.zeros(shape=(len(mean), 1)) - max_val - tradeoff) / np.ones(shape=(len(mean), 1))),
                 modAL.acquisition.optimizer_PI(optimizer, np.random.rand(n_samples, 2), tradeoff)
             )
 
