@@ -705,6 +705,15 @@ class TestBayesianOptimizer(unittest.TestCase):
 class TestCommittee(unittest.TestCase):
 
     def test_set_classes(self):
+        # 1. test unfitted learners
+        for n_learners in range(1, 10):
+            learner_list = [modAL.models.ActiveLearner(estimator=mock.MockEstimator(fitted=False))
+                            for idx in range(n_learners)]
+            committee = modAL.models.Committee(learner_list=learner_list)
+            self.assertEqual(committee.classes_, None)
+            self.assertEqual(committee.n_classes_, 0)
+
+        # 2. test fitted learners
         for n_classes in range(1, 10):
             learner_list = [modAL.models.ActiveLearner(estimator=mock.MockEstimator(classes_=np.asarray([idx])))
                             for idx in range(n_classes)]

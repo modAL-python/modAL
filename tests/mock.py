@@ -20,13 +20,14 @@ class MockEstimator:
             self, predict_proba_return=None, predict_return=None, score_return=None,
             classes_=None, fitted=True
     ):
-        self.classes_ = classes_
+        self.fitted = fitted
+
+        if fitted:
+            self.classes_ = classes_
 
         self.predict_return = predict_return
         self.predict_proba_return = predict_proba_return
         self.score_return = score_return
-
-        self.fitted = fitted
 
     def fit(self, *args, **kwargs):
         pass

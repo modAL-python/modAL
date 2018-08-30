@@ -800,8 +800,17 @@ class Committee(BaseCommittee):
         """
 
         # assemble the list of known classes from each learner
+        try:
+            # if estimators are fitted
+            known_classes = tuple(learner.estimator.classes_ for learner in self.learner_list)
+        except AttributeError:
+            # handle unfitted estimators
+            self.classes_ = None
+            self.n_classes_ = 0
+            return
+
         self.classes_ = np.unique(
-            np.concatenate(tuple(learner.estimator.classes_ for learner in self.learner_list), axis=0),
+            np.concatenate(known_classes, axis=0),
             axis=0
         )
         self.n_classes_ = len(self.classes_)
