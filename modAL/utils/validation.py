@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.exceptions import NotFittedError
 
 
 def check_class_labels(*args):
@@ -17,9 +18,13 @@ def check_class_labels(*args):
         True, if class labels match for all classifiers,
         False otherwise.
     """
+    try:
+        classes_ = [estimator.classes_ for estimator in args]
+    except AttributeError:
+        raise NotFittedError('Not all estimators are fitted. Fit all estimators before using this method.')
 
     for classifier_idx in range(len(args) - 1):
-        if not np.array_equal(args[classifier_idx].classes_, args[classifier_idx+1].classes_):
+        if not np.array_equal(classes_[classifier_idx], classes_[classifier_idx+1]):
             return False
 
     return True

@@ -15,6 +15,7 @@ from copy import deepcopy
 from itertools import chain, product
 from collections import namedtuple
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.exceptions import NotFittedError
 from sklearn.metrics import confusion_matrix
 from scipy.stats import entropy, norm
 from scipy.special import ndtr
@@ -33,6 +34,7 @@ class TestUtils(unittest.TestCase):
     def test_check_class_labels(self):
         for n_labels in range(1, 10):
             for n_learners in range(1, 10):
+                # 1. test fitted estimators
                 labels = np.random.randint(10, size=n_labels)
                 different_labels = np.random.randint(10, 20, size=np.random.randint(1, 10))
                 learner_list_1 = [mock.MockEstimator(classes_=labels) for _ in range(n_learners)]
@@ -40,6 +42,12 @@ class TestUtils(unittest.TestCase):
                 shuffled_learners = random.sample(learner_list_1 + learner_list_2, len(learner_list_1 + learner_list_2))
                 self.assertTrue(modAL.utils.validation.check_class_labels(*learner_list_1))
                 self.assertFalse(modAL.utils.validation.check_class_labels(*shuffled_learners))
+
+                # 2. test unfitted estimators
+                unfitted_learner_list = [mock.MockEstimator(classes_=labels) for _ in range(n_learners)]
+                idx = np.random.randint(0, n_learners)
+                unfitted_learner_list.insert(idx, mock.MockEstimator(fitted=False))
+                self.assertRaises(NotFittedError, modAL.utils.validation.check_class_labels, *unfitted_learner_list)
 
     def test_check_class_proba(self):
         for n_labels in range(2, 20):
