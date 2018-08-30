@@ -85,8 +85,11 @@ def optimizer_EI(optimizer, X, tradeoff=0):
       - **ei** *(numpy.ndarray of shape (n_samples, ))* --
         Expected improvement utility score.
     """
-    mean, std = optimizer.predict(X, return_std=True)
-    std = std.reshape(-1, 1)
+    try:
+        mean, std = optimizer.predict(X, return_std=True)
+        std = std.reshape(-1, 1)
+    except NotFittedError:
+        mean, std = np.zeros(shape=(len(X), 1)), np.ones(shape=(len(X), 1))
 
     return EI(mean, std, optimizer.y_max, tradeoff)
 
