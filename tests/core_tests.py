@@ -149,9 +149,10 @@ class TestAcquisitionFunctions(unittest.TestCase):
             mock_estimator = mock.MockEstimator(predict_return=(mean, std))
             optimizer = modAL.models.BayesianOptimizer(estimator=mock_estimator)
             optimizer._set_max([0], [max_val])
+            true_PI = ndtr((mean - max_val - tradeoff)/std)
 
             np.testing.assert_almost_equal(
-                ndtr((mean - max_val - tradeoff)/std),
+                true_PI,
                 modAL.acquisition.optimizer_PI(optimizer, np.random.rand(n_samples, 2), tradeoff)
             )
 
@@ -159,9 +160,10 @@ class TestAcquisitionFunctions(unittest.TestCase):
             mock_estimator = mock.MockEstimator(fitted=False)
             optimizer = modAL.models.BayesianOptimizer(estimator=mock_estimator)
             optimizer._set_max([0], [max_val])
+            true_PI = ndtr((np.zeros(shape=(len(mean), 1)) - max_val - tradeoff) / np.ones(shape=(len(mean), 1)))
 
             np.testing.assert_almost_equal(
-                ndtr((np.zeros(shape=(len(mean), 1)) - max_val - tradeoff) / np.ones(shape=(len(mean), 1))),
+                true_PI,
                 modAL.acquisition.optimizer_PI(optimizer, np.random.rand(n_samples, 2), tradeoff)
             )
 
@@ -204,13 +206,22 @@ class TestAcquisitionFunctions(unittest.TestCase):
             std = np.random.rand(n_samples, 1)
             beta = np.random.rand()
 
+            # 1. fitted estimator
             mock_estimator = mock.MockEstimator(
                 predict_return=(mean, std)
             )
-
             optimizer = modAL.models.BayesianOptimizer(estimator=mock_estimator)
-
             true_UCB = mean + beta*std
+
+            np.testing.assert_almost_equal(
+                true_UCB,
+                modAL.acquisition.optimizer_UCB(optimizer, np.random.rand(n_samples, 2), beta)
+            )
+
+            # 2. unfitted estimator
+            mock_estimator = mock.MockEstimator(fitted=False)
+            optimizer = modAL.models.BayesianOptimizer(estimator=mock_estimator)
+            true_UCB = np.zeros(shape=(len(mean), 1)) + beta * np.ones(shape=(len(mean), 1))
 
             np.testing.assert_almost_equal(
                 true_UCB,

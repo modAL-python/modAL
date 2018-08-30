@@ -117,8 +117,11 @@ def optimizer_UCB(optimizer, X, beta=1):
       - **ucb** *(numpy.ndarray of shape (n_samples, ))* --
         Upper confidence bound utility score.
     """
-    mean, std = optimizer.predict(X, return_std=True)
-    std = std.reshape(-1, 1)
+    try:
+        mean, std = optimizer.predict(X, return_std=True)
+        std = std.reshape(-1, 1)
+    except NotFittedError:
+        mean, std = np.zeros(shape=(len(X), 1)), np.ones(shape=(len(X), 1))
 
     return UCB(mean, std, beta)
 
