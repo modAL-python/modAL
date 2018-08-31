@@ -386,6 +386,7 @@ class TestDisagreements(unittest.TestCase):
         for n_samples in range(1, 10):
             for n_classes in range(1, 10):
                 for true_query_idx in range(n_samples):
+                    # 1. fitted committee
                     vote_return = np.zeros(shape=(n_samples, n_classes), dtype=np.int16)
                     vote_return[true_query_idx] = np.asarray(range(n_classes), dtype=np.int16)
                     committee = mock.MockCommittee(classes_=np.asarray(range(n_classes)), vote_return=vote_return)
@@ -395,6 +396,14 @@ class TestDisagreements(unittest.TestCase):
                     true_entropy = np.zeros(shape=(n_samples, ))
                     true_entropy[true_query_idx] = entropy(np.ones(n_classes)/n_classes)
                     np.testing.assert_array_almost_equal(vote_entr, true_entropy)
+
+                    # 2. unfitted committee
+                    committee = mock.MockCommittee(fitted=False)
+                    true_entropy = np.zeros(shape=(n_samples,))
+                    vote_entr = modAL.disagreement.vote_entropy(
+                        committee, np.random.rand(n_samples, n_classes)
+                    )
+                    np.testing.assert_almost_equal(vote_entr, true_entropy)
 
     def test_consensus_entropy(self):
         for n_samples in range(1, 10):

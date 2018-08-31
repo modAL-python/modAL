@@ -83,13 +83,19 @@ class MockCommittee:
     Mock Committee for testing.
     """
     def __init__(
-            self, n_learners=1, classes_=None,
+            self, n_learners=1, classes_=None, fitted=True,
             calculate_disagreement_return=None,
             predict_return=None, predict_proba_return=None,
             vote_return=None, vote_proba_return=None
     ):
+        self.fitted = fitted
         self.n_learners = n_learners
-        self.classes_ = classes_
+
+        if fitted:
+            self.classes_ = classes_
+        else:
+            self.classes_ = None
+
         self.calculate_disagreement_return = calculate_disagreement_return
         self.predict_return = predict_return
         self.predict_proba_return = predict_proba_return
@@ -107,13 +113,25 @@ class MockCommittee:
         return self.calculate_disagreement_return
 
     def predict(self, *args, **kwargs):
+        if not self.fitted:
+            raise NotFittedError
+
         return self.predict_return
 
     def predict_proba(self, *args, **kwargs):
+        if not self.fitted:
+            raise NotFittedError
+
         return self.predict_proba_return
 
     def vote(self, *args, **kwargs):
+        if not self.fitted:
+            raise NotFittedError
+
         return self.vote_return
 
     def vote_proba(self, *args, **kwargs):
+        if not self.fitted:
+            raise NotFittedError
+
         return self.vote_proba_return

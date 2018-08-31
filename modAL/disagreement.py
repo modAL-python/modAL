@@ -5,6 +5,7 @@ Disagreement measures and disagreement based query strategies for the Committee 
 import numpy as np
 from collections import Counter
 from scipy.stats import entropy
+from sklearn.exceptions import NotFittedError
 from modAL.utils.selection import multi_argmax
 
 
@@ -35,7 +36,11 @@ def vote_entropy(committee, X, **predict_proba_kwargs):
         Vote entropy of the Committee for the samples in X.
     """
     n_learners = len(committee)
-    votes = committee.vote(X, **predict_proba_kwargs)
+    try:
+        votes = committee.vote(X, **predict_proba_kwargs)
+    except NotFittedError:
+        return np.zeros(shape=(X.shape[0],))
+
     p_vote = np.zeros(shape=(X.shape[0], len(committee.classes_)))
     entr = np.zeros(shape=(X.shape[0],))
 
