@@ -82,7 +82,11 @@ def consensus_entropy(committee, X, **predict_proba_kwargs):
       - **entr** *(numpy.ndarray of shape (n_samples, ))* --
         Vote uncertainty entropy of the Committee for the samples in X.
     """
-    proba = committee.predict_proba(X, **predict_proba_kwargs)
+    try:
+        proba = committee.predict_proba(X, **predict_proba_kwargs)
+    except NotFittedError:
+        return np.zeros(shape=(X.shape[0],))
+
     entr = np.transpose(entropy(np.transpose(proba)))
     return entr
 
