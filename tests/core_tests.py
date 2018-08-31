@@ -433,6 +433,7 @@ class TestDisagreements(unittest.TestCase):
         for n_samples in range(1, 10):
             for n_classes in range(2, 10):
                 for n_learners in range (2, 10):
+                    # 1. fitted committee
                     vote_proba = np.zeros(shape=(n_samples, n_learners, n_classes))
                     vote_proba[:, :, 0] = 1.0
                     committee = mock.MockCommittee(
@@ -449,6 +450,14 @@ class TestDisagreements(unittest.TestCase):
                         )
                     except:
                         modAL.disagreement.KL_max_disagreement(committee, np.random.rand(n_samples, 1))
+
+                    # 2. unfitted committee
+                    committee = mock.MockCommittee(fitted=False)
+                    true_KL_disagreement = np.zeros(shape=(n_samples,))
+                    returned_KL_disagreement = modAL.disagreement.KL_max_disagreement(
+                        committee, np.random.rand(n_samples, n_classes)
+                    )
+                    np.testing.assert_almost_equal(returned_KL_disagreement, true_KL_disagreement)
 
 
 class TestQueries(unittest.TestCase):

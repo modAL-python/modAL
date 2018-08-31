@@ -119,7 +119,11 @@ def KL_max_disagreement(committee, X, **predict_proba_kwargs):
       - **entr** *(numpy.ndarray of shape (n_samples, ))* --
         Max disagreement of the Committee for the samples in X.
     """
-    p_vote = committee.vote_proba(X, **predict_proba_kwargs)
+    try:
+        p_vote = committee.vote_proba(X, **predict_proba_kwargs)
+    except NotFittedError:
+        return np.zeros(shape=(X.shape[0],))
+
     p_consensus = np.mean(p_vote, axis=1)
 
     learner_KL_div = np.zeros(shape=(len(X), len(committee)))
