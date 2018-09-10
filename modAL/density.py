@@ -49,8 +49,8 @@ def information_density(X, similarity_measure=cosine_similarity):
         The information density for each sample.
 
     """
-    inf_density = np.zeros(shape=(len(X),))
+    inf_density = np.zeros(shape=(X.shape[0],))
     for X_idx, X_inst in enumerate(X):
         inf_density[X_idx] = sum(similarity_measure(X_inst, X_j) for X_j in X)
 
-    return inf_density/len(X)
+    return inf_density/X.shape[0]

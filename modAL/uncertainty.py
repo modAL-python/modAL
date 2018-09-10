@@ -36,7 +36,7 @@ def classifier_uncertainty(classifier, X, **predict_proba_kwargs):
     try:
         classwise_uncertainty = classifier.predict_proba(X, **predict_proba_kwargs)
     except NotFittedError:
-        return np.ones(shape=(len(X), ))
+        return np.ones(shape=(X.shape[0], ))
 
     # for each point, select the maximum uncertainty
     uncertainty = 1 - np.max(classwise_uncertainty, axis=1)

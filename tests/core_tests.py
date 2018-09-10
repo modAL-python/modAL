@@ -538,7 +538,7 @@ class TestActiveLearner(unittest.TestCase):
                     # 1. len(X_new) != len(y_new)
                     X_new = np.random.rand(n_new_samples, n_features)
                     y_new = np.random.randint(0, 2, size=(2*n_new_samples,))
-                    self.assertRaises(AssertionError, learner._add_training_data, X_new, y_new)
+                    self.assertRaises(ValueError, learner._add_training_data, X_new, y_new)
                     # 2. X_new has wrong dimensions
                     X_new = np.random.rand(n_new_samples, 2*n_features)
                     y_new = np.random.randint(0, 2, size=(n_new_samples,))

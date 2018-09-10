@@ -6,11 +6,14 @@ Core models for active learning algorithms
 
 import abc
 import sys
-import numpy as np
 
+import numpy as np
 from sklearn.base import BaseEstimator
 from sklearn.metrics import accuracy_score
+from sklearn.utils import check_X_y
+
 from modAL.utils.validation import check_class_labels, check_class_proba
+from modAL.utils.combination import data_vstack
 from modAL.uncertainty import uncertainty_sampling
 from modAL.disagreement import vote_entropy_sampling, max_std_sampling
 
@@ -24,23 +27,20 @@ else:
 class BaseLearner(ABC, BaseEstimator):
     def __init__(
             self,
-            estimator,                            # scikit-learner estimator object
+            estimator,                            # scikit-learn estimator object
             query_strategy=uncertainty_sampling,  # callable to query labels
             X_training=None, y_training=None,     # initial data if available
             bootstrap_init=False,                 # first training with bootstrapping
             **fit_kwargs                          # keyword arguments for fitting the initial data
     ):
-        assert callable(query_strategy), 'query_function must be callable'
+        assert callable(query_strategy), 'query_strategy must be callable'
 
         self.estimator = estimator
         self.query_strategy = query_strategy
 
-        if type(X_training) == type(None) and type(y_training) == type(None):
-            self.X_training = None
-            self.y_training = None
-        elif type(X_training) != type(None) and type(y_training) != type(None):
-            self.X_training = X_training
-            self.y_training = y_training
+        self.X_training = X_training
+        self.y_training = y_training
+        if X_training is not None:
             self._fit_to_known(bootstrap=bootstrap_init, **fit_kwargs)
 
     def _add_training_data(self, X, y):
@@ -48,9 +48,8 @@ class BaseLearner(ABC, BaseEstimator):
         Adds the new data and label to the known data, but does
         not retrain the model.
 
-        :param X: The new samples for which the labels are supplied
-            by the expert.
-        :type X: numpy.ndarray of shape (n_samples, n_features)
+        :param X: The new samples for which the labels are supplied by the expert.
+        :type X: numpy.ndarray or scipy.sparse.csr_matrix of shape (n_samples, n_features)
 
         :param y: Labels corresponding to the new instances in X.
         :type y: numpy.ndarray of shape (n_samples, )
@@ -61,19 +60,19 @@ class BaseLearner(ABC, BaseEstimator):
         have to agree with the training samples which the
         classifier has seen.
         """
-        assert len(X) == len(y), 'the number of new data points and number of labels must match'
+        X, y = check_X_y(X, y, accept_sparse=True, ensure_2d=False, multi_output=True)
 
-        if type(self.X_training) != type(None):
+        if self.X_training is None:
+            self.X_training = X
+            self.y_training = y
+        else:
             try:
-                self.X_training = np.concatenate((self.X_training, X))
-                self.y_training = np.concatenate((self.y_training, y))
+                self.X_training = data_vstack((self.X_training, X))
+                self.y_training = data_vstack((self.y_training, y))
             except ValueError:
                 raise ValueError('the dimensions of the new training data and label must'
                                  'agree with the training data and labels provided so far')
 
-        else:
-            self.X_training = X
-            self.y_training = y
 
     def _fit_to_known(self, bootstrap=False, **fit_kwargs):
         """
@@ -89,7 +88,7 @@ class BaseLearner(ABC, BaseEstimator):
         if not bootstrap:
             self.estimator.fit(self.X_training, self.y_training, **fit_kwargs)
         else:
-            n_instances = len(self.X_training)
+            n_instances = self.X_training.shape[0]
             bootstrap_idx = np.random.choice(range(n_instances), n_instances, replace=True)
             self.estimator.fit(self.X_training[bootstrap_idx], self.y_training[bootstrap_idx], **fit_kwargs)
 
@@ -112,12 +111,12 @@ class BaseLearner(ABC, BaseEstimator):
         :param fit_kwargs: Keyword arguments to be passed to the fit method of the predictor.
         :type fit_kwargs: keyword arguments
         """
-        assert len(X) == len(y), 'the length of X and y must match'
+        X, y = check_X_y(X, y, accept_sparse=True)
 
         if not bootstrap:
             self.estimator.fit(X, y, **fit_kwargs)
         else:
-            bootstrap_idx = np.random.choice(range(len(X)), len(X), replace=True)
+            bootstrap_idx = np.random.choice(range(X.shape[0]), X.shape[0], replace=True)
             self.estimator.fit(X[bootstrap_idx], y[bootstrap_idx])
 
         return self
@@ -146,8 +145,7 @@ class BaseLearner(ABC, BaseEstimator):
         When using scikit-learn estimators, calling this method will make the
         ActiveLearner forget all training data it has seen!
         """
-        self.X_training = X
-        self.y_training = y
+        self.X_training, self.y_training = check_X_y(X, y, accept_sparse=True)
         return self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
     def predict(self, X, **predict_kwargs):
@@ -514,6 +512,7 @@ class BayesianOptimizer(BaseLearner):
             keyword arguments
         """
         self._add_training_data(X, y)
+
         if not only_new:
             self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
         else:
@@ -609,8 +608,6 @@ class BaseCommittee(ABC, BaseEstimator):
         :type fit_kwargs:
             keyword arguments
         """
-        assert len(X) == len(y), 'the length of X and y must match'
-
         for learner in self.learner_list:
             learner._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
 

@@ -5,14 +5,16 @@ Uncertainty measures that explicitly support batch-mode sampling for active lear
 from typing import Callable, Dict, Optional, Tuple, Union
 
 import numpy as np
-from scipy.spatial.distance import pdist, squareform
+import scipy.sparse as sp
+from sklearn.metrics.pairwise import pairwise_distances, pairwise_distances_argmin_min
 
-from modAL.density import euclidean_similarity
+from modAL.utils.combination import data_vstack
 from modAL.models import BaseCommittee, BaseLearner
 from modAL.uncertainty import classifier_uncertainty
 
 
-def select_cold_start_instance(X: np.ndarray, similarity_fn: Callable = euclidean_similarity) -> np.ndarray:
+def select_cold_start_instance(X: Union[np.ndarray, sp.csr_matrix],
+                               metric: Union[str, Callable]) -> Union[np.ndarray, sp.csr_matrix]:
     """
     Define what to do if our batch-mode sampling doesn't have any labeled data -- a cold start.
 
@@ -31,32 +33,30 @@ def select_cold_start_instance(X: np.ndarray, similarity_fn: Callable = euclidea
     :type X:
         numpy.ndarray of shape (n_records, n_features)
 
-    :param similarity_fn:
-        A function that takes two N-length vectors and returns a similarity in range [0, 1].
-    :type similarity_fn:
-        Callable
+    :param metric:
+        This parameter is passed to sklearn.metrics.pairwise.pairwise_distances
+    :type metric:
+        str or callable
 
     :returns:
-      - **X[best_instance_index]** *(numpy.ndarray of shape (n_features, ))* -- Best instance for cold-start.
+      - **X[best_instance_index]** *(numpy.ndarray or scipy.sparse.csr_matrix of shape (n_features, ))* -- Best instance
+        for cold-start.
     """
 
-    # Compute all pairwise similarities in our unlabeled data.
-    pairwise_similarities = squareform(pdist(X, similarity_fn))
+    # Compute all pairwise distances in our unlabeled data and obtain the row-wise average for each of our records in X.
+    average_distances = np.mean(pairwise_distances(X, metric=metric), axis=0)
 
-    # Obtain the row-wise average for each of our records in X.
-    average_similarity = np.mean(pairwise_similarities, axis=0)
-
-    # Isolate and return our best instance for labeling as the
-    # record with the greatest average similarity.
-    best_coldstart_instance_index = np.argmax(average_similarity)
-    return X[best_coldstart_instance_index]
+    # Isolate and return our best instance for labeling as the record with the least average distance.
+    best_coldstart_instance_index = np.argmin(average_distances)
+    return X[best_coldstart_instance_index].reshape(1, -1)
 
 
 def select_instance(
-        X_training: np.ndarray,
+        X_training: Union[np.ndarray, sp.csr_matrix],
+        X_pool: Union[np.ndarray, sp.csr_matrix],
         X_uncertainty: np.ndarray,
-        similarity_fn: Callable = euclidean_similarity
-) -> Tuple[np.ndarray, np.ndarray]:
+        metric: Union[str, Callable]
+) -> Tuple[np.ndarray, Union[np.ndarray, sp.csr_matrix]]:
     """
     Core iteration strategy for selecting another record from our unlabeled records.
 
@@ -75,15 +75,20 @@ def select_instance(
     :type X_training:
         numpy.ndarray of shape (D + batch_iteration, n_features)
 
-    :param X_uncertainty:
+    :param X_pool:
         Unlabeled records to be selected for labeling.
-    :type X_uncertainty:
+    :type X_pool:
         numpy.ndarray of shape (U - batch_iteration, n_features)
 
-    :param similarity_fn:
-        A function that takes two N-length vectors and returns a similarity in range [0, 1].
-        Note: any distance function can be a similarity function as 1 / (1 + d)
-        where d is the distance.
+    :param X_uncertainty:
+        Uncertainty scores for unlabeled records to be selected for labeling.
+    :type X_uncertainty:
+        numpy.ndarray of shape (U - batch_iteration,)
+
+    :param metric:
+        This parameter is passed to sklearn.metrics.pairwise.pairwise_distances
+    :type metric:
+        str or callable
 
     :returns:
       - **best_instance_index** *int*
@@ -93,65 +98,35 @@ def select_instance(
             incremental record for including in our query set.
     """
 
-    def max_vector_matrix_distance(arr: np.ndarray, pool: np.ndarray) -> np.float:
-        """
-        Compute the maximum of pairwise similarity between a flat array and a matrix.
-
-        :param arr:
-            Single vector of shape (n_features, ).
-        :type arr:
-            numpy.ndarray of shape (n_features, )
-
-        :param pool:
-            Matrix of shape (n_features, n_records).
-        :type pool:
-            numpy.ndarray of shape (n_features, n_records)
-
-        :returns:
-          - **max_dist** *(np.float)* -- Numeric corresponding to the maximum similarity
-            between our vector and matrix.
-        """
-        return np.max([similarity_fn(arr, x_i) for x_i in pool])
-
     # Extract the number of labeled and unlabeled records.
-    # Note: for unlabeled records, we filter out NaN rows from X_uncertainty
-    # because we set them to NaN when, in a previous call to select_instance,
-    # we selected that row for labeling.
     n_labeled_records, _ = X_training.shape
-
-    X_uncertainty = X_uncertainty[~np.isnan(X_uncertainty).all(axis=1)]
-    n_unlabeled, _ = X_uncertainty.shape
+    n_unlabeled, _ = X_pool.shape
 
     # Determine our alpha parameter as |U| / (|U| + |D|). Note that because we
-    # append to X_training and remove from X_uncertainty within `ranked_batch`,
+    # append to X_training and remove from X_pool within `ranked_batch`,
     # :alpha: is not fixed throughout our model's lifetime.
     alpha = n_unlabeled / (n_unlabeled + n_labeled_records)
 
-    # Isolate our original unlabeled records from their predicted class uncertainty.
-    unlabeled_records, uncertainty_scores = X_uncertainty[:, :-1], X_uncertainty[:, -1]
-
-    # Compute pairwise similarity scores from every unlabeled record in unlabeled_records
+    # Compute pairwise distance (and then similarity) scores from every unlabeled record
     # to every record in X_training. The result is an array of shape (n_samples, ).
-    similarity_scores = np.apply_along_axis(
-        func1d=max_vector_matrix_distance,
-        arr=unlabeled_records.T,
-        pool=X_training,
-        axis=0
-    )
+    _, distance_scores = pairwise_distances_argmin_min(X_pool, X_training, metric=metric)
+
+    similarity_scores = 1 / (1 + distance_scores)
 
     # Compute our final scores, which are a balance between how dissimilar a given record
     # is with the records in X_uncertainty and how uncertain we are about its class.
-    scores = alpha * (1 - similarity_scores) + (1 - alpha) * uncertainty_scores
+    scores = alpha * (1 - similarity_scores) + (1 - alpha) * X_uncertainty
 
     # Isolate and return our best instance for labeling as the one with the largest score.
     best_instance_index = np.argmax(scores)
-    return best_instance_index, unlabeled_records[best_instance_index]
+    return best_instance_index, X_pool[best_instance_index].reshape(1, -1)
 
 
 def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
-                 unlabeled: np.ndarray,
+                 unlabeled: Union[np.ndarray, sp.csr_matrix],
                  uncertainty_scores: np.ndarray,
-                 n_instances: int) -> np.ndarray:
+                 n_instances: int,
+                 metric: Union[str, Callable]) -> np.ndarray:
     """
     Query our top :n_instances: to request for labeling.
 
@@ -178,47 +153,42 @@ def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
     :type n_instances:
         int
 
+    :param metric:
+        This parameter is passed to sklearn.metrics.pairwise.pairwise_distances
+    :type metric:
+        str or callable
+
     :returns:
       - **instance_index_ranking** *(numpy.ndarray of shape (n_instances, ))* -- The indices of
         the top n_instances ranked unlabelled samples.
 
     """
-
     # Make a local copy of our classifier's training data.
     if classifier.X_training is None:
-        labeled = select_cold_start_instance(unlabeled).reshape(1, -1)
+        labeled = select_cold_start_instance(unlabeled, metric)
     elif classifier.X_training.shape[0] > 0:
-        labeled = np.copy(classifier.X_training)
-
-    # Add uncertainty scores to our unlabeled data, and keep a copy of our unlabeled data.
-    expanded_uncertainty_scores = np.expand_dims(uncertainty_scores, axis=1)
-    unlabeled_uncertainty = np.concatenate((unlabeled, expanded_uncertainty_scores), axis=1)
-
-    # Define our null row, which will be filtered during the select_instance call.
-    null_row = np.ones(shape=(unlabeled_uncertainty.shape[1],)) * np.nan
+        labeled = classifier.X_training[:]
 
     # Define our record container and the maximum number of records to sample.
     instance_index_ranking = []
     ceiling = np.minimum(unlabeled.shape[0], n_instances)
 
+    # mask for unlabeled initialized as transparent
+    mask = np.ones(unlabeled.shape[0], np.bool)
+
     for _ in range(ceiling):
 
         # Receive the instance and corresponding index from our unlabeled copy that scores highest.
-        instance_index, instance = select_instance(
-            X_training=labeled, X_uncertainty=unlabeled_uncertainty
-        )
+        instance_index, instance = select_instance(X_training=labeled, X_pool=unlabeled[mask],
+                                                   X_uncertainty=uncertainty_scores[mask], metric=metric)
 
-        # Prepare our most informative instance for concatenation.
-        expanded_instance = np.expand_dims(instance, axis=0)
+        # We "remove" our instance from the unlabeled set by setting corresponding element of the mask to zero
+        mask[instance_index] = 0
 
         # Add our instance we've considered for labeling to our labeled set. Although we don't
         # know it's label, we want further iterations to consider the newly-added instance so
         # that we don't query the same instance redundantly.
-        labeled = np.concatenate((labeled, expanded_instance), axis=0)
-
-        # We "remove" our instance from the unlabeled set by setting that row to an array
-        # of np.nan and filtering within select_instance.
-        unlabeled_uncertainty[instance_index] = null_row
+        labeled = data_vstack((labeled, instance))
 
         # Finally, append our instance's index to the bottom of our ranking.
         instance_index_ranking.append(instance_index)
@@ -228,9 +198,11 @@ def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
 
 
 def uncertainty_batch_sampling(classifier: Union[BaseLearner, BaseCommittee],
-                               X: np.ndarray,
+                               X: Union[np.ndarray, sp.csr_matrix],
                                n_instances: int = 20,
-                               **uncertainty_measure_kwargs: Optional[Dict]) -> Tuple[np.ndarray, np.ndarray]:
+                               metric: Union[str, Callable] = 'euclidean',
+                               **uncertainty_measure_kwargs: Optional[Dict]
+                               ) -> Tuple[np.ndarray, Union[np.ndarray, sp.csr_matrix]]:
     """
     Batch sampling query strategy. Selects the least sure instances for labelling.
 
@@ -253,12 +225,17 @@ def uncertainty_batch_sampling(classifier: Union[BaseLearner, BaseCommittee],
     :param X:
         Set of records to be considered for our active learning model.
     :type X:
-        numpy.ndarray of shape (n_samples, n_features)
+        numpy.ndarray or scipy.sparse.csr_matrix of shape (n_samples, n_features)
 
     :param n_instances:
         Number of records to return for labeling from `X`.
     :type n_instances:
         int
+
+    :param metric:
+        This parameter is passed to sklearn.metrics.pairwise.pairwise_distances
+    :type metric:
+        str or callable
 
     :param uncertainty_measure_kwargs:
         Keyword arguments to be passed for the predict_proba method of the classifier.
@@ -268,10 +245,11 @@ def uncertainty_batch_sampling(classifier: Union[BaseLearner, BaseCommittee],
     :returns:
       - **query_indices** *(numpy.ndarray of shape (n_instances, ))* -- Indices of the
         instances from X chosen to be labelled.
-      - **X[query_indices]** *(numpy.ndarray of shape (n_instances, n_features))*
+      - **X[query_indices]** *(numpy.ndarray or scipy.sparse.csr_matrix of shape (n_instances, n_features))*
         -- Records from X chosen to be labelled.
     """
 
     uncertainty = classifier_uncertainty(classifier, X, **uncertainty_measure_kwargs)
-    query_indices = ranked_batch(classifier, unlabeled=X, uncertainty_scores=uncertainty, n_instances=n_instances)
+    query_indices = ranked_batch(classifier, unlabeled=X, uncertainty_scores=uncertainty,
+                                 n_instances=n_instances, metric=metric)
     return query_indices, X[query_indices]
