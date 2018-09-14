@@ -6,7 +6,7 @@ from typing import Callable, Dict, Optional, Tuple, Union
 
 import numpy as np
 import scipy.sparse as sp
-from sklearn.metrics.pairwise import pairwise_distances, pairwise_distances_argmin_min
+from sklearn.metrics.pairwise import pairwise_distances
 
 from modAL.utils.combination import data_vstack
 from modAL.models import BaseCommittee, BaseLearner
@@ -14,7 +14,8 @@ from modAL.uncertainty import classifier_uncertainty
 
 
 def select_cold_start_instance(X: Union[np.ndarray, sp.csr_matrix],
-                               metric: Union[str, Callable]) -> Union[np.ndarray, sp.csr_matrix]:
+                               metric: Union[str, Callable],
+                               n_jobs: int) -> Union[np.ndarray, sp.csr_matrix]:
     """
     Define what to do if our batch-mode sampling doesn't have any labeled data -- a cold start.
 
@@ -38,13 +39,18 @@ def select_cold_start_instance(X: Union[np.ndarray, sp.csr_matrix],
     :type metric:
         str or callable
 
+    :param n_jobs:
+        This parameter is passed to sklearn.metrics.pairwise.pairwise_distances
+    :type n_jobs:
+        int
+
     :returns:
       - **X[best_instance_index]** *(numpy.ndarray or scipy.sparse.csr_matrix of shape (n_features, ))* -- Best instance
         for cold-start.
     """
 
     # Compute all pairwise distances in our unlabeled data and obtain the row-wise average for each of our records in X.
-    average_distances = np.mean(pairwise_distances(X, metric=metric), axis=0)
+    average_distances = np.mean(pairwise_distances(X, metric=metric, n_jobs=n_jobs), axis=0)
 
     # Isolate and return our best instance for labeling as the record with the least average distance.
     best_coldstart_instance_index = np.argmin(average_distances)
@@ -55,7 +61,8 @@ def select_instance(
         X_training: Union[np.ndarray, sp.csr_matrix],
         X_pool: Union[np.ndarray, sp.csr_matrix],
         X_uncertainty: np.ndarray,
-        metric: Union[str, Callable]
+        metric: Union[str, Callable],
+        n_jobs: int
 ) -> Tuple[np.ndarray, Union[np.ndarray, sp.csr_matrix]]:
     """
     Core iteration strategy for selecting another record from our unlabeled records.
@@ -90,6 +97,11 @@ def select_instance(
     :type metric:
         str or callable
 
+    :param n_jobs:
+        This parameter is passed to sklearn.metrics.pairwise.pairwise_distances
+    :type n_jobs:
+        int
+
     :returns:
       - **best_instance_index** *int*
         -- Index of the best index from X chosen to be labelled.
@@ -109,7 +121,7 @@ def select_instance(
 
     # Compute pairwise distance (and then similarity) scores from every unlabeled record
     # to every record in X_training. The result is an array of shape (n_samples, ).
-    _, distance_scores = pairwise_distances_argmin_min(X_pool, X_training, metric=metric)
+    distance_scores = pairwise_distances(X_pool, X_training, metric=metric, n_jobs=n_jobs).min(axis=1)
 
     similarity_scores = 1 / (1 + distance_scores)
 
@@ -126,7 +138,8 @@ def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
                  unlabeled: Union[np.ndarray, sp.csr_matrix],
                  uncertainty_scores: np.ndarray,
                  n_instances: int,
-                 metric: Union[str, Callable]) -> np.ndarray:
+                 metric: Union[str, Callable],
+                 n_jobs: int) -> np.ndarray:
     """
     Query our top :n_instances: to request for labeling.
 
@@ -158,6 +171,11 @@ def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
     :type metric:
         str or callable
 
+    :param n_jobs:
+        This parameter is passed to sklearn.metrics.pairwise.pairwise_distances
+    :type n_jobs:
+        int
+
     :returns:
       - **instance_index_ranking** *(numpy.ndarray of shape (n_instances, ))* -- The indices of
         the top n_instances ranked unlabelled samples.
@@ -165,7 +183,7 @@ def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
     """
     # Make a local copy of our classifier's training data.
     if classifier.X_training is None:
-        labeled = select_cold_start_instance(unlabeled, metric)
+        labeled = select_cold_start_instance(X=unlabeled, metric=metric, n_jobs=n_jobs)
     elif classifier.X_training.shape[0] > 0:
         labeled = classifier.X_training[:]
 
@@ -180,7 +198,7 @@ def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
 
         # Receive the instance and corresponding index from our unlabeled copy that scores highest.
         instance_index, instance = select_instance(X_training=labeled, X_pool=unlabeled[mask],
-                                                   X_uncertainty=uncertainty_scores[mask], metric=metric)
+                                                   X_uncertainty=uncertainty_scores[mask], metric=metric, n_jobs=n_jobs)
 
         # We "remove" our instance from the unlabeled set by setting corresponding element of the mask to zero
         mask[instance_index] = 0
@@ -201,6 +219,7 @@ def uncertainty_batch_sampling(classifier: Union[BaseLearner, BaseCommittee],
                                X: Union[np.ndarray, sp.csr_matrix],
                                n_instances: int = 20,
                                metric: Union[str, Callable] = 'euclidean',
+                               n_jobs: int = 1,
                                **uncertainty_measure_kwargs: Optional[Dict]
                                ) -> Tuple[np.ndarray, Union[np.ndarray, sp.csr_matrix]]:
     """
@@ -237,6 +256,11 @@ def uncertainty_batch_sampling(classifier: Union[BaseLearner, BaseCommittee],
     :type metric:
         str or callable
 
+    :param n_jobs:
+        This parameter is passed to sklearn.metrics.pairwise.pairwise_distances
+    :type n_jobs:
+        int
+
     :param uncertainty_measure_kwargs:
         Keyword arguments to be passed for the predict_proba method of the classifier.
     :type uncertainty_measure_kwargs:
@@ -251,5 +275,5 @@ def uncertainty_batch_sampling(classifier: Union[BaseLearner, BaseCommittee],
 
     uncertainty = classifier_uncertainty(classifier, X, **uncertainty_measure_kwargs)
     query_indices = ranked_batch(classifier, unlabeled=X, uncertainty_scores=uncertainty,
-                                 n_instances=n_instances, metric=metric)
+                                 n_instances=n_instances, metric=metric, n_jobs=n_jobs)
     return query_indices, X[query_indices]
