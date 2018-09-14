@@ -111,7 +111,7 @@ class BaseLearner(ABC, BaseEstimator):
         :param fit_kwargs: Keyword arguments to be passed to the fit method of the predictor.
         :type fit_kwargs: keyword arguments
         """
-        X, y = check_X_y(X, y, accept_sparse=True)
+        X, y = check_X_y(X, y, accept_sparse=True, ensure_2d=False, multi_output=True)
 
         if not bootstrap:
             self.estimator.fit(X, y, **fit_kwargs)
@@ -145,7 +145,7 @@ class BaseLearner(ABC, BaseEstimator):
         When using scikit-learn estimators, calling this method will make the
         ActiveLearner forget all training data it has seen!
         """
-        self.X_training, self.y_training = check_X_y(X, y, accept_sparse=True)
+        self.X_training, self.y_training = check_X_y(X, y, accept_sparse=True, ensure_2d=False, multi_output=True)
         return self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
     def predict(self, X, **predict_kwargs):
