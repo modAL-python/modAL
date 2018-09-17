@@ -8,7 +8,7 @@ import numpy as np
 import scipy.sparse as sp
 from sklearn.metrics.pairwise import pairwise_distances
 
-from modAL.utils.combination import data_vstack
+from modAL.utils.data import data_vstack
 from modAL.models import BaseCommittee, BaseLearner
 from modAL.uncertainty import classifier_uncertainty
 

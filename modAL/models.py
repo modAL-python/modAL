@@ -13,7 +13,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.utils import check_X_y
 
 from modAL.utils.validation import check_class_labels, check_class_proba
-from modAL.utils.combination import data_vstack
+from modAL.utils.data import data_vstack
 from modAL.uncertainty import uncertainty_sampling
 from modAL.disagreement import vote_entropy_sampling, max_std_sampling
 
@@ -60,7 +60,7 @@ class BaseLearner(ABC, BaseEstimator):
         have to agree with the training samples which the
         classifier has seen.
         """
-        X, y = check_X_y(X, y, accept_sparse=True, ensure_2d=False, multi_output=True)
+        check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True)
 
         if self.X_training is None:
             self.X_training = X
@@ -72,7 +72,6 @@ class BaseLearner(ABC, BaseEstimator):
             except ValueError:
                 raise ValueError('the dimensions of the new training data and label must'
                                  'agree with the training data and labels provided so far')
-
 
     def _fit_to_known(self, bootstrap=False, **fit_kwargs):
         """
@@ -111,7 +110,7 @@ class BaseLearner(ABC, BaseEstimator):
         :param fit_kwargs: Keyword arguments to be passed to the fit method of the predictor.
         :type fit_kwargs: keyword arguments
         """
-        X, y = check_X_y(X, y, accept_sparse=True, ensure_2d=False, multi_output=True)
+        check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True)
 
         if not bootstrap:
             self.estimator.fit(X, y, **fit_kwargs)
@@ -145,7 +144,8 @@ class BaseLearner(ABC, BaseEstimator):
         When using scikit-learn estimators, calling this method will make the
         ActiveLearner forget all training data it has seen!
         """
-        self.X_training, self.y_training = check_X_y(X, y, accept_sparse=True, ensure_2d=False, multi_output=True)
+        check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True)
+        self.X_training, self.y_training = X, y
         return self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
     def predict(self, X, **predict_kwargs):

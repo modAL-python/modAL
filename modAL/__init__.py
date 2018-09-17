@@ -13,7 +13,7 @@ __all__ = [
     'classifier_uncertainty', 'classifier_margin', 'classifier_entropy',
     'uncertainty_sampling', 'margin_sampling', 'entropy_sampling',
     'vote_entropy', 'consensus_entropy', 'KL_max_disagreement',
-    'vote_entropy_sampling', 'consensus_entropy_sampling', 'max_disagreement_sampling', 'max_std_sampling'
+    'vote_entropy_sampling', 'consensus_entropy_sampling', 'max_disagreement_sampling', 'max_std_sampling',
     'information_density',
     'ranked_batch', 'uncertainty_batch_sampling'
 ]
