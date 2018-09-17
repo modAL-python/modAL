@@ -61,14 +61,15 @@ def select_instance(
         X_training: Union[np.ndarray, sp.csr_matrix],
         X_pool: Union[np.ndarray, sp.csr_matrix],
         X_uncertainty: np.ndarray,
+        mask: np.ndarray,
         metric: Union[str, Callable],
         n_jobs: int
-) -> Tuple[np.ndarray, Union[np.ndarray, sp.csr_matrix]]:
+) -> Tuple[np.ndarray, Union[np.ndarray, sp.csr_matrix], np.ndarray]:
     """
     Core iteration strategy for selecting another record from our unlabeled records.
 
-    Given a set of labeled records (X_training) and unlabeled records with uncertainty
-    scores (X_uncertainty), we'd like to identify the best instance in X_uncertainty
+    Given a set of labeled records (X_training) and unlabeled records (X_pool) with uncertainty
+    scores (X_uncertainty), we'd like to identify the best instance in X_pool
     that best balances uncertainty and dissimilarity.
 
     Refer to Cardoso et al.'s "Ranked batch-mode active learning":
@@ -92,6 +93,11 @@ def select_instance(
     :type X_uncertainty:
         numpy.ndarray of shape (U - batch_iteration,)
 
+    :param mask:
+        Mask to exclude previously selected instances from the pool
+    :type mask:
+        np.ndarray
+
     :param metric:
         This parameter is passed to sklearn.metrics.pairwise.pairwise_distances
     :type metric:
@@ -112,7 +118,7 @@ def select_instance(
 
     # Extract the number of labeled and unlabeled records.
     n_labeled_records, _ = X_training.shape
-    n_unlabeled, _ = X_pool.shape
+    n_unlabeled, _ = X_pool[mask].shape
 
     # Determine our alpha parameter as |U| / (|U| + |D|). Note that because we
     # append to X_training and remove from X_pool within `ranked_batch`,
@@ -121,17 +127,18 @@ def select_instance(
 
     # Compute pairwise distance (and then similarity) scores from every unlabeled record
     # to every record in X_training. The result is an array of shape (n_samples, ).
-    distance_scores = pairwise_distances(X_pool, X_training, metric=metric, n_jobs=n_jobs).min(axis=1)
+    distance_scores = pairwise_distances(X_pool[mask], X_training, metric=metric, n_jobs=n_jobs).min(axis=1)
 
     similarity_scores = 1 / (1 + distance_scores)
 
     # Compute our final scores, which are a balance between how dissimilar a given record
     # is with the records in X_uncertainty and how uncertain we are about its class.
-    scores = alpha * (1 - similarity_scores) + (1 - alpha) * X_uncertainty
+    scores = alpha * (1 - similarity_scores) + (1 - alpha) * X_uncertainty[mask]
 
     # Isolate and return our best instance for labeling as the one with the largest score.
     best_instance_index = np.argmax(scores)
-    return best_instance_index, X_pool[best_instance_index].reshape(1, -1)
+    mask[best_instance_index] = 0
+    return best_instance_index, X_pool[best_instance_index].reshape(1, -1), mask
 
 
 def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
@@ -197,11 +204,9 @@ def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
     for _ in range(ceiling):
 
         # Receive the instance and corresponding index from our unlabeled copy that scores highest.
-        instance_index, instance = select_instance(X_training=labeled, X_pool=unlabeled[mask],
-                                                   X_uncertainty=uncertainty_scores[mask], metric=metric, n_jobs=n_jobs)
-
-        # We "remove" our instance from the unlabeled set by setting corresponding element of the mask to zero
-        mask[instance_index] = 0
+        instance_index, instance, mask = select_instance(X_training=labeled, X_pool=unlabeled,
+                                                         X_uncertainty=uncertainty_scores, mask=mask,
+                                                         metric=metric, n_jobs=n_jobs)
 
         # Add our instance we've considered for labeling to our labeled set. Although we don't
         # know it's label, we want further iterations to consider the newly-added instance so
