@@ -134,6 +134,23 @@ class TestUtils(unittest.TestCase):
                 np.testing.assert_equal(query_1[0], query_2[0])
                 np.testing.assert_almost_equal(query_1[1], query_2[1])
 
+    def test_data_vstack(self):
+        for n_samples, n_features in product(range(1, 10), range(1, 10)):
+            # numpy arrays
+            a, b = np.random.rand(n_samples, n_features), np.random.rand(n_samples, n_features)
+            np.testing.assert_almost_equal(
+                modAL.utils.data.data_vstack((a, b)),
+                np.concatenate((a, b))
+            )
+
+            # sparse matrices
+            for format in ['lil', 'csc', 'csr']:
+                a, b = sp.random(n_samples, n_features, format=format), sp.random(n_samples, n_features, format=format)
+                self.assertEqual((modAL.utils.data.data_vstack((a, b)) != sp.vstack((a, b))).sum(), 0)
+
+        # not supported formats
+        self.assertRaises(TypeError, modAL.utils.data.data_vstack, (1, 1))
+
 
 class TestAcquisitionFunctions(unittest.TestCase):
     def test_acquisition_functions(self):
