@@ -19,6 +19,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.metrics import confusion_matrix
 from scipy.stats import entropy, norm
 from scipy.special import ndtr
+from scipy import sparse as sp
 
 
 Test = namedtuple('Test', ['input', 'output'])
@@ -626,6 +627,28 @@ class TestActiveLearner(unittest.TestCase):
         pred = learner.predict(np.random.rand(10, 10))
         learner.predict_proba(np.random.rand(10, 10))
         confusion_matrix(pred, np.random.randint(0, 2, size=(10,)))
+
+    def test_sparse_matrices(self):
+        query_strategies = [
+            modAL.uncertainty.uncertainty_sampling,
+            modAL.uncertainty.entropy_sampling,
+            modAL.uncertainty.margin_sampling
+        ]
+        formats = ['lil', 'csc', 'csr']
+        sample_count = range(10, 20)
+        feature_count = range(1, 5)
+
+        for query_strategy, format, n_samples, n_features in product(query_strategies, formats, sample_count, feature_count):
+            X_pool = sp.random(n_samples, n_features, format=format)
+            y_pool = np.random.randint(0, 2, size=(n_samples, ))
+            initial_idx = np.random.choice(range(n_samples), size=5, replace=False)
+
+            learner = modAL.models.ActiveLearner(
+                estimator=RandomForestClassifier(), query_strategy=query_strategy,
+                X_training=X_pool[initial_idx], y_training=y_pool[initial_idx]
+            )
+            query_idx, query_inst = learner.query(X_pool)
+            learner.teach(X_pool[query_idx], y_pool[query_idx])
 
 
 class TestBayesianOptimizer(unittest.TestCase):
