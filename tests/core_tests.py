@@ -70,25 +70,26 @@ class TestUtils(unittest.TestCase):
                 )
 
     def test_linear_combination(self):
-        for n_dim in range(1, 5):
-            shape = tuple([10] + [2 for _ in range(n_dim-1)])
-            X_in = np.ones(shape=shape)
-            for n_functions in range(1, 10):
-                functions = [(lambda x: x) for _ in range(n_functions)]
-                # linear combination without weights
-                linear_combination = modAL.utils.combination.make_linear_combination(*functions)
-                np.testing.assert_almost_equal(
-                    linear_combination(X_in),
-                    n_functions*X_in
-                )
 
-                # linear combination with weights
-                weights = np.random.rand(n_functions)
-                weighted_linear_combination = modAL.utils.combination.make_linear_combination(*functions, weights=weights)
-                np.testing.assert_almost_equal(
-                    weighted_linear_combination(X_in),
-                    np.sum(weights) * X_in
-                )
+        def dummy_function(X_in):
+            return np.ones(shape=(len(X_in), 1))
+
+        for n_samples in range(2, 10):
+            for n_features in range(1, 10):
+                for n_functions in range(2, 10):
+                    functions = [dummy_function for _ in range(n_functions)]
+                    linear_combination = modAL.utils.combination.make_linear_combination(*functions)
+
+                    X_in = np.random.rand(n_samples, n_features)
+                    if n_samples == 1:
+                        true_result = float(n_functions)
+                    else:
+                        true_result = n_functions*np.ones(shape=(n_samples, 1))
+
+                    try:
+                        np.testing.assert_almost_equal(linear_combination(X_in), true_result)
+                    except:
+                        linear_combination(X_in)
 
     def test_product(self):
         for n_dim in range(1, 5):
