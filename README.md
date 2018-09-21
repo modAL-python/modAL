@@ -31,7 +31,7 @@ With the recent explosion of available data, you have can have millions of unlab
 Suppose that you can query the label of an unlabelled instance, but it costs you a lot. Which one would you choose? By querying an instance in the uncertain region, surely you obtain more information than querying by random. Active learning gives you a set of tools to handle problems like this. In general, an active learning workflow looks like the following.
 
 <p align="center">
- <img src="https://modal-python.github.io/build/html/_images/active_learning.png"/>
+ <img src="https://modal-python.github.io/build/html/_images/active-learning.png"/>
 </p>
 
 The key components of any workflow are the **model** you choose, the **uncertainty** measure you use and the **query** strategy you apply to request labels. With modAL, instead of choosing from a small set of built-in components, you have the freedom to seamlessly integrate scikit-learn or Keras models into your algorithm and easily tailor your custom query strategies and uncertainty measures.
