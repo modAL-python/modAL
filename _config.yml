@@ -1,9 +1,0 @@
-# Dependencies
-markdown: kramdown
-highlighter: rouge
-
-# Setup
-title: modAL
-author: Tivadar Danka
-twitter_username: tivadardanka
-github_username: cosmic-cortex
