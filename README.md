@@ -1,4 +1,4 @@
-<img src="https://cosmic-cortex.github.io/modAL/img/modAL_b.png" alt="modAL" style="width: 400px;">
+<img src="https://modal-python.github.io/build/html/_static/modAL_b.png" alt="modAL" style="width: 400px;">
 
 Modular Active Learning framework for Python3
 
@@ -25,13 +25,13 @@ modAL is an active learning framework for Python3, designed with *modularity, fl
 With the recent explosion of available data, you have can have millions of unlabelled examples with a high cost to obtain labels. For instance, when trying to predict the sentiment of tweets, obtaining a training set can require immense manual labour. But worry not, active learning comes to the rescue! In general, AL is a framework allowing you to increase classification performance by intelligently querying you to label the most informative instances. To give an example, suppose that you have the following data and classifier with shaded regions signifying the classification probability.
 
 <p align="center">
-  <img src="https://cosmic-cortex.github.io/modAL/img/motivating-example.png" height="600px" width="600px"/>
+  <img src="https://modal-python.github.io/build/html/_static/motivating-example.png" height="600px" width="600px"/>
 </p>
 
 Suppose that you can query the label of an unlabelled instance, but it costs you a lot. Which one would you choose? By querying an instance in the uncertain region, surely you obtain more information than querying by random. Active learning gives you a set of tools to handle problems like this. In general, an active learning workflow looks like the following.
 
 <p align="center">
- <img src="https://cosmic-cortex.github.io/modAL/img/active_learning.png"/>
+ <img src="https://modal-python.github.io/build/html/_static/active_learning.png"/>
 </p>
 
 The key components of any workflow are the **model** you choose, the **uncertainty** measure you use and the **query** strategy you apply to request labels. With modAL, instead of choosing from a small set of built-in components, you have the freedom to seamlessly integrate scikit-learn or Keras models into your algorithm and easily tailor your custom query strategies and uncertainty measures.
@@ -128,7 +128,7 @@ regressor = ActiveLearner(
 ```
 The initial regressor is not very accurate.
 <p align="center">
-  <img src="https://cosmic-cortex.github.io/modAL/img/gp-initial.png">
+  <img src="https://modal-python.github.io/build/html/_static/gp-initial.png">
 </p>
 
 The blue band enveloping the regressor represents the standard deviation of the Gaussian process at the given point. Now we are ready to do active learning!
@@ -142,18 +142,18 @@ for idx in range(n_queries):
 After a few queries, we can see that the prediction is much improved.
 
 <p align="center">
- <img src="https://cosmic-cortex.github.io/modAL/img/gp-final.png">
+ <img src="https://modal-python.github.io/build/html/_static/gp-final.png">
 </p>
 
 ## Additional examples<a name="additional-examples"></a>
 Including this, many examples are available:
-- [Pool-based sampling](https://cosmic-cortex.github.io/modAL/Pool-based-sampling)  
-- [Stream-based sampling](https://cosmic-cortex.github.io/modAL/Stream-based-sampling)  
-- [Active regression](https://cosmic-cortex.github.io/modAL/Active-regression)  
-- [Ensemble regression](https://cosmic-cortex.github.io/modAL/Ensemble-regression)  
-- [Query by committee](https://cosmic-cortex.github.io/modAL/Query-by-committee)  
-- [Bootstrapping and bagging](https://cosmic-cortex.github.io/modAL/Bootstrapping-and-bagging)  
-- [Keras integration](https://cosmic-cortex.github.io/modAL/Keras-integration)
+- [Pool-based sampling](https://modal-python.github.io/build/html/content/examples/Pool-based-sampling.html)  
+- [Stream-based sampling](https://modal-python.github.io/build/html/content/examples/Stream-based-sampling.html)  
+- [Active regression](https://https://modal-python.github.io/build/html/content/examples/Active-regression.html)  
+- [Ensemble regression](https://https://modal-python.github.io/build/html/content/examples/Ensemble-regression.html)  
+- [Query by committee](https://modal-python.github.io/build/html/content/examples/Query-by-committee.html)  
+- [Bootstrapping and bagging](https://modal-python.github.io/build/html/content/examples/Bootstrapping-and-bagging.html)  
+- [Keras integration](https://modal-python.github.io/build/html/content/examples/Keras-integration.html)
 
 # Installation<a name="installation"></a>
 modAL requires
@@ -172,7 +172,7 @@ pip install git+https://github.com/cosmic-cortex/modAL.git
 ```
 
 # Documentation<a name="documentation"></a>
-You can find the documentation of modAL at [https://cosmic-cortex.github.io/modAL](https://cosmic-cortex.github.io/modAL), where several tutorials and working examples are available, along with a complete API reference. For running the examples, Matplotlib >= 2.0 is recommended.
+You can find the documentation of modAL at [https://modAL-python.github.io/modAL](https://modAL-python.github.io/modAL), where several tutorials and working examples are available, along with a complete API reference. For running the examples, Matplotlib >= 2.0 is recommended.
 
 # Citing<a name="citing"></a>
 If you use modAL in your projects, you can cite it as
