@@ -38,6 +38,15 @@ training_indices = np.random.randint(low=0, high=n_labeled_examples + 1, size=3)
 X_train = X_raw[training_indices]
 y_train = y_raw[training_indices]
 
+# Visualize the training data.
+with plt.style.context('seaborn-white'):
+    plt.figure(figsize=(6, 6), dpi=100)
+    plt.scatter(transformed_iris[:, 0], transformed_iris[:, 1], c='0.8', label='unlabeled')
+    plt.scatter(transformed_iris[training_indices, 0], transformed_iris[training_indices, 1], c='k', label='labeled')
+    plt.title('Unlabeled and labeled data')
+    plt.legend()
+    plt.show()
+
 # Isolate the non-training examples we'll be querying.
 X_pool = np.delete(X_raw, training_indices, axis=0)
 y_pool = np.delete(y_raw, training_indices, axis=0)
@@ -96,6 +105,21 @@ for index in range(N_QUERIES):
 
     # Save our model's performance for plotting.
     performance_history.append(model_accuracy)
+
+    # Visualize the instances selected for query.
+    if index == 0:
+        selected = pca.transform(query_instance)
+
+        with plt.style.context('seaborn-white'):
+            plt.figure(figsize=(6, 6), dpi=100)
+            plt.scatter(transformed_iris[:, 0], transformed_iris[:, 1], c='0.8', label='unlabeled')
+            plt.scatter(transformed_iris[training_indices, 0], transformed_iris[training_indices, 1], c='k',
+                        label='training')
+            plt.scatter(selected[:, 0], selected[:, 1], c='r', label='1st query')
+            plt.title('Unlabeled and labeled data')
+            plt.legend()
+            plt.show()
+
 
 # Plot our performance over time.
 with plt.style.context('seaborn-white'):
