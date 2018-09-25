@@ -4,7 +4,4 @@
 *~
 *#
 __pycache__
-examples/misc.py
-Gemfile*
-_site/
-_build/
+build/
