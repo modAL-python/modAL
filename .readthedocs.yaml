@@ -1,4 +1,4 @@
 requirements_file: rtd_requirements.txt
 
 python:
-    version: 3.6
+    version: 3.5
