@@ -215,20 +215,26 @@ Danka <https://www.tivadardanka.com>`__ (aka
    Acquisition functions <content/query_strategies/Acquisition-functions>
    Uncertainty sampling <content/query_strategies/Uncertainty-sampling>
    Disagreement sampling <content/query_strategies/Disagreement-sampling>
+   content/query_strategies/Ranked-batch-queries
 
 .. toctree::
    :maxdepth: 1
    :caption: Examples
    
-   Pool-based sampling <content/examples/pool-based_sampling>
-   Stream-based sampling <content/examples/Stream-based-sampling>
+   content/examples/pool-based_sampling
+   content/examples/ranked_batch_mode
+   content/examples/Stream-based-sampling
    Active regression <content/examples/active_regression>
    Ensemble regression <content/examples/ensemble_regression>
-   Bayesian optimization <content/examples/bayesian_optimization>
-   Query by committee <content/examples/Query-by-committee>
-   Bootstrapping and bagging <content/examples/Bootstrapping-and-bagging>
+   content/examples/bayesian_optimization
+   content/examples/Query-by-committee
+   content/examples/Bootstrapping-and-bagging
+   content/examples/extending_modal
    Keras integration <content/examples/Keras-integration>
    
 .. toctree::
+   :glob:
    :maxdepth: 1
    :caption: API reference
+
+   content/apireference/*
