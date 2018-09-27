@@ -95,8 +95,7 @@ strategy is as easy as the following.
         X_training=X_training, y_training=y_training
     )
 
-For more details on how to implement your custom strategies, visit the
-page :ref:`Extending-modAL`!
+For more details on how to implement your custom strategies, visit the page `Extending modAL <content/overview/Extending-modAL.ipynb>`_!
 
 
 An example with active regression
@@ -195,27 +194,26 @@ Danka <https://www.tivadardanka.com>`__ (aka
    :maxdepth: 1
    :caption: Overview
    
-   modAL in a nutshell <content/overview/modAL-in-a-nutshell>
-   Installation <content/overview/Installation>
-   Extending modAL <content/overview/Extending-modAL>
+   content/overview/modAL-in-a-nutshell
+   content/overview/Installation
+   content/overview/Extending-modAL
 
 .. toctree::
    :maxdepth: 1
    :caption: Models
    
-   ActiveLearner <content/models/ActiveLearner>
-   BayesianOptimizer <content/models/BayesianOptimizer>
-   Committee <content/models/Committee>
-   CommitteeRegressor <content/models/CommitteeRegressor>
+   content/models/ActiveLearner
+   content/models/BayesianOptimizer
+   content/models/Committee
+   content/models/CommitteeRegressor
 
 .. toctree::
    :maxdepth: 1
    :caption: Query strategies
    
-   Acquisition functions <content/query_strategies/Acquisition-functions>
-   Uncertainty sampling <content/query_strategies/Uncertainty-sampling>
-   Disagreement sampling <content/query_strategies/Disagreement-sampling>
-   content/query_strategies/Ranked-batch-queries
+   content/query_strategies/Acquisition-functions
+   content/query_strategies/Uncertainty-sampling
+   content/query_strategies/Disagreement-sampling
 
 .. toctree::
    :maxdepth: 1
@@ -224,13 +222,12 @@ Danka <https://www.tivadardanka.com>`__ (aka
    content/examples/pool-based_sampling
    content/examples/ranked_batch_mode
    content/examples/Stream-based-sampling
-   Active regression <content/examples/active_regression>
-   Ensemble regression <content/examples/ensemble_regression>
+   content/examples/active_regression
+   content/examples/ensemble_regression
    content/examples/bayesian_optimization
    content/examples/Query-by-committee
    content/examples/Bootstrapping-and-bagging
-   content/examples/extending_modal
-   Keras integration <content/examples/Keras-integration>
+   content/examples/Keras-integration
    
 .. toctree::
    :glob:
