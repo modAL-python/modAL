@@ -167,7 +167,7 @@ class BaseLearner(ABC, BaseEstimator):
             **predict_kwargs: Keyword arguments to be passed to the predict method of the estimator.
 
         Returns:
-            Predictions.
+            Estimator predictions for X.
         """
         return self.estimator.predict(X, **predict_kwargs)
 
@@ -391,509 +391,497 @@ class BaseCommittee(ABC, BaseEstimator):
         self.learner_list = learner_list
         self.query_strategy = query_strategy
 
-    class BaseCommittee(ABC, BaseEstimator):
-        def __init__(
-                self,
-                learner_list,  # list of ActiveLearner objects
-                query_strategy  # callable to query labels
+    def __iter__(self):
+        for learner in self.learner_list:
+            yield learner
 
-        ):
-            assert type(learner_list) == list, 'learners must be supplied in a list'
+    def __len__(self):
+        return len(self.learner_list)
 
-            self.learner_list = learner_list
-            self.query_strategy = query_strategy
-
-        def __iter__(self):
-            for learner in self.learner_list:
-                yield learner
-
-        def __len__(self):
-            return len(self.learner_list)
-
-        def _add_training_data(self, X, y):
-            """
-            Adds the new data and label to the known data for each learner,
-            but does not retrain the model.
-            :param X:
-                The new samples for which the labels are supplied
-                by the expert.
-            :type X:
-                numpy.ndarray of shape (n_samples, n_features)
-            :param y:
-                Labels corresponding to the new instances in X.
-            :type y:
-                numpy.ndarray of shape (n_samples, )
-            Note
-            ----
-            If the learners have been fitted, the features in X
-            have to agree with the training samples which the
-            classifier has seen.
-            """
-            for learner in self.learner_list:
-                learner._add_training_data(X, y)
-
-        def _fit_to_known(self, bootstrap=False, **fit_kwargs):
-            """
-            Fits all learners to the training data and labels provided to it so far.
-            :param bootstrap:
-                If True, each estimator is trained on a bootstrapped dataset. Useful when
-                using bagging to build the ensemble.
-            :type bootstrap:
-                boolean
-            :param fit_kwargs:
-                Keyword arguments to be passed to the fit method of the predictor.
-            :type fit_kwargs:
-                keyword arguments
-            """
-            for learner in self.learner_list:
-                learner._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
-
-        def _fit_on_new(self, X, y, bootstrap=False, **fit_kwargs):
-            """
-            Fits all learners to the given data and labels.
-            :param X:
-                The new samples for which the labels are supplied
-                by the expert.
-            :type X:
-                numpy.ndarray of shape (n_samples, n_features)
-            :param y:
-                Labels corresponding to the new instances in X.
-            :type y:
-                numpy.ndarray of shape (n_samples, )
-            :param bootstrap:
-                If True, the method trains the model on a set bootstrapped from X.
-            :type bootstrap:
-                boolean
-            :param fit_kwargs:
-                Keyword arguments to be passed to the fit method of the predictor.
-            :type fit_kwargs:
-                keyword arguments
-            """
-            for learner in self.learner_list:
-                learner._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
-
-        def fit(self, X, y, **fit_kwargs):
-            """
-            Fits every learner to a subset sampled with replacement from X.
-            Calling this method makes the learner forget the data it has seen up until this point and
-            replaces it with X! If you would like to perform bootstrapping on each learner using the
-            data it has seen, use the method .rebag()!
-            :param X:
-                The samples to be fitted.
-            :type X:
-                numpy.ndarray of shape (n_samples, n_features)
-            :param y:
-                The corresponding labels.
-            :type y:
-                numpy.ndarray of shape (n_samples, )
-            :param fit_kwargs:
-                Keyword arguments to be passed to the fit method of the predictor.
-            :type fit_kwargs:
-                keyword arguments
-            DANGER ZONE
-            -----------
-            Calling this method makes the learner forget the data it has seen up until this point and
-            replaces it with X!
-            """
-            for learner in self.learner_list:
-                learner.fit(X, y, **fit_kwargs)
-
-            return self
-
-        def query(self, *query_args, **query_kwargs):
-            """
-            Finds the n_instances most informative point in the data provided by calling
-            the query_strategy function.
-            :param query_args: The arguments for the query strategy. For instance, in the
-                case of modAL.disagreement.max_disagreement_sampling, it is the pool of
-                samples from which the query strategy should choose instances to request
-                labels.
-            :type query_args: function arguments
-            :param query_kwargs:
-                Keyword arguments for the query strategy function
-            :type query_kwargs: keyword arguments
-            :returns:
-             - **query_result** --
-               Return value of the query_strategy function. Should be the indices of the
-               instances from the pool chosen to be labelled and the instances themselves.
-               (Can be different in other cases, for instance only the instance to be
-               labelled upon query synthesis.)
-            """
-            query_result = self.query_strategy(self, *query_args, **query_kwargs)
-            return query_result
-
-        def rebag(self, **fit_kwargs):
-            """
-            Refits every learner with a dataset bootstrapped from its training instances. Contrary to
-            .bag(), it bootstraps the training data for each learner based on its own examples.
-            :param fit_kwargs:
-                Keyword arguments to be passed to the fit method of the predictor.
-            :type fit_kwargs:
-                keyword arguments
-            """
-            self._fit_to_known(bootstrap=True, **fit_kwargs)
-
-        def teach(self, X, y, bootstrap=False, only_new=False, **fit_kwargs):
-            """
-            Adds X and y to the known training data for each learner
-            and retrains learners with the augmented dataset.
-            :param X:
-                The new samples for which the labels are supplied
-                by the expert.
-            :type X:
-                numpy.ndarray of shape (n_samples, n_features)
-            :param y:
-                Labels corresponding to the new instances in X.
-            :type y:
-                numpy.ndarray of shape (n_samples, )
-            :param bootstrap:
-                If True, trains each learner on a bootstrapped set. Useful
-                when building the ensemble by bagging.
-            :type bootstrap:
-                boolean
-            :param fit_kwargs:
-                Keyword arguments to be passed to the fit method
-                of the predictor.
-            :type fit_kwargs:
-                keyword arguments
-            """
-            self._add_training_data(X, y)
-            if not only_new:
-                self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
-            else:
-                self._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
-
-        @abc.abstractmethod
-        def predict(self, X):
-            pass
-
-        @abc.abstractmethod
-        def vote(self, X):
-            pass
-
-    class Committee(BaseCommittee):
+    def _add_training_data(self, X, y):
         """
-        This class is an abstract model of a committee-based active learning algorithm.
-        :param learner_list:
-            A list of ActiveLearners forming the Committee.
-        :type learner_list:
-            list
-        :param query_strategy:
-            Query strategy function. Committee supports disagreement-based query strategies
-            from modAL.disagreement, but uncertainty-based strategies from modAL.uncertainty
-            are also supported.
-        :type query_strategy:
-            function
-        :attributes:
-          - **classes_** *(numpy.ndarray of shape (n_classes, ))* --
-            Class labels known by the Committee.
-          - **n_classes_** *(int)* --
-            Number of classes known by the Committee
-        Examples
-        --------
-        >>> from sklearn.datasets import load_iris
-        >>> from sklearn.neighbors import KNeighborsClassifier
-        >>> from sklearn.ensemble import RandomForestClassifier
-        >>> from modAL.models import ActiveLearner, Committee
-        >>>
-        >>> iris = load_iris()
-        >>>
-        >>> # initialize ActiveLearners
-        >>> learner_1 = ActiveLearner(
-        ...     estimator=RandomForestClassifier(),
-        ...     X_training=iris['data'][[0, 50, 100]], y_training=iris['target'][[0, 50, 100]]
-        ... )
-        >>> learner_2 = ActiveLearner(
-        ...     estimator=KNeighborsClassifier(n_neighbors=3),
-        ...     X_training=iris['data'][[1, 51, 101]], y_training=iris['target'][[1, 51, 101]]
-        ... )
-        >>>
-        >>> # initialize the Committee
-        >>> committee = Committee(
-        ...     learner_list=[learner_1, learner_2]
-        ... )
-        >>>
-        >>> # querying for labels
-        >>> query_idx, query_sample = committee.query(iris['data'])
-        >>>
-        >>> # ...obtaining new labels from the Oracle...
-        >>>
-        >>> # teaching newly labelled examples
-        >>> committee.teach(
-        ...     X=iris['data'][query_idx].reshape(1, -1),
-        ...     y=iris['target'][query_idx].reshape(1, )
-        ... )
+        Adds the new data and label to the known data for each learner,
+        but does not retrain the model.
+        :param X:
+            The new samples for which the labels are supplied
+            by the expert.
+        :type X:
+            numpy.ndarray of shape (n_samples, n_features)
+        :param y:
+            Labels corresponding to the new instances in X.
+        :type y:
+            numpy.ndarray of shape (n_samples, )
+        Note
+        ----
+        If the learners have been fitted, the features in X
+        have to agree with the training samples which the
+        classifier has seen.
+        """
+        for learner in self.learner_list:
+            learner._add_training_data(X, y)
+
+    def _fit_to_known(self, bootstrap=False, **fit_kwargs):
+        """
+        Fits all learners to the training data and labels provided to it so far.
+        :param bootstrap:
+            If True, each estimator is trained on a bootstrapped dataset. Useful when
+            using bagging to build the ensemble.
+        :type bootstrap:
+            boolean
+        :param fit_kwargs:
+            Keyword arguments to be passed to the fit method of the predictor.
+        :type fit_kwargs:
+            keyword arguments
+        """
+        for learner in self.learner_list:
+            learner._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
+
+    def _fit_on_new(self, X, y, bootstrap=False, **fit_kwargs):
+        """
+        Fits all learners to the given data and labels.
+        :param X:
+            The new samples for which the labels are supplied
+            by the expert.
+        :type X:
+            numpy.ndarray of shape (n_samples, n_features)
+        :param y:
+            Labels corresponding to the new instances in X.
+        :type y:
+            numpy.ndarray of shape (n_samples, )
+        :param bootstrap:
+            If True, the method trains the model on a set bootstrapped from X.
+        :type bootstrap:
+            boolean
+        :param fit_kwargs:
+            Keyword arguments to be passed to the fit method of the predictor.
+        :type fit_kwargs:
+            keyword arguments
+        """
+        for learner in self.learner_list:
+            learner._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
+
+    def fit(self, X, y, **fit_kwargs):
+        """
+        Fits every learner to a subset sampled with replacement from X.
+        Calling this method makes the learner forget the data it has seen up until this point and
+        replaces it with X! If you would like to perform bootstrapping on each learner using the
+        data it has seen, use the method .rebag()!
+
+        Calling this method makes the learner forget the data it has seen up until this point and
+        replaces it with X!
+
+        :param X:
+            The samples to be fitted.
+        :type X:
+            numpy.ndarray of shape (n_samples, n_features)
+        :param y:
+            The corresponding labels.
+        :type y:
+            numpy.ndarray of shape (n_samples, )
+        :param fit_kwargs:
+            Keyword arguments to be passed to the fit method of the predictor.
+        :type fit_kwargs:
+            keyword arguments
+        """
+        for learner in self.learner_list:
+            learner.fit(X, y, **fit_kwargs)
+
+        return self
+
+    def query(self, *query_args, **query_kwargs):
+        """
+        Finds the n_instances most informative point in the data provided by calling
+        the query_strategy function.
+        :param query_args: The arguments for the query strategy. For instance, in the
+            case of modAL.disagreement.max_disagreement_sampling, it is the pool of
+            samples from which the query strategy should choose instances to request
+            labels.
+        :type query_args: function arguments
+        :param query_kwargs:
+            Keyword arguments for the query strategy function
+        :type query_kwargs: keyword arguments
+        :returns:
+         - **query_result** --
+           Return value of the query_strategy function. Should be the indices of the
+           instances from the pool chosen to be labelled and the instances themselves.
+           (Can be different in other cases, for instance only the instance to be
+           labelled upon query synthesis.)
+        """
+        query_result = self.query_strategy(self, *query_args, **query_kwargs)
+        return query_result
+
+    def rebag(self, **fit_kwargs):
+        """
+        Refits every learner with a dataset bootstrapped from its training instances. Contrary to
+        .bag(), it bootstraps the training data for each learner based on its own examples.
+        :param fit_kwargs:
+            Keyword arguments to be passed to the fit method of the predictor.
+        :type fit_kwargs:
+            keyword arguments
+        """
+        self._fit_to_known(bootstrap=True, **fit_kwargs)
+
+    def teach(self, X, y, bootstrap=False, only_new=False, **fit_kwargs):
+        """
+        Adds X and y to the known training data for each learner
+        and retrains learners with the augmented dataset.
+        :param X:
+            The new samples for which the labels are supplied
+            by the expert.
+        :type X:
+            numpy.ndarray of shape (n_samples, n_features)
+        :param y:
+            Labels corresponding to the new instances in X.
+        :type y:
+            numpy.ndarray of shape (n_samples, )
+        :param bootstrap:
+            If True, trains each learner on a bootstrapped set. Useful
+            when building the ensemble by bagging.
+        :type bootstrap:
+            boolean
+        :param fit_kwargs:
+            Keyword arguments to be passed to the fit method
+            of the predictor.
+        :type fit_kwargs:
+            keyword arguments
+        """
+        self._add_training_data(X, y)
+        if not only_new:
+            self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
+        else:
+            self._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
+
+    @abc.abstractmethod
+    def predict(self, X):
+        pass
+
+    @abc.abstractmethod
+    def vote(self, X):
+        pass
+
+class Committee(BaseCommittee):
+    """
+    This class is an abstract model of a committee-based active learning algorithm.
+    :param learner_list:
+        A list of ActiveLearners forming the Committee.
+    :type learner_list:
+        list
+    :param query_strategy:
+        Query strategy function. Committee supports disagreement-based query strategies
+        from modAL.disagreement, but uncertainty-based strategies from modAL.uncertainty
+        are also supported.
+    :type query_strategy:
+        function
+    :attributes:
+      - **classes_** *(numpy.ndarray of shape (n_classes, ))* --
+        Class labels known by the Committee.
+      - **n_classes_** *(int)* --
+        Number of classes known by the Committee
+    Examples
+    --------
+    >>> from sklearn.datasets import load_iris
+    >>> from sklearn.neighbors import KNeighborsClassifier
+    >>> from sklearn.ensemble import RandomForestClassifier
+    >>> from modAL.models import ActiveLearner, Committee
+    >>>
+    >>> iris = load_iris()
+    >>>
+    >>> # initialize ActiveLearners
+    >>> learner_1 = ActiveLearner(
+    ...     estimator=RandomForestClassifier(),
+    ...     X_training=iris['data'][[0, 50, 100]], y_training=iris['target'][[0, 50, 100]]
+    ... )
+    >>> learner_2 = ActiveLearner(
+    ...     estimator=KNeighborsClassifier(n_neighbors=3),
+    ...     X_training=iris['data'][[1, 51, 101]], y_training=iris['target'][[1, 51, 101]]
+    ... )
+    >>>
+    >>> # initialize the Committee
+    >>> committee = Committee(
+    ...     learner_list=[learner_1, learner_2]
+    ... )
+    >>>
+    >>> # querying for labels
+    >>> query_idx, query_sample = committee.query(iris['data'])
+    >>>
+    >>> # ...obtaining new labels from the Oracle...
+    >>>
+    >>> # teaching newly labelled examples
+    >>> committee.teach(
+    ...     X=iris['data'][query_idx].reshape(1, -1),
+    ...     y=iris['target'][query_idx].reshape(1, )
+    ... )
+    """
+
+    def __init__(
+            self,
+            learner_list,  # list of ActiveLearner objects
+            query_strategy=vote_entropy_sampling  # callable to query labels
+
+    ):
+        super().__init__(learner_list, query_strategy)
+        self._set_classes()
+
+    def _set_classes(self):
+        """
+        Checks the known class labels by each learner, merges the labels and
+        returns a mapping which maps the learner's classes to the complete label
+        list.
         """
 
-        def __init__(
-                self,
-                learner_list,  # list of ActiveLearner objects
-                query_strategy=vote_entropy_sampling  # callable to query labels
+        # assemble the list of known classes from each learner
+        try:
+            # if estimators are fitted
+            known_classes = tuple(learner.estimator.classes_ for learner in self.learner_list)
+        except AttributeError:
+            # handle unfitted estimators
+            self.classes_ = None
+            self.n_classes_ = 0
+            return
 
-        ):
-            super().__init__(learner_list, query_strategy)
-            self._set_classes()
+        self.classes_ = np.unique(
+            np.concatenate(known_classes, axis=0),
+            axis=0
+        )
+        self.n_classes_ = len(self.classes_)
 
-        def _set_classes(self):
-            """
-            Checks the known class labels by each learner, merges the labels and
-            returns a mapping which maps the learner's classes to the complete label
-            list.
-            """
+    def _add_training_data(self, X, y):
+        super()._add_training_data(X, y)
+        self._set_classes()
 
-            # assemble the list of known classes from each learner
-            try:
-                # if estimators are fitted
-                known_classes = tuple(learner.estimator.classes_ for learner in self.learner_list)
-            except AttributeError:
-                # handle unfitted estimators
-                self.classes_ = None
-                self.n_classes_ = 0
-                return
+    def predict(self, X, **predict_proba_kwargs):
+        """
+        Predicts the class of the samples by picking the consensus prediction.
+        :param X:
+            The samples to be predicted.
+        :type X:
+            numpy.ndarray of shape (n_samples, n_features)
+        :param predict_proba_kwargs:
+            Keyword arguments to be passed to the predict_proba method of the
+            Committee.
+        :type predict_proba_kwargs:
+            keyword arguments
+        :returns:
+          - **prediction** *(numpy.ndarray of shape (n_samples, ))* --
+            The predicted class labels for X.
+        """
+        # getting average certainties
+        proba = self.predict_proba(X, **predict_proba_kwargs)
+        # finding the sample-wise max probability
+        max_proba_idx = np.argmax(proba, axis=1)
+        # translating label indices to labels
+        return self.classes_[max_proba_idx]
 
-            self.classes_ = np.unique(
-                np.concatenate(known_classes, axis=0),
-                axis=0
-            )
-            self.n_classes_ = len(self.classes_)
+    def predict_proba(self, X, **predict_proba_kwargs):
+        """
+        Consensus probabilities of the Committee.
+        :param X:
+            The samples for which the class probabilities are
+            to be predicted.
+        :type X:
+            numpy.ndarray of shape (n_samples, n_features)
+        :param predict_proba_kwargs:
+            Keyword arguments to be passed to the predict_proba method of the
+            Committee.
+        :type predict_proba_kwargs:
+            keyword arguments
+        :returns:
+          - **proba** *(numpy.ndarray of shape (n_samples, n_classes))* --
+            Class probabilities for X.
+        """
+        return np.mean(self.vote_proba(X, **predict_proba_kwargs), axis=1)
 
-        def _add_training_data(self, X, y):
-            super()._add_training_data(X, y)
-            self._set_classes()
+    def score(self, X, y, sample_weight=None):
+        """
+        Returns the mean accuracy on the given test data and labels.
+        :param X:
+            The samples to score.
+        :type X:
+            numpy.ndarray of shape (n_samples, n_features)
+        :param y:
+            Ground truth labels corresponding to X.
+        :type y:
+            numpy.ndarray of shape (n_samples, )
+        :param sample_weight:
+            Sample weights.
+        :type sample_weight:
+            numpy.ndarray of shape (n_samples, )
+        :returns:
+          - **score** *float* --
+            Mean accuracy of the classifier.
+        """
+        y_pred = self.predict(X)
+        return accuracy_score(y, y_pred, sample_weight=sample_weight)
 
-        def predict(self, X, **predict_proba_kwargs):
-            """
-            Predicts the class of the samples by picking the consensus prediction.
-            :param X:
-                The samples to be predicted.
-            :type X:
-                numpy.ndarray of shape (n_samples, n_features)
-            :param predict_proba_kwargs:
-                Keyword arguments to be passed to the predict_proba method of the
-                Committee.
-            :type predict_proba_kwargs:
-                keyword arguments
-            :returns:
-              - **prediction** *(numpy.ndarray of shape (n_samples, ))* --
-                The predicted class labels for X.
-            """
-            # getting average certainties
-            proba = self.predict_proba(X, **predict_proba_kwargs)
-            # finding the sample-wise max probability
-            max_proba_idx = np.argmax(proba, axis=1)
-            # translating label indices to labels
-            return self.classes_[max_proba_idx]
+    def vote(self, X, **predict_kwargs):
+        """
+        Predicts the labels for the supplied data for each learner in
+        the Committee.
+        :param X:
+            The samples to cast votes.
+        :type X:
+            numpy.ndarray of shape (n_samples, n_features)
+        :param predict_kwargs:
+            Keyword arguments to be passed for the learners .predict() method.
+        :type predict_kwargs:
+            keyword arguments
+        :returns:
+          - **vote** *(numpy.ndarray of shape (n_samples, n_learners))* --
+            The predicted class for each learner in the Committee
+            and each sample in X.
+        """
+        prediction = np.zeros(shape=(X.shape[0], len(self.learner_list)))
 
-        def predict_proba(self, X, **predict_proba_kwargs):
-            """
-            Consensus probabilities of the Committee.
-            :param X:
-                The samples for which the class probabilities are
-                to be predicted.
-            :type X:
-                numpy.ndarray of shape (n_samples, n_features)
-            :param predict_proba_kwargs:
-                Keyword arguments to be passed to the predict_proba method of the
-                Committee.
-            :type predict_proba_kwargs:
-                keyword arguments
-            :returns:
-              - **proba** *(numpy.ndarray of shape (n_samples, n_classes))* --
-                Class probabilities for X.
-            """
-            return np.mean(self.vote_proba(X, **predict_proba_kwargs), axis=1)
+        for learner_idx, learner in enumerate(self.learner_list):
+            prediction[:, learner_idx] = learner.predict(X, **predict_kwargs)
 
-        def score(self, X, y, sample_weight=None):
-            """
-            Returns the mean accuracy on the given test data and labels.
-            :param X:
-                The samples to score.
-            :type X:
-                numpy.ndarray of shape (n_samples, n_features)
-            :param y:
-                Ground truth labels corresponding to X.
-            :type y:
-                numpy.ndarray of shape (n_samples, )
-            :param sample_weight:
-                Sample weights.
-            :type sample_weight:
-                numpy.ndarray of shape (n_samples, )
-            :returns:
-              - **score** *float* --
-                Mean accuracy of the classifier.
-            """
-            y_pred = self.predict(X)
-            return accuracy_score(y, y_pred, sample_weight=sample_weight)
+        return prediction
 
-        def vote(self, X, **predict_kwargs):
-            """
-            Predicts the labels for the supplied data for each learner in
-            the Committee.
-            :param X:
-                The samples to cast votes.
-            :type X:
-                numpy.ndarray of shape (n_samples, n_features)
-            :param predict_kwargs:
-                Keyword arguments to be passed for the learners .predict() method.
-            :type predict_kwargs:
-                keyword arguments
-            :returns:
-              - **vote** *(numpy.ndarray of shape (n_samples, n_learners))* --
-                The predicted class for each learner in the Committee
-                and each sample in X.
-            """
-            prediction = np.zeros(shape=(X.shape[0], len(self.learner_list)))
+    def vote_proba(self, X, **predict_proba_kwargs):
+        """
+        Predicts the probabilities of the classes for each sample and each learner.
+        :param X:
+            The samples for which class probabilities are to be calculated.
+        :type X:
+            numpy.ndarray of shape (n_samples, n_features)
+        :param predict_proba_kwargs:
+            Keyword arguments for the .predict_proba() method of the learners.
+        :type predict_proba_kwargs:
+            keyword arguments
+        :returns:
+          - **vote_proba** *(numpy.ndarray of shape (n_samples, n_learners, n_classes))* --
+            Probabilities of each class for each learner and each instance.
+        """
+
+        # get dimensions
+        n_samples = X.shape[0]
+        n_learners = len(self.learner_list)
+        proba = np.zeros(shape=(n_samples, n_learners, self.n_classes_))
+
+        # checking if the learners in the Committee know the same set of class labels
+        if check_class_labels(*[learner.estimator for learner in self.learner_list]):
+            # known class labels are the same for each learner
+            # probability prediction is straightforward
 
             for learner_idx, learner in enumerate(self.learner_list):
-                prediction[:, learner_idx] = learner.predict(X, **predict_kwargs)
+                proba[:, learner_idx, :] = learner.predict_proba(X, **predict_proba_kwargs)
 
-            return prediction
-
-        def vote_proba(self, X, **predict_proba_kwargs):
-            """
-            Predicts the probabilities of the classes for each sample and each learner.
-            :param X:
-                The samples for which class probabilities are to be calculated.
-            :type X:
-                numpy.ndarray of shape (n_samples, n_features)
-            :param predict_proba_kwargs:
-                Keyword arguments for the .predict_proba() method of the learners.
-            :type predict_proba_kwargs:
-                keyword arguments
-            :returns:
-              - **vote_proba** *(numpy.ndarray of shape (n_samples, n_learners, n_classes))* --
-                Probabilities of each class for each learner and each instance.
-            """
-
-            # get dimensions
-            n_samples = X.shape[0]
-            n_learners = len(self.learner_list)
-            proba = np.zeros(shape=(n_samples, n_learners, self.n_classes_))
-
-            # checking if the learners in the Committee know the same set of class labels
-            if check_class_labels(*[learner.estimator for learner in self.learner_list]):
-                # known class labels are the same for each learner
-                # probability prediction is straightforward
-
-                for learner_idx, learner in enumerate(self.learner_list):
-                    proba[:, learner_idx, :] = learner.predict_proba(X, **predict_proba_kwargs)
-
-            else:
-                for learner_idx, learner in enumerate(self.learner_list):
-                    proba[:, learner_idx, :] = check_class_proba(
-                        proba=learner.predict_proba(X, **predict_proba_kwargs),
-                        known_labels=learner.estimator.classes_,
-                        all_labels=self.classes_
-                    )
-
-            return proba
-
-    class CommitteeRegressor(BaseCommittee):
-        """
-        This class is an abstract model of a committee-based active learning regression.
-        :param learner_list:
-            A list of ActiveLearners forming the CommitteeRegressor.
-        :type learner_list:
-            list
-        :param query_strategy:
-            Query strategy function.
-        :type query_strategy:
-            function
-        Examples
-        --------
-        >>> import numpy as np
-        >>> import matplotlib.pyplot as plt
-        >>> from sklearn.gaussian_process import GaussianProcessRegressor
-        >>> from sklearn.gaussian_process.kernels import WhiteKernel, RBF
-        >>> from modAL.models import ActiveLearner, CommitteeRegressor
-        >>>
-        >>> # generating the data
-        >>> X = np.concatenate((np.random.rand(100)-1, np.random.rand(100)))
-        >>> y = np.abs(X) + np.random.normal(scale=0.2, size=X.shape)
-        >>>
-        >>> # initializing the regressors
-        >>> n_initial = 10
-        >>> kernel = RBF(length_scale=1.0, length_scale_bounds=(1e-2, 1e3)) + WhiteKernel(noise_level=1, noise_level_bounds=(1e-10, 1e+1))
-        >>>
-        >>> initial_idx = list()
-        >>> initial_idx.append(np.random.choice(range(100), size=n_initial, replace=False))
-        >>> initial_idx.append(np.random.choice(range(100, 200), size=n_initial, replace=False))
-        >>> learner_list = [ActiveLearner(
-        ...                         estimator=GaussianProcessRegressor(kernel),
-        ...                         X_training=X[idx].reshape(-1, 1), y_training=y[idx].reshape(-1, 1)
-        ...                 )
-        ...                 for idx in initial_idx]
-        >>>
-        >>> # query strategy for regression
-        >>> def ensemble_regression_std(regressor, X):
-        ...     _, std = regressor.predict(X, return_std=True)
-        ...     query_idx = np.argmax(std)
-        ...     return query_idx, X[query_idx]
-        >>>
-        >>> # initializing the CommitteeRegressor
-        >>> committee = CommitteeRegressor(
-        ...     learner_list=learner_list,
-        ...     query_strategy=ensemble_regression_std
-        ... )
-        >>>
-        >>> # active regression
-        >>> n_queries = 10
-        >>> for idx in range(n_queries):
-        ...     query_idx, query_instance = committee.query(X.reshape(-1, 1))
-        ...     committee.teach(X[query_idx].reshape(-1, 1), y[query_idx].reshape(-1, 1))
-        """
-
-        def __init__(
-                self,
-                learner_list,  # list of ActiveLearner objects
-                query_strategy=max_std_sampling  # callable to query labels
-
-        ):
-            super().__init__(learner_list, query_strategy)
-
-        def predict(self, X, return_std=False, **predict_kwargs):
-            """
-            Predicts the values of the samples by averaging the prediction of each regressor.
-            :param X:
-                The samples to be predicted.
-            :type X:
-                numpy.ndarray of shape (n_samples, n_features)
-            :param predict_kwargs:
-                Keyword arguments to be passed to the .vote() method of the CommitteeRegressor.
-            :type predict_kwargs:
-                keyword arguments
-            :returns:
-              - **prediction** *(numpy.ndarray of shape (n_samples, ))* --
-                The predicted class labels for X.
-            """
-            vote = self.vote(X, **predict_kwargs)
-            if not return_std:
-                return np.mean(vote, axis=1)
-            else:
-                return np.mean(vote, axis=1), np.std(vote, axis=1)
-
-        def vote(self, X, **predict_kwargs):
-            """
-            Predicts the values for the supplied data for each regressor in the CommitteeRegressor.
-            :param X:
-                The samples to cast votes.
-            :type X:
-                numpy.ndarray of shape (n_samples, n_features)
-            :param predict_kwargs:
-                Keyword arguments to be passed for the learners .predict() method.
-            :type predict_kwargs:
-                keyword arguments
-            :returns:
-              - **vote** *(numpy.ndarray of shape (n_samples, n_regressors))* --
-                The predicted value for each regressor in the CommitteeRegressor and each sample in X.
-            """
-            prediction = np.zeros(shape=(len(X), len(self.learner_list)))
-
+        else:
             for learner_idx, learner in enumerate(self.learner_list):
-                prediction[:, learner_idx] = learner.predict(X, **predict_kwargs).reshape(-1, )
+                proba[:, learner_idx, :] = check_class_proba(
+                    proba=learner.predict_proba(X, **predict_proba_kwargs),
+                    known_labels=learner.estimator.classes_,
+                    all_labels=self.classes_
+                )
 
-            return prediction
+        return proba
 
-    if __name__ == '__main__':
-        import doctest
-        doctest.testmod()
+class CommitteeRegressor(BaseCommittee):
+    """
+    This class is an abstract model of a committee-based active learning regression.
+    :param learner_list:
+        A list of ActiveLearners forming the CommitteeRegressor.
+    :type learner_list:
+        list
+    :param query_strategy:
+        Query strategy function.
+    :type query_strategy:
+        function
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import matplotlib.pyplot as plt
+    >>> from sklearn.gaussian_process import GaussianProcessRegressor
+    >>> from sklearn.gaussian_process.kernels import WhiteKernel, RBF
+    >>> from modAL.models import ActiveLearner, CommitteeRegressor
+    >>>
+    >>> # generating the data
+    >>> X = np.concatenate((np.random.rand(100)-1, np.random.rand(100)))
+    >>> y = np.abs(X) + np.random.normal(scale=0.2, size=X.shape)
+    >>>
+    >>> # initializing the regressors
+    >>> n_initial = 10
+    >>> kernel = RBF(length_scale=1.0, length_scale_bounds=(1e-2, 1e3)) + WhiteKernel(noise_level=1, noise_level_bounds=(1e-10, 1e+1))
+    >>>
+    >>> initial_idx = list()
+    >>> initial_idx.append(np.random.choice(range(100), size=n_initial, replace=False))
+    >>> initial_idx.append(np.random.choice(range(100, 200), size=n_initial, replace=False))
+    >>> learner_list = [ActiveLearner(
+    ...                         estimator=GaussianProcessRegressor(kernel),
+    ...                         X_training=X[idx].reshape(-1, 1), y_training=y[idx].reshape(-1, 1)
+    ...                 )
+    ...                 for idx in initial_idx]
+    >>>
+    >>> # query strategy for regression
+    >>> def ensemble_regression_std(regressor, X):
+    ...     _, std = regressor.predict(X, return_std=True)
+    ...     query_idx = np.argmax(std)
+    ...     return query_idx, X[query_idx]
+    >>>
+    >>> # initializing the CommitteeRegressor
+    >>> committee = CommitteeRegressor(
+    ...     learner_list=learner_list,
+    ...     query_strategy=ensemble_regression_std
+    ... )
+    >>>
+    >>> # active regression
+    >>> n_queries = 10
+    >>> for idx in range(n_queries):
+    ...     query_idx, query_instance = committee.query(X.reshape(-1, 1))
+    ...     committee.teach(X[query_idx].reshape(-1, 1), y[query_idx].reshape(-1, 1))
+    """
+
+    def __init__(
+            self,
+            learner_list,  # list of ActiveLearner objects
+            query_strategy=max_std_sampling  # callable to query labels
+
+    ):
+        super().__init__(learner_list, query_strategy)
+
+    def predict(self, X, return_std=False, **predict_kwargs):
+        """
+        Predicts the values of the samples by averaging the prediction of each regressor.
+        :param X:
+            The samples to be predicted.
+        :type X:
+            numpy.ndarray of shape (n_samples, n_features)
+        :param predict_kwargs:
+            Keyword arguments to be passed to the .vote() method of the CommitteeRegressor.
+        :type predict_kwargs:
+            keyword arguments
+        :returns:
+          - **prediction** *(numpy.ndarray of shape (n_samples, ))* --
+            The predicted class labels for X.
+        """
+        vote = self.vote(X, **predict_kwargs)
+        if not return_std:
+            return np.mean(vote, axis=1)
+        else:
+            return np.mean(vote, axis=1), np.std(vote, axis=1)
+
+    def vote(self, X, **predict_kwargs):
+        """
+        Predicts the values for the supplied data for each regressor in the CommitteeRegressor.
+        :param X:
+            The samples to cast votes.
+        :type X:
+            numpy.ndarray of shape (n_samples, n_features)
+        :param predict_kwargs:
+            Keyword arguments to be passed for the learners .predict() method.
+        :type predict_kwargs:
+            keyword arguments
+        :returns:
+          - **vote** *(numpy.ndarray of shape (n_samples, n_regressors))* --
+            The predicted value for each regressor in the CommitteeRegressor and each sample in X.
+        """
+        prediction = np.zeros(shape=(len(X), len(self.learner_list)))
+
+        for learner_idx, learner in enumerate(self.learner_list):
+            prediction[:, learner_idx] = learner.predict(X, **predict_kwargs).reshape(-1, )
+
+        return prediction
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
