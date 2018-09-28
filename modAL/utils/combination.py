@@ -1,4 +1,4 @@
-from typing import Callable, Optional, Collection, Tuple
+from typing import Callable, Optional, Sequence, Tuple
 
 import numpy as np
 from sklearn.base import BaseEstimator
@@ -6,7 +6,7 @@ from sklearn.base import BaseEstimator
 from modAL.utils.data import modALinput
 
 
-def make_linear_combination(*functions: Callable, weights: Optional[Collection] = None) -> Callable:
+def make_linear_combination(*functions: Callable, weights: Optional[Sequence] = None) -> Callable:
     """
     Takes the given functions and makes a function which returns the linear combination of the output of original
     functions. It works well with functions returning numpy arrays of the same shape.
@@ -35,7 +35,7 @@ def make_linear_combination(*functions: Callable, weights: Optional[Collection] 
     return linear_combination
 
 
-def make_product(*functions: Callable, exponents: Optional[Collection] = None) -> Callable:
+def make_product(*functions: Callable, exponents: Optional[Sequence] = None) -> Callable:
     """
     Takes the given functions and makes a function which returns the product of the output of original functions. It
     works well with functions returning numpy arrays of the same shape.
