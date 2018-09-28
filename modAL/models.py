@@ -9,18 +9,15 @@ import sys
 from typing import Union, Callable, Optional, Tuple, List, Iterator, Any
 
 import numpy as np
-import scipy.sparse as sp
 from sklearn.base import BaseEstimator
 from sklearn.metrics import accuracy_score
 from sklearn.utils import check_X_y
 
 from modAL.utils.validation import check_class_labels, check_class_proba
-from modAL.utils.data import data_vstack
+from modAL.utils.data import data_vstack, modALinput
 from modAL.uncertainty import uncertainty_sampling
 from modAL.disagreement import vote_entropy_sampling, max_std_sampling
 
-
-modALinput = Union[list, np.ndarray, sp.csr_matrix]
 
 if sys.version_info >= (3, 4):
     ABC = abc.ABC

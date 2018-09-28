@@ -1,5 +1,10 @@
+from typing import Union
+
 import numpy as np
 import scipy.sparse as sp
+
+
+modALinput = Union[list, np.ndarray, sp.csr_matrix]
 
 
 def data_vstack(blocks):
