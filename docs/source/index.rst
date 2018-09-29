@@ -42,7 +42,7 @@ modAL is an active learning framework for Python3, designed with *modularity, fl
    content/examples/bayesian_optimization
    content/examples/query_by_committee
    content/examples/bootstrapping_and_bagging
-   content/examples/Keras-integration
+   content/examples/Keras_integration
    
 .. toctree::
    :glob:
