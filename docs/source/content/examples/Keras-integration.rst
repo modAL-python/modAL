@@ -1,5 +1,5 @@
-Bringing your Keras models to modAL workflows
-=============================================
+Keras models in modAL workflows
+===============================
 
 Thanks for the scikit-learn API of Keras, you can seamlessly integrate Keras models into your modAL workflow. In this tutorial, we shall quickly introduce how to use the scikit-learn API of Keras and we are going to see how to do active learning with it. More details on the Keras scikit-learn API `can be found here <https://keras.io/scikit-learn-api/>`__.
 

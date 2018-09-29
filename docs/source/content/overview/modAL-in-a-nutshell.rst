@@ -99,7 +99,7 @@ strategy is as easy as the following.
     )
 
 For more details on how to implement your custom strategies, visit the
-page :ref:`Extending-modAL`!
+page `Extending modAL <content/overview/Extending-modAL.ipynb>`_!
 
 An example with active regression
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
