@@ -46,7 +46,8 @@ for member_idx in range(n_members):
 # assembling the committee
 committee = Committee(learner_list=learner_list)
 
-# visualizing the initial predictions
+# visualizing the Committee's predictions per learner
+
 with plt.style.context('seaborn-white'):
     plt.figure(figsize=(n_members*7, 7))
     for learner_idx, learner in enumerate(committee):
@@ -55,7 +56,7 @@ with plt.style.context('seaborn-white'):
         plt.title('Learner no. %d initial predictions' % (learner_idx + 1))
     plt.show()
 
-# visualizing the Committee's predictions per learner
+# visualizing the initial predictions
 with plt.style.context('seaborn-white'):
     plt.figure(figsize=(7, 7))
     prediction = committee.predict(iris['data'])
@@ -63,17 +64,17 @@ with plt.style.context('seaborn-white'):
     plt.title('Committee initial predictions, accuracy = %1.3f' % committee.score(iris['data'], iris['target']))
     plt.show()
 
-# query by committee
-n_queries = 10
-for idx in range(n_queries):
-    query_idx, query_instance = committee.query(X_pool)
-    committee.teach(
-        X=X_pool[query_idx].reshape(1, -1),
-        y=y_pool[query_idx].reshape(1, )
-    )
-    # remove queried instance from pool
-    X_pool = np.delete(X_pool, query_idx, axis=0)
-    y_pool = np.delete(y_pool, query_idx)
+    # query by committee
+    n_queries = 10
+    for idx in range(n_queries):
+        query_idx, query_instance = committee.query(X_pool)
+        committee.teach(
+            X=X_pool[query_idx].reshape(1, -1),
+            y=y_pool[query_idx].reshape(1, )
+        )
+        # remove queried instance from pool
+        X_pool = np.delete(X_pool, query_idx, axis=0)
+        y_pool = np.delete(y_pool, query_idx)
 
 # visualizing the final predictions per learner
 with plt.style.context('seaborn-white'):
