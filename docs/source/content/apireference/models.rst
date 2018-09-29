@@ -1,8 +1,5 @@
-models
-======
-
-modAL models
-
+modAL.models
+============
 
 .. automodule:: modAL.models
    :members:
