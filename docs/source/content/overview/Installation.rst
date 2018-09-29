@@ -1,8 +1,11 @@
 Installation
 ============
 
-modAL requires - Python >= 3.5 - NumPy >= 1.13 - SciPy >= 0.18 -
-scikit-learn >= 0.18
+modAL requires 
+   * Python >= 3.5
+   * NumPy >= 1.13
+   * SciPy >= 0.18
+   * scikit-learn >= 0.18
 
 You can install modAL directly with pip:
 
