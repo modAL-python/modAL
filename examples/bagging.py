@@ -60,7 +60,7 @@ with plt.style.context('seaborn-white'):
         plt.title('Learner no. %d' % (learner_idx + 1))
     plt.show()
 
-# visualizing the Committee's predictions per learner
+# visualizing the Committee's predictions
 with plt.style.context('seaborn-white'):
     plt.figure(figsize=(7, 7))
     plt.imshow(committee.predict(X_pool).reshape(im_height, im_width))
