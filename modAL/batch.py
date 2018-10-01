@@ -2,53 +2,41 @@
 Uncertainty measures that explicitly support batch-mode sampling for active learning models.
 """
 
-from typing import Callable, Dict, Optional, Tuple, Union
+from typing import Callable, Optional, Tuple, Union
 
 import numpy as np
 import scipy.sparse as sp
-from sklearn.metrics.pairwise import pairwise_distances
+from sklearn.metrics.pairwise import pairwise_distances, pairwise_distances_argmin_min
 
-from modAL.utils.data import data_vstack
+from modAL.utils.data import data_vstack, modALinput
 from modAL.models import BaseCommittee, BaseLearner
 from modAL.uncertainty import classifier_uncertainty
 
 
-def select_cold_start_instance(X: Union[np.ndarray, sp.csr_matrix],
+def select_cold_start_instance(X: modALinput,
                                metric: Union[str, Callable],
-                               n_jobs: int) -> Union[np.ndarray, sp.csr_matrix]:
+                               n_jobs: Union[int, None]) -> modALinput:
     """
     Define what to do if our batch-mode sampling doesn't have any labeled data -- a cold start.
 
-    If our ranked batch sampling algorithm doesn't have any labeled data to determine
-    similarity among the uncertainty set, this function finds the element with highest
-    average similarity to cold-start the batch selection.
+    If our ranked batch sampling algorithm doesn't have any labeled data to determine similarity among the uncertainty
+    set, this function finds the element with highest average similarity to cold-start the batch selection.
 
     TODO:
         - Figure out how to test this! E.g. how to create modAL model without training data.
+        - Think of optimizing pairwise_distance call for large matrix.
 
     Refer to Cardoso et al.'s "Ranked batch-mode active learning":
         https://www.sciencedirect.com/science/article/pii/S0020025516313949
 
-    :param X:
-        The set of unlabeled records.
-    :type X:
-        numpy.ndarray of shape (n_records, n_features)
+    Args:
+        X: The set of unlabeled records.
+        metric: This parameter is passed to :func:`~sklearn.metrics.pairwise.pairwise_distances`.
+        n_jobs: This parameter is passed to :func:`~sklearn.metrics.pairwise.pairwise_distances`.
 
-    :param metric:
-        This parameter is passed to sklearn.metrics.pairwise.pairwise_distances
-    :type metric:
-        str or callable
-
-    :param n_jobs:
-        This parameter is passed to sklearn.metrics.pairwise.pairwise_distances
-    :type n_jobs:
-        int
-
-    :returns:
-      - **X[best_instance_index]** *(numpy.ndarray or scipy.sparse.csr_matrix of shape (n_features, ))* -- Best instance
-        for cold-start.
+    Returns:
+        Best instance for cold-start.
     """
-
     # Compute all pairwise distances in our unlabeled data and obtain the row-wise average for each of our records in X.
     average_distances = np.mean(pairwise_distances(X, metric=metric, n_jobs=n_jobs), axis=0)
 
@@ -58,19 +46,18 @@ def select_cold_start_instance(X: Union[np.ndarray, sp.csr_matrix],
 
 
 def select_instance(
-        X_training: Union[np.ndarray, sp.csr_matrix],
-        X_pool: Union[np.ndarray, sp.csr_matrix],
+        X_training: modALinput,
+        X_pool: modALinput,
         X_uncertainty: np.ndarray,
         mask: np.ndarray,
         metric: Union[str, Callable],
-        n_jobs: int
-) -> Tuple[np.ndarray, Union[np.ndarray, sp.csr_matrix], np.ndarray]:
+        n_jobs: Union[int, None]
+) -> Tuple[np.ndarray, modALinput, np.ndarray]:
     """
     Core iteration strategy for selecting another record from our unlabeled records.
 
-    Given a set of labeled records (X_training) and unlabeled records (X_pool) with uncertainty
-    scores (X_uncertainty), we'd like to identify the best instance in X_pool
-    that best balances uncertainty and dissimilarity.
+    Given a set of labeled records (X_training) and unlabeled records (X_pool) with uncertainty scores (X_uncertainty),
+    we'd like to identify the best instance in X_pool that best balances uncertainty and dissimilarity.
 
     Refer to Cardoso et al.'s "Ranked batch-mode active learning":
         https://www.sciencedirect.com/science/article/pii/S0020025516313949
@@ -78,44 +65,18 @@ def select_instance(
     TODO:
         - Add notebook for Active Learning bake-off (passive vs interactive vs batch vs ranked batch)
 
-    :param X_training:
-        Mix of both labeled and unlabeled records.
-    :type X_training:
-        numpy.ndarray of shape (D + batch_iteration, n_features)
+    Args:
+        X_training: Mix of both labeled and unlabeled records.
+        X_pool: Unlabeled records to be selected for labeling.
+        X_uncertainty: Uncertainty scores for unlabeled records to be selected for labeling.
+        mask: Mask to exclude previously selected instances from the pool.
+        metric: This parameter is passed to :func:`~sklearn.metrics.pairwise.pairwise_distances`.
+        n_jobs: This parameter is passed to :func:`~sklearn.metrics.pairwise.pairwise_distances`.
 
-    :param X_pool:
-        Unlabeled records to be selected for labeling.
-    :type X_pool:
-        numpy.ndarray of shape (U - batch_iteration, n_features)
-
-    :param X_uncertainty:
-        Uncertainty scores for unlabeled records to be selected for labeling.
-    :type X_uncertainty:
-        numpy.ndarray of shape (U - batch_iteration,)
-
-    :param mask:
-        Mask to exclude previously selected instances from the pool
-    :type mask:
-        np.ndarray
-
-    :param metric:
-        This parameter is passed to sklearn.metrics.pairwise.pairwise_distances
-    :type metric:
-        str or callable
-
-    :param n_jobs:
-        This parameter is passed to sklearn.metrics.pairwise.pairwise_distances
-    :type n_jobs:
-        int
-
-    :returns:
-      - **best_instance_index** *int*
-        -- Index of the best index from X chosen to be labelled.
-      - **unlabeled_records[best_instance_index]** *(numpy.ndarray of shape (n_features, ))*
-        -- a single record from our unlabeled set that is considered the most optimal
-            incremental record for including in our query set.
+    Returns:
+        Index of the best index from X chosen to be labelled; a single record from our unlabeled set that is considered
+        the most optimal incremental record for including in our query set.
     """
-
     # Extract the number of labeled and unlabeled records.
     n_labeled_records, _ = X_training.shape
     n_unlabeled, _ = X_pool[mask].shape
@@ -127,7 +88,10 @@ def select_instance(
 
     # Compute pairwise distance (and then similarity) scores from every unlabeled record
     # to every record in X_training. The result is an array of shape (n_samples, ).
-    distance_scores = pairwise_distances(X_pool[mask], X_training, metric=metric, n_jobs=n_jobs).min(axis=1)
+    if n_jobs is None:
+        _, distance_scores = pairwise_distances_argmin_min(X_pool, X_training, metric=metric)
+    else:
+        distance_scores = pairwise_distances(X_pool[mask], X_training, metric=metric, n_jobs=n_jobs).min(axis=1)
 
     similarity_scores = 1 / (1 + distance_scores)
 
@@ -142,51 +106,27 @@ def select_instance(
 
 
 def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
-                 unlabeled: Union[np.ndarray, sp.csr_matrix],
+                 unlabeled: modALinput,
                  uncertainty_scores: np.ndarray,
                  n_instances: int,
                  metric: Union[str, Callable],
-                 n_jobs: int) -> np.ndarray:
+                 n_jobs: Union[int, None]) -> np.ndarray:
     """
     Query our top :n_instances: to request for labeling.
 
     Refer to Cardoso et al.'s "Ranked batch-mode active learning":
         https://www.sciencedirect.com/science/article/pii/S0020025516313949
 
-    :param classifier:
-        One of modAL's supported active learning models.
-    :type classifier:
-        modAL.models.BaseLearner or modAL.models.BaseCommittee
+    Args:
+        classifier: One of modAL's supported active learning models.
+        unlabeled: Set of records to be considered for our active learning model.
+        uncertainty_scores: Our classifier's predictions over the response variable.
+        n_instances: Limit on the number of records to query from our unlabeled set.
+        metric: This parameter is passed to :func:`~sklearn.metrics.pairwise.pairwise_distances`.
+        n_jobs: This parameter is passed to :func:`~sklearn.metrics.pairwise.pairwise_distances`.
 
-    :param unlabeled:
-        Set of records to be considered for our active learning model.
-    :type unlabeled:
-        numpy.ndarray of shape: (n_samples, n_features).
-
-    :param uncertainty_scores:
-        Our classifier's predictions over the response variable.
-    :type uncertainty_scores:
-        numpy.ndarray of shape (n_samples, )
-
-    :param n_instances:
-        Limit on the number of records to query from our unlabeled set.
-    :type n_instances:
-        int
-
-    :param metric:
-        This parameter is passed to sklearn.metrics.pairwise.pairwise_distances
-    :type metric:
-        str or callable
-
-    :param n_jobs:
-        This parameter is passed to sklearn.metrics.pairwise.pairwise_distances
-    :type n_jobs:
-        int
-
-    :returns:
-      - **instance_index_ranking** *(numpy.ndarray of shape (n_instances, ))* -- The indices of
-        the top n_instances ranked unlabelled samples.
-
+    Returns:
+        The indices of the top n_instances ranked unlabelled samples.
     """
     # Make a local copy of our classifier's training data.
     if classifier.X_training is None:
@@ -224,60 +164,33 @@ def uncertainty_batch_sampling(classifier: Union[BaseLearner, BaseCommittee],
                                X: Union[np.ndarray, sp.csr_matrix],
                                n_instances: int = 20,
                                metric: Union[str, Callable] = 'euclidean',
-                               n_jobs: int = 1,
-                               **uncertainty_measure_kwargs: Optional[Dict]
+                               n_jobs: Optional[int] = None,
+                               **uncertainty_measure_kwargs
                                ) -> Tuple[np.ndarray, Union[np.ndarray, sp.csr_matrix]]:
     """
     Batch sampling query strategy. Selects the least sure instances for labelling.
 
-
-    This strategy differs from `modAL.uncertainty.uncertainty_sampling` because, although
-    it is supported, traditional active learning query strategies suffer from sub-optimal
-    record selection when passing `n_instances` > 1. This sampling strategy extends the
-    interactive uncertainty query sampling by allowing for batch-mode uncertainty query
-    sampling. Furthermore, it also enforces a ranking -- that is, which records among the
+    This strategy differs from :func:`~modAL.uncertainty.uncertainty_sampling` because, although it is supported,
+    traditional active learning query strategies suffer from sub-optimal record selection when passing
+    `n_instances` > 1. This sampling strategy extends the interactive uncertainty query sampling by allowing for
+    batch-mode uncertainty query sampling. Furthermore, it also enforces a ranking -- that is, which records among the
     batch are most important for labeling?
 
     Refer to Cardoso et al.'s "Ranked batch-mode active learning":
         https://www.sciencedirect.com/science/article/pii/S0020025516313949
 
-    :param classifier:
-        One of modAL's supported active learning models.
-    :type classifier:
-        modAL.models.BaseLearner or modAL.models.BaseCommittee
+    Args:
+        classifier: One of modAL's supported active learning models.
+        X: Set of records to be considered for our active learning model.
+        n_instances: Number of records to return for labeling from `X`.
+        metric: This parameter is passed to :func:`~sklearn.metrics.pairwise.pairwise_distances`
+        n_jobs: If not set, :func:`~sklearn.metrics.pairwise.pairwise_distances_argmin_min` is used for calculation of
+            distances between samples. Otherwise it is passed to :func:`~sklearn.metrics.pairwise.pairwise_distances`.
+        **uncertainty_measure_kwargs: Keyword arguments to be passed for the :meth:`predict_proba` of the classifier.
 
-    :param X:
-        Set of records to be considered for our active learning model.
-    :type X:
-        numpy.ndarray or scipy.sparse.csr_matrix of shape (n_samples, n_features)
-
-    :param n_instances:
-        Number of records to return for labeling from `X`.
-    :type n_instances:
-        int
-
-    :param metric:
-        This parameter is passed to sklearn.metrics.pairwise.pairwise_distances
-    :type metric:
-        str or callable
-
-    :param n_jobs:
-        This parameter is passed to sklearn.metrics.pairwise.pairwise_distances
-    :type n_jobs:
-        int
-
-    :param uncertainty_measure_kwargs:
-        Keyword arguments to be passed for the predict_proba method of the classifier.
-    :type uncertainty_measure_kwargs:
-        keyword arguments
-
-    :returns:
-      - **query_indices** *(numpy.ndarray of shape (n_instances, ))* -- Indices of the
-        instances from X chosen to be labelled.
-      - **X[query_indices]** *(numpy.ndarray or scipy.sparse.csr_matrix of shape (n_instances, n_features))*
-        -- Records from X chosen to be labelled.
+    Returns:
+        Indices of the instances from `X` chosen to be labelled; records from `X` chosen to be labelled.
     """
-
     uncertainty = classifier_uncertainty(classifier, X, **uncertainty_measure_kwargs)
     query_indices = ranked_batch(classifier, unlabeled=X, uncertainty_scores=uncertainty,
                                  n_instances=n_instances, metric=metric, n_jobs=n_jobs)
