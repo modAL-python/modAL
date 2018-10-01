@@ -744,7 +744,7 @@ class CommitteeRegressor(BaseCommittee):
         ...     committee.teach(X[query_idx].reshape(-1, 1), y[query_idx].reshape(-1, 1))
 
     """
-    def __init__(self, learner_list, query_strategy = max_std_sampling) -> None:
+    def __init__(self, learner_list: List[ActiveLearner], query_strategy: Callable = max_std_sampling) -> None:
         super().__init__(learner_list, query_strategy)
 
     def predict(self, X: modALinput, return_std: bool = False, **predict_kwargs) -> Any:
@@ -764,7 +764,7 @@ class CommitteeRegressor(BaseCommittee):
         else:
             return np.mean(vote, axis=1), np.std(vote, axis=1)
 
-    def vote(self, X, **predict_kwargs):
+    def vote(self, X: modALinput, **predict_kwargs):
         """
         Predicts the values for the supplied data for each regressor in the CommitteeRegressor.
 
