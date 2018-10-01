@@ -12,10 +12,8 @@ from sklearn.base import BaseEstimator
 from modAL.utils.data import modALinput
 from modAL.utils.selection import multi_argmax
 
-from modAL.models import BaseCommittee
 
-
-def vote_entropy(committee: BaseCommittee, X: modALinput, **predict_proba_kwargs) -> np.ndarray:
+def vote_entropy(committee, X: modALinput, **predict_proba_kwargs) -> np.ndarray:
     """
     Calculates the vote entropy for the Committee. First it computes the predictions of X for each learner in the
     Committee, then calculates the probability distribution of the votes. The entropy of this distribution is the vote
@@ -49,7 +47,7 @@ def vote_entropy(committee: BaseCommittee, X: modALinput, **predict_proba_kwargs
     return entr
 
 
-def consensus_entropy(committee: BaseCommittee, X: modALinput, **predict_proba_kwargs) -> np.ndarray:
+def consensus_entropy(committee, X: modALinput, **predict_proba_kwargs) -> np.ndarray:
     """
     Calculates the consensus entropy for the Committee. First it computes the class probabilties of X for each learner
     in the Committee, then calculates the consensus probability distribution by averaging the individual class
@@ -73,7 +71,7 @@ def consensus_entropy(committee: BaseCommittee, X: modALinput, **predict_proba_k
     return entr
 
 
-def KL_max_disagreement(committee: BaseCommittee, X: modALinput, **predict_proba_kwargs) -> np.ndarray:
+def KL_max_disagreement(committee, X: modALinput, **predict_proba_kwargs) -> np.ndarray:
     """
     Calculates the max disagreement for the Committee. First it computes the class probabilties of X for each learner in
     the Committee, then calculates the consensus probability distribution by averaging the individual class
@@ -103,7 +101,7 @@ def KL_max_disagreement(committee: BaseCommittee, X: modALinput, **predict_proba
     return np.max(learner_KL_div, axis=1)
 
 
-def vote_entropy_sampling(committee: BaseCommittee, X: modALinput,
+def vote_entropy_sampling(committee, X: modALinput,
                           n_instances: int = 1,**disagreement_measure_kwargs) -> Tuple[np.ndarray, modALinput]:
     """
     Vote entropy sampling strategy.
@@ -123,7 +121,7 @@ def vote_entropy_sampling(committee: BaseCommittee, X: modALinput,
     return query_idx, X[query_idx]
 
 
-def consensus_entropy_sampling(committee: BaseCommittee, X: modALinput,
+def consensus_entropy_sampling(committee, X: modALinput,
                                n_instances: int = 1,**disagreement_measure_kwargs) -> Tuple[np.ndarray, modALinput]:
     """
     Consensus entropy sampling strategy.
@@ -143,7 +141,7 @@ def consensus_entropy_sampling(committee: BaseCommittee, X: modALinput,
     return query_idx, X[query_idx]
 
 
-def max_disagreement_sampling(committee: BaseCommittee, X: modALinput,
+def max_disagreement_sampling(committee, X: modALinput,
                               n_instances: int = 1,**disagreement_measure_kwargs) -> Tuple[np.ndarray, modALinput]:
     """
     Maximum disagreement sampling strategy.
