@@ -90,7 +90,7 @@ def select_instance(
     # Compute pairwise distance (and then similarity) scores from every unlabeled record
     # to every record in X_training. The result is an array of shape (n_samples, ).
     if n_jobs == 1 or n_jobs is None:
-        _, distance_scores = pairwise_distances_argmin_min(X_pool, X_training, metric=metric)
+        _, distance_scores = pairwise_distances_argmin_min(X_pool[mask], X_training, metric=metric)
     else:
         distance_scores = pairwise_distances(X_pool[mask], X_training, metric=metric, n_jobs=n_jobs).min(axis=1)
 
