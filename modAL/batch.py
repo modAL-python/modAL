@@ -38,6 +38,7 @@ def select_cold_start_instance(X: modALinput,
         Best instance for cold-start.
     """
     # Compute all pairwise distances in our unlabeled data and obtain the row-wise average for each of our records in X.
+    n_jobs = n_jobs if n_jobs else 1
     average_distances = np.mean(pairwise_distances(X, metric=metric, n_jobs=n_jobs), axis=0)
 
     # Isolate and return our best instance for labeling as the record with the least average distance.
@@ -88,7 +89,7 @@ def select_instance(
 
     # Compute pairwise distance (and then similarity) scores from every unlabeled record
     # to every record in X_training. The result is an array of shape (n_samples, ).
-    if n_jobs is None:
+    if n_jobs == 1 or n_jobs is None:
         _, distance_scores = pairwise_distances_argmin_min(X_pool, X_training, metric=metric)
     else:
         distance_scores = pairwise_distances(X_pool[mask], X_training, metric=metric, n_jobs=n_jobs).min(axis=1)
