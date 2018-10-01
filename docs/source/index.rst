@@ -27,7 +27,7 @@ modAL is an active learning framework for Python3, designed with *modularity, fl
    :caption: Query strategies
    
    content/query_strategies/Acquisition-functions
-   content/query_strategies/Uncertainty-sampling
+   content/query_strategies/uncertainty_sampling
    content/query_strategies/Disagreement-sampling
    content/query_strategies/ranked_batch_mode
 
