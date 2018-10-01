@@ -7,10 +7,12 @@ from typing import Tuple
 import numpy as np
 from scipy.stats import entropy
 from sklearn.exceptions import NotFittedError
+from sklearn.base import BaseEstimator
 
-from modAL.models import BaseCommittee, CommitteeRegressor
 from modAL.utils.data import modALinput
 from modAL.utils.selection import multi_argmax
+
+from modAL.models import BaseCommittee
 
 
 def vote_entropy(committee: BaseCommittee, X: modALinput, **predict_proba_kwargs) -> np.ndarray:
@@ -161,13 +163,13 @@ def max_disagreement_sampling(committee: BaseCommittee, X: modALinput,
     return query_idx, X[query_idx]
 
 
-def max_std_sampling(regressor: CommitteeRegressor, X: modALinput,
+def max_std_sampling(regressor: BaseEstimator, X: modALinput,
                      n_instances: int = 1, **predict_kwargs) -> Tuple[np.ndarray, modALinput]:
     """
     Regressor standard deviation sampling strategy.
 
     Args:
-        regressor: The CommitteeRegressor for which the labels are to be queried.
+        regressor: The regressor for which the labels are to be queried.
         X: The pool of samples to query from.
         n_instances: Number of samples to be queried.
         **predict_kwargs: Keyword arguments to be passed to :meth:`predict` of the CommiteeRegressor.
