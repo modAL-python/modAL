@@ -12,6 +12,11 @@ from modAL.uncertainty import uncertainty_sampling
 from modAL.disagreement import vote_entropy_sampling, max_std_sampling
 from modAL.acquisition import max_EI
 
+"""
+Classes for active learning algorithms
+--------------------------------------
+"""
+
 
 class ActiveLearner(BaseLearner):
     """
@@ -92,6 +97,12 @@ class ActiveLearner(BaseLearner):
             self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
         else:
             self._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
+
+
+"""
+Classes for Bayesian optimization
+---------------------------------
+"""
 
 
 class BayesianOptimizer(BaseLearner):
@@ -217,6 +228,12 @@ class BayesianOptimizer(BaseLearner):
             self._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
 
         self._set_max(X, y)
+
+
+"""
+Classes for committee based algorithms
+--------------------------------------
+"""
 
 
 class Committee(BaseCommittee):
