@@ -10,7 +10,7 @@ from sklearn.exceptions import NotFittedError
 
 from modAL.utils.selection import multi_argmax
 from modAL.utils.data import modALinput
-
+from modAL.models.base import BaseLearner
 
 def PI(mean, std, max_val, tradeoff):
     return ndtr((mean - max_val - tradeoff)/std)
@@ -32,7 +32,7 @@ Acquisition functions
 """
 
 
-def optimizer_PI(optimizer, X: modALinput, tradeoff: float = 0) -> np.ndarray:
+def optimizer_PI(optimizer: BaseLearner, X: modALinput, tradeoff: float = 0) -> np.ndarray:
     """
     Probability of improvement acquisition function for Bayesian optimization.
 
@@ -53,7 +53,7 @@ def optimizer_PI(optimizer, X: modALinput, tradeoff: float = 0) -> np.ndarray:
     return PI(mean, std, optimizer.y_max, tradeoff)
 
 
-def optimizer_EI(optimizer, X: modALinput, tradeoff: float = 0) -> np.ndarray:
+def optimizer_EI(optimizer: BaseLearner, X: modALinput, tradeoff: float = 0) -> np.ndarray:
     """
     Expected improvement acquisition function for Bayesian optimization.
 
@@ -74,7 +74,7 @@ def optimizer_EI(optimizer, X: modALinput, tradeoff: float = 0) -> np.ndarray:
     return EI(mean, std, optimizer.y_max, tradeoff)
 
 
-def optimizer_UCB(optimizer, X: modALinput, beta: float = 1) -> np.ndarray:
+def optimizer_UCB(optimizer: BaseLearner, X: modALinput, beta: float = 1) -> np.ndarray:
     """
     Upper confidence bound acquisition function for Bayesian optimization.
 
@@ -102,7 +102,7 @@ Query strategies using acquisition functions
 """
 
 
-def max_PI(optimizer, X: modALinput, tradeoff: float = 0,
+def max_PI(optimizer: BaseLearner, X: modALinput, tradeoff: float = 0,
            n_instances: int = 1) -> Tuple[np.ndarray, modALinput]:
     """
     Maximum PI query strategy. Selects the instance with highest probability of improvement.
@@ -122,7 +122,7 @@ def max_PI(optimizer, X: modALinput, tradeoff: float = 0,
     return query_idx, X[query_idx]
 
 
-def max_EI(optimizer, X: modALinput, tradeoff: float = 0,
+def max_EI(optimizer: BaseLearner, X: modALinput, tradeoff: float = 0,
            n_instances: int = 1) -> Tuple[np.ndarray, modALinput]:
     """
     Maximum EI query strategy. Selects the instance with highest expected improvement.
@@ -142,7 +142,7 @@ def max_EI(optimizer, X: modALinput, tradeoff: float = 0,
     return query_idx, X[query_idx]
 
 
-def max_UCB(optimizer, X: modALinput, beta: float = 1,
+def max_UCB(optimizer: BaseLearner, X: modALinput, beta: float = 1,
             n_instances: int = 1) -> Tuple[np.ndarray, modALinput]:
     """
     Maximum UCB query strategy. Selects the instance with highest upper confidence bound.

@@ -11,7 +11,7 @@ from sklearn.base import BaseEstimator
 
 from modAL.utils.data import modALinput
 from modAL.utils.selection import multi_argmax
-from .models.base import BaseCommittee
+from modAL.models.base import BaseCommittee
 
 
 def vote_entropy(committee: BaseCommittee, X: modALinput, **predict_proba_kwargs) -> np.ndarray:
