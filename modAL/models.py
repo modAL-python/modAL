@@ -17,6 +17,7 @@ from modAL.utils.validation import check_class_labels, check_class_proba
 from modAL.utils.data import data_vstack, modALinput
 from modAL.uncertainty import uncertainty_sampling
 from modAL.disagreement import vote_entropy_sampling, max_std_sampling
+from modAL.acquisition import max_EI
 
 
 if sys.version_info >= (3, 4):
@@ -323,8 +324,15 @@ class BayesianOptimizer(BaseLearner):
         ...         optimizer.teach(X[query_idx].reshape(1, -1), y[query_idx].reshape(1, -1))
 
     """
-    def __init__(self, *args, **kwargs) -> None:
-        super(BayesianOptimizer, self).__init__(*args, **kwargs)
+    def __init__(self,
+                 estimator: BaseEstimator,
+                 query_strategy: Callable = max_EI,
+                 X_training: Optional[modALinput] = None,
+                 y_training: Optional[modALinput] = None,
+                 bootstrap_init: bool = False,
+                 **fit_kwargs) -> None:
+        super(BayesianOptimizer, self).__init__(estimator, query_strategy,
+                                                X_training, y_training, bootstrap_init, **fit_kwargs)
         # setting the maximum value
         if self.y_training is not None:
             max_idx = np.argmax(self.y_training)
