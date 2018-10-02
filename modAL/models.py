@@ -1,7 +1,6 @@
 """
-==========================================
 Core models for active learning algorithms
-==========================================
+------------------------------------------
 """
 
 import abc
@@ -49,7 +48,7 @@ class BaseLearner(ABC, BaseEstimator):
     """
     def __init__(self,
                  estimator: BaseEstimator,
-                 query_strategy: Callable = uncertainty_sampling,
+                 query_strategy: Callable,
                  X_training: Optional[modALinput] = None,
                  y_training: Optional[modALinput] = None,
                  bootstrap_init: bool = False,
@@ -223,6 +222,23 @@ class ActiveLearner(BaseLearner):
     """
     This class is an abstract model of a general active learning algorithm.
 
+    Args:
+        estimator: The estimator to be used in the active learning loop.
+        query_strategy: Function providing the query strategy for the active learning loop,
+            for instance, modAL.uncertainty.uncertainty_sampling.
+        X_training: Initial training samples, if available.
+        y_training: Initial training labels corresponding to initial training samples.
+        bootstrap_init: If initial training data is available, bootstrapping can be done during the first training.
+            Useful when building Committee models with bagging.
+        **fit_kwargs: keyword arguments.
+
+    Attributes:
+        estimator: The estimator to be used in the active learning loop.
+        query_strategy: Function providing the query strategy for the active learning loop.
+        X_training: If the model hasn't been fitted yet it is None, otherwise it contains the samples
+            which the model has been trained on.
+        y_training: The labels corresponding to X_training.
+
     Examples:
 
         >>> from sklearn.datasets import load_iris
@@ -249,8 +265,18 @@ class ActiveLearner(BaseLearner):
         ...     X=iris['data'][query_idx].reshape(1, -1),
         ...     y=iris['target'][query_idx].reshape(1, )
         ... )
-
     """
+
+    def __init__(self,
+                 estimator: BaseEstimator,
+                 query_strategy: Callable = uncertainty_sampling,
+                 X_training: Optional[modALinput] = None,
+                 y_training: Optional[modALinput] = None,
+                 bootstrap_init: bool = False,
+                 **fit_kwargs
+                 ) -> None:
+        super().__init__(estimator, query_strategy,
+                         X_training, y_training, bootstrap_init, **fit_kwargs)
 
     def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, only_new: bool = False, **fit_kwargs) -> None:
         """
@@ -277,7 +303,23 @@ class BayesianOptimizer(BaseLearner):
     """
     This class is an abstract model of a Bayesian optimizer algorithm.
 
+    Args:
+        estimator: The estimator to be used in the Bayesian optimization. (For instance, a
+            GaussianProcessRegressor.)
+        query_strategy: Function providing the query strategy for Bayesian optimization,
+            for instance, modAL.acquisitions.max_EI.
+        X_training: Initial training samples, if available.
+        y_training: Initial training labels corresponding to initial training samples.
+        bootstrap_init: If initial training data is available, bootstrapping can be done during the first training.
+            Useful when building Committee models with bagging.
+        **fit_kwargs: keyword arguments.
+
     Attributes:
+        estimator: The estimator to be used in the Bayesian optimization.
+        query_strategy: Function providing the query strategy for Bayesian optimization.
+        X_training: If the model hasn't been fitted yet it is None, otherwise it contains the samples
+            which the model has been trained on.
+        y_training: The labels corresponding to X_training.
         X_max: argmax of the function so far.
         y_max: Max of the function so far.
 
@@ -322,7 +364,6 @@ class BayesianOptimizer(BaseLearner):
         ...         # query
         ...         query_idx, query_inst = optimizer.query(X)
         ...         optimizer.teach(X[query_idx].reshape(1, -1), y[query_idx].reshape(1, -1))
-
     """
     def __init__(self,
                  estimator: BaseEstimator,
@@ -566,7 +607,6 @@ class Committee(BaseCommittee):
         ...     X=iris['data'][query_idx].reshape(1, -1),
         ...     y=iris['target'][query_idx].reshape(1, )
         ... )
-
     """
     def __init__(self, learner_list: List[ActiveLearner], query_strategy: Callable = vote_entropy_sampling) -> None:
         super().__init__(learner_list, query_strategy)
@@ -750,7 +790,6 @@ class CommitteeRegressor(BaseCommittee):
         >>> for idx in range(n_queries):
         ...     query_idx, query_instance = committee.query(X.reshape(-1, 1))
         ...     committee.teach(X[query_idx].reshape(-1, 1), y[query_idx].reshape(-1, 1))
-
     """
     def __init__(self, learner_list: List[ActiveLearner], query_strategy: Callable = max_std_sampling) -> None:
         super().__init__(learner_list, query_strategy)
