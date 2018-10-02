@@ -12,6 +12,7 @@ from modAL.utils.selection import multi_argmax
 from modAL.utils.data import modALinput
 from modAL.models.base import BaseLearner
 
+
 def PI(mean, std, max_val, tradeoff):
     return ndtr((mean - max_val - tradeoff)/std)
 

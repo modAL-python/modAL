@@ -1,13 +1,13 @@
 import numpy as np
 
-from typing import Callable, Optional, Tuple, List, Iterator, Any
+from typing import Callable, Optional, Tuple, List, Any
 
 from sklearn.base import BaseEstimator
 from sklearn.metrics import accuracy_score
-from .base import BaseLearner, BaseCommittee
 
+from modAL.models.base import BaseLearner, BaseCommittee
 from modAL.utils.validation import check_class_labels, check_class_proba
-from modAL.utils.data import data_vstack, modALinput
+from modAL.utils.data import modALinput
 from modAL.uncertainty import uncertainty_sampling
 from modAL.disagreement import vote_entropy_sampling, max_std_sampling
 from modAL.acquisition import max_EI
