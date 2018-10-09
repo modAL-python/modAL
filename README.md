@@ -128,7 +128,7 @@ regressor = ActiveLearner(
 ```
 The initial regressor is not very accurate.
 <p align="center">
-  <img src="https://modal-python.readthedocs.io/en/latest/_images/gp-initial1.png">
+  <img src="https://modal-python.readthedocs.io/en/latest/_images/gp-initial.png">
 </p>
 
 The blue band enveloping the regressor represents the standard deviation of the Gaussian process at the given point. Now we are ready to do active learning!
@@ -142,7 +142,7 @@ for idx in range(n_queries):
 After a few queries, we can see that the prediction is much improved.
 
 <p align="center">
- <img src="https://modal-python.readthedocs.io/en/latest/_images/gp-final1.png">
+ <img src="https://modal-python.readthedocs.io/en/latest/_images/gp-final.png">
 </p>
 
 ## Additional examples<a name="additional-examples"></a>
