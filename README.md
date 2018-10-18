@@ -2,7 +2,7 @@
 
 Modular Active Learning framework for Python3
 
-[![travis-ci-master](https://travis-ci.org/cosmic-cortex/modAL.svg?branch=master)](https://travis-ci.org/cosmic-cortex/modAL) [![codecov-master](https://codecov.io/gh/cosmic-cortex/modAL/branch/master/graph/badge.svg)](https://codecov.io/gh/cosmic-cortex/modAL) [![readthedocs](https://readthedocs.org/projects/modal-python/badge/?version=latest)](http://modal-python.readthedocs.io/en/latest/?badge=latest)
+[![travis-ci-master](https://travis-ci.org/modAL-python/modAL.svg?branch=master)](https://travis-ci.org/cosmic-cortex/modAL) [![codecov-master](https://codecov.io/gh/modAL-python/modAL/branch/master/graph/badge.svg)](https://codecov.io/gh/cosmic-cortex/modAL) [![readthedocs](https://readthedocs.org/projects/modal-python/badge/?version=latest)](http://modal-python.readthedocs.io/en/latest/?badge=latest)
 
 ## Page contents
 - [Introduction](#introduction)  
