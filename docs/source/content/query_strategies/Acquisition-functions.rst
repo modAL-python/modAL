@@ -14,7 +14,7 @@ The probability of improvement is defined by
    
    PI(x) = \psi\Big( \frac{\mu(x) - f(x^+) - \xi}{\sigma(x)} \Big), 
 
-where :math:`\mu(x)` and :math:`\sigma(x)` are the mean and variance of the regressor at :math:`x`, :math:`f`  is the function to be optimized with estimated maximum at :math:`x^+ `, :math:`\xi` is a parameter controlling the degree of exploration and :math:`\psi(z)` denotes the cumulative distribution function of a standard Gaussian distribution.
+where :math:`\mu(x)` and :math:`\sigma(x)` are the mean and variance of the regressor at :math:`x`, :math:`f`  is the function to be optimized with estimated maximum at :math:`x^+`, :math:`\xi` is a parameter controlling the degree of exploration and :math:`\psi(z)` denotes the cumulative distribution function of a standard Gaussian distribution.
 
 .. image:: img/bo-PI.png
    :align: center
