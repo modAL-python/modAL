@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 from modAL.models import ActiveLearner
 from modAL.multilabel import SVM_binary_minimum
@@ -16,20 +15,14 @@ initial_idx = np.random.choice(range(len(X)), size=n_initial, replace=False)
 X_initial, y_initial = X[initial_idx], y[initial_idx]
 X_pool, y_pool = np.delete(X, initial_idx, axis=0), np.delete(y, initial_idx, axis=0)
 
-with plt.style.context('seaborn-white'):
-    plt.figure(figsize=(10, 10))
-    plt.scatter(X[:, 0], X[:, 1], c='k', s=20)
-    plt.scatter(X[y[:, 0] == 1, 0], X[y[:, 0] == 1, 1],
-                facecolors='none', edgecolors='b', s=50, linewidths=2, label='class 1')
-    plt.scatter(X[y[:, 1] == 1, 0], X[y[:, 1] == 1, 1],
-                facecolors='none', edgecolors='r', s=100, linewidths=2, label='class 2')
-    plt.legend()
-    plt.show()
-
 learner = ActiveLearner(
     estimator=OneVsRestClassifier(LinearSVC()),
     query_strategy=SVM_binary_minimum,
     X_training=X_initial, y_training=y_initial
 )
 
-learner.query(X_pool)
+n_queries = 10
+for idx in range(n_queries):
+    query_idx, query_inst = learner.query(X_pool)
+    learner.teach(X_pool[query_idx].reshape(1, -1), y_pool[query_idx].reshape(1, -1))
+    X_pool, y_pool = np.delete(X_pool, query_idx, axis=0), np.delete(y_pool, query_idx, axis=0)
