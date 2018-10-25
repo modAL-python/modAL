@@ -5,7 +5,7 @@ from modAL.models import ActiveLearner
 from modAL.multilabel import SVM_binary_minimum
 
 from sklearn.multiclass import OneVsRestClassifier
-from sklearn.svm import LinearSVC
+from sklearn.svm import SVC
 
 n_samples = 500
 X = np.random.normal(size=(n_samples, 2))
@@ -24,10 +24,10 @@ with plt.style.context('seaborn-white'):
     plt.scatter(X[y[:, 1] == 1, 0], X[y[:, 1] == 1, 1],
                 facecolors='none', edgecolors='r', s=100, linewidths=2, label='class 2')
     plt.legend()
-    plt.show()
+    #plt.show()
 
 learner = ActiveLearner(
-    estimator=OneVsRestClassifier(LinearSVC()),
+    estimator=OneVsRestClassifier(SVC(probability=True)),
     query_strategy=SVM_binary_minimum,
     X_training=X_initial, y_training=y_initial
 )

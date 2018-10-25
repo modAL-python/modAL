@@ -11,13 +11,17 @@ import modAL.density
 import modAL.utils.selection
 import modAL.utils.validation
 import modAL.utils.combination
+import modAL.multilabel
 
 from copy import deepcopy
 from itertools import chain, product
 from collections import namedtuple
+
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.exceptions import NotFittedError
 from sklearn.metrics import confusion_matrix
+from sklearn.svm import SVC
+from sklearn.multiclass import OneVsRestClassifier
 from scipy.stats import entropy, norm
 from scipy.special import ndtr
 from scipy import sparse as sp
@@ -920,6 +924,21 @@ class TestCommitteeRegressor(unittest.TestCase):
                     committee.vote(np.random.rand(n_instances).reshape(-1, 1)),
                     vote_output
                 )
+
+
+class TestMultilabel(unittest.TestCase):
+    def test_SVM_loss(self):
+        for n_classes in range(3, 10):
+            for n_instances in range(5, 10):
+                X_training = np.random.rand(n_instances, 5)
+                y_training = np.random.randint(0, 2, size=(n_instances, n_classes))
+                X_pool = np.random.rand(n_instances, 5)
+                y_pool = np.random.randint(0, 2, size=(n_instances, n_classes))
+                classifier = OneVsRestClassifier(SVC())
+                classifier.fit(X_training, y_training)
+                loss = modAL.multilabel._SVM_loss(classifier, X_pool)
+                loss = modAL.multilabel._SVM_loss(classifier, X_pool,
+                                           most_certain_classes=np.random.randint(0, n_classes, size=(n_instances)))
 
 
 class TestExamples(unittest.TestCase):
