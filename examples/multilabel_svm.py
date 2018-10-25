@@ -24,7 +24,7 @@ with plt.style.context('seaborn-white'):
     plt.scatter(X[y[:, 1] == 1, 0], X[y[:, 1] == 1, 1],
                 facecolors='none', edgecolors='r', s=100, linewidths=2, label='class 2')
     plt.legend()
-    #plt.show()
+    plt.show()
 
 learner = ActiveLearner(
     estimator=OneVsRestClassifier(SVC(probability=True)),

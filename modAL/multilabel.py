@@ -5,6 +5,7 @@ from sklearn.multiclass import OneVsRestClassifier
 
 from modAL.utils.data import modALinput
 from typing import Tuple, Optional
+from itertools import combinations
 
 
 def _SVM_loss(multiclass_classifier: OneVsRestClassifier,
@@ -30,7 +31,7 @@ def _SVM_loss(multiclass_classifier: OneVsRestClassifier,
     if most_certain_classes is None:
         cls_mtx = 2*np.eye(n_classes, n_classes) - 1
         loss_mtx = np.maximum(1-np.dot(predictions, cls_mtx), 0)
-        return loss_mtx.mean(axis=0)
+        return loss_mtx.mean(axis=1)
     else:
         cls_mtx = -np.ones(shape=(len(X), n_classes))
         for inst_idx, most_certain_class in enumerate(most_certain_classes):
@@ -63,10 +64,80 @@ def SVM_binary_minimum(classifier: BaseEstimator,
 def max_loss(classifier: BaseEstimator,
              X_pool: modALinput,
              n_instances: int = 1) -> Tuple[np.ndarray, modALinput]:
-    pass
+
+    """
+    Max Loss query strategy for SVM multilabel classification.
+
+    For more details on this query strategy, see
+    Li et al., Multilabel SVM active learning for image classification
+    (http://dx.doi.org/10.1109/ICIP.2004.1421535)
+
+    Args:
+        classifier: The multilabel classifier for which the labels are to be queried. Should be an SVM model
+            such as the ones from sklearn.svm. Although the function will execute for other models as well,
+            the mathematical calculations in Li et al. work only for SVM-s.
+        X: The pool of samples to query from.
+
+    Returns:
+        The index of the instance from X chosen to be labelled; the instance from X chosen to be labelled.
+    """
+
+    most_certain_classes = classifier.predict_proba(X_pool).argmax(axis=1)
+    loss = _SVM_loss(classifier, X_pool, most_certain_classes=most_certain_classes)
+
+    assert len(X_pool) >= n_instances, 'n_instances cannot be larger than len(X_pool)'
+
+    if n_instances == 1:
+        query_idx = np.argmax(loss)
+        return query_idx, X_pool[query_idx]
+    else:
+        max_val = -np.inf
+        max_idx = None
+        for subset_idx in combinations(range(len(X_pool)), n_instances):
+            subset_sum = loss[list(subset_idx)].sum()
+            if subset_sum > max_val:
+                max_val = subset_sum
+                max_idx = subset_idx
+
+        query_idx = np.array(max_idx)
+        return query_idx, X_pool[query_idx]
 
 
 def mean_max_loss(classifier: BaseEstimator,
                   X_pool: modALinput,
                   n_instances: int = 1) -> Tuple[np.ndarray, modALinput]:
-    pass
+    """
+    Mean Max Loss query strategy for SVM multilabel classification.
+
+    For more details on this query strategy, see
+    Li et al., Multilabel SVM active learning for image classification
+    (http://dx.doi.org/10.1109/ICIP.2004.1421535)
+
+    Args:
+        classifier: The multilabel classifier for which the labels are to be queried. Should be an SVM model
+            such as the ones from sklearn.svm. Although the function will execute for other models as well,
+            the mathematical calculations in Li et al. work only for SVM-s.
+        X: The pool of samples to query from.
+
+    Returns:
+        The index of the instance from X chosen to be labelled; the instance from X chosen to be labelled.
+    """
+
+    loss = _SVM_loss(classifier, X_pool)
+
+    assert len(X_pool) >= n_instances, 'n_instances cannot be larger than len(X_pool)'
+
+    if n_instances == 1:
+        query_idx = np.argmax(loss)
+        return query_idx, X_pool[query_idx]
+    else:
+        max_val = -np.inf
+        max_idx = None
+        for subset_idx in combinations(range(len(X_pool)), n_instances):
+            subset_sum = loss[list(subset_idx)].sum()
+            if subset_sum > max_val:
+                max_val = subset_sum
+                max_idx = subset_idx
+
+        query_idx = np.array(max_idx)
+        return query_idx, X_pool[query_idx]

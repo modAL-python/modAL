@@ -928,17 +928,43 @@ class TestCommitteeRegressor(unittest.TestCase):
 
 class TestMultilabel(unittest.TestCase):
     def test_SVM_loss(self):
-        for n_classes in range(3, 10):
-            for n_instances in range(5, 10):
+        for n_classes in range(2, 10):
+            for n_instances in range(1, 10):
                 X_training = np.random.rand(n_instances, 5)
                 y_training = np.random.randint(0, 2, size=(n_instances, n_classes))
                 X_pool = np.random.rand(n_instances, 5)
                 y_pool = np.random.randint(0, 2, size=(n_instances, n_classes))
                 classifier = OneVsRestClassifier(SVC())
                 classifier.fit(X_training, y_training)
-                loss = modAL.multilabel._SVM_loss(classifier, X_pool)
-                loss = modAL.multilabel._SVM_loss(classifier, X_pool,
-                                           most_certain_classes=np.random.randint(0, n_classes, size=(n_instances)))
+                avg_loss = modAL.multilabel._SVM_loss(classifier, X_pool)
+                mcc_loss = modAL.multilabel._SVM_loss(classifier, X_pool,
+                                                      most_certain_classes=np.random.randint(0, n_classes, size=(n_instances)))
+                self.assertEqual(avg_loss.shape, (len(X_pool), ))
+                self.assertEqual(mcc_loss.shape, (len(X_pool),))
+
+    def test_mean_max_loss(self):
+        for n_classes in range(2, 10):
+            for n_pool_instances in range(1, 10):
+                for n_query_instances in range(1, min(n_pool_instances, 3)):
+                    X_training = np.random.rand(n_pool_instances, 5)
+                    y_training = np.random.randint(0, 2, size=(n_pool_instances, n_classes))
+                    X_pool = np.random.rand(n_pool_instances, 5)
+                    y_pool = np.random.randint(0, 2, size=(n_pool_instances, n_classes))
+                    classifier = OneVsRestClassifier(SVC())
+                    classifier.fit(X_training, y_training)
+                    query_idx, query_inst = modAL.multilabel.mean_max_loss(classifier, X_pool, n_query_instances)
+
+    def test_max_loss(self):
+        for n_classes in range(2, 10):
+            for n_pool_instances in range(1, 10):
+                for n_query_instances in range(1, min(n_pool_instances, 3)):
+                    X_training = np.random.rand(n_pool_instances, 5)
+                    y_training = np.random.randint(0, 2, size=(n_pool_instances, n_classes))
+                    X_pool = np.random.rand(n_pool_instances, 5)
+                    y_pool = np.random.randint(0, 2, size=(n_pool_instances, n_classes))
+                    classifier = OneVsRestClassifier(SVC(probability=True))
+                    classifier.fit(X_training, y_training)
+                    query_idx, query_inst = modAL.multilabel.max_loss(classifier, X_pool, n_query_instances)
 
 
 class TestExamples(unittest.TestCase):
