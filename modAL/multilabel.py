@@ -4,6 +4,7 @@ from sklearn.base import BaseEstimator
 from sklearn.multiclass import OneVsRestClassifier
 
 from modAL.utils.data import modALinput
+from modAL.utils.selection import multi_argmax
 from typing import Tuple, Optional
 from itertools import combinations
 
@@ -82,25 +83,13 @@ def max_loss(classifier: BaseEstimator,
         The index of the instance from X chosen to be labelled; the instance from X chosen to be labelled.
     """
 
+    assert len(X_pool) >= n_instances, 'n_instances cannot be larger than len(X_pool)'
+
     most_certain_classes = classifier.predict_proba(X_pool).argmax(axis=1)
     loss = _SVM_loss(classifier, X_pool, most_certain_classes=most_certain_classes)
 
-    assert len(X_pool) >= n_instances, 'n_instances cannot be larger than len(X_pool)'
-
-    if n_instances == 1:
-        query_idx = np.argmax(loss)
-        return query_idx, X_pool[query_idx]
-    else:
-        max_val = -np.inf
-        max_idx = None
-        for subset_idx in combinations(range(len(X_pool)), n_instances):
-            subset_sum = loss[list(subset_idx)].sum()
-            if subset_sum > max_val:
-                max_val = subset_sum
-                max_idx = subset_idx
-
-        query_idx = np.array(max_idx)
-        return query_idx, X_pool[query_idx]
+    query_idx = multi_argmax(loss, n_instances)
+    return query_idx, X_pool[query_idx]
 
 
 def mean_max_loss(classifier: BaseEstimator,
@@ -123,21 +112,8 @@ def mean_max_loss(classifier: BaseEstimator,
         The index of the instance from X chosen to be labelled; the instance from X chosen to be labelled.
     """
 
+    assert len(X_pool) >= n_instances, 'n_instances cannot be larger than len(X_pool)'
     loss = _SVM_loss(classifier, X_pool)
 
-    assert len(X_pool) >= n_instances, 'n_instances cannot be larger than len(X_pool)'
-
-    if n_instances == 1:
-        query_idx = np.argmax(loss)
-        return query_idx, X_pool[query_idx]
-    else:
-        max_val = -np.inf
-        max_idx = None
-        for subset_idx in combinations(range(len(X_pool)), n_instances):
-            subset_sum = loss[list(subset_idx)].sum()
-            if subset_sum > max_val:
-                max_val = subset_sum
-                max_idx = subset_idx
-
-        query_idx = np.array(max_idx)
-        return query_idx, X_pool[query_idx]
+    query_idx = multi_argmax(loss, n_instances)
+    return query_idx, X_pool[query_idx]
