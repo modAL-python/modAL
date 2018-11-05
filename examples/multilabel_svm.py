@@ -28,7 +28,7 @@ with plt.style.context('seaborn-white'):
 
 learner = ActiveLearner(
     estimator=OneVsRestClassifier(SVC(probability=True)),
-    query_strategy=mean_score,
+    query_strategy=avg_score,
     X_training=X_initial, y_training=y_initial
 )
 

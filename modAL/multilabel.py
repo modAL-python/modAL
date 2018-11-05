@@ -119,21 +119,51 @@ def mean_max_loss(classifier: BaseEstimator,
     return query_idx, X_pool[query_idx]
 
 
-def max_uncertainty(classifier: BaseEstimator,
-                    X_pool: modALinput,
-                    n_instances: int = 1) -> Tuple[np.ndarray, modALinput]:
-    classwise_uncertainty = classifier.predict_proba(X_pool)
-    classwise_max = np.max(classwise_uncertainty, axis=1)
-    query_idx = multi_argmax(classwise_max, n_instances)
+def min_confidence(classifier: BaseEstimator,
+                   X_pool: modALinput,
+                   n_instances: int = 1) -> Tuple[np.ndarray, modALinput]:
+    """
+    MinConfidence query strategy for multilabel classification.
+
+    For more details on this query strategy, see
+    Esuli and Sebastiani., Active Learning Strategies for Multi-Label Text Classification
+    (http://dx.doi.org/10.1007/978-3-642-00958-7_12)
+
+    Args:
+        classifier: The multilabel classifier for which the labels are to be queried.
+        X: The pool of samples to query from.
+
+    Returns:
+        The index of the instance from X chosen to be labelled; the instance from X chosen to be labelled.
+    """
+
+    classwise_confidence = classifier.predict_proba(X_pool)
+    classwise_min = np.min(classwise_confidence, axis=1)
+    query_idx = multi_argmax((-1)*classwise_min, n_instances)
 
     return query_idx, X_pool[query_idx]
 
 
-def mean_uncertainty(classifier: BaseEstimator,
-                     X_pool: modALinput,
-                     n_instances: int = 1) -> Tuple[np.ndarray, modALinput]:
-    classwise_uncertainty = classifier.predict_proba(X_pool)
-    classwise_mean = np.mean(classwise_uncertainty, axis=1)
+def avg_confidence(classifier: BaseEstimator,
+                   X_pool: modALinput,
+                   n_instances: int = 1) -> Tuple[np.ndarray, modALinput]:
+    """
+    AvgConfidence query strategy for multilabel classification.
+
+    For more details on this query strategy, see
+    Esuli and Sebastiani., Active Learning Strategies for Multi-Label Text Classification
+    (http://dx.doi.org/10.1007/978-3-642-00958-7_12)
+
+    Args:
+        classifier: The multilabel classifier for which the labels are to be queried.
+        X: The pool of samples to query from.
+
+    Returns:
+        The index of the instance from X chosen to be labelled; the instance from X chosen to be labelled.
+    """
+
+    classwise_confidence = classifier.predict_proba(X_pool)
+    classwise_mean = np.mean(classwise_confidence, axis=1)
     query_idx = multi_argmax(classwise_mean, n_instances)
 
     return query_idx, X_pool[query_idx]
@@ -142,21 +172,51 @@ def mean_uncertainty(classifier: BaseEstimator,
 def max_score(classifier: BaseEstimator,
               X_pool: modALinput,
               n_instances: int = 1) -> Tuple[np.ndarray, modALinput]:
-    classwise_uncertainty = classifier.predict_proba(X_pool)
+    """
+    MaxScore query strategy for multilabel classification.
+
+    For more details on this query strategy, see
+    Esuli and Sebastiani., Active Learning Strategies for Multi-Label Text Classification
+    (http://dx.doi.org/10.1007/978-3-642-00958-7_12)
+
+    Args:
+        classifier: The multilabel classifier for which the labels are to be queried.
+        X: The pool of samples to query from.
+
+    Returns:
+        The index of the instance from X chosen to be labelled; the instance from X chosen to be labelled.
+    """
+
+    classwise_confidence = classifier.predict_proba(X_pool)
     classwise_predictions = classifier.predict(X_pool)
-    classwise_scores = classwise_uncertainty*(classwise_predictions - 1/2)
+    classwise_scores = classwise_confidence*(classwise_predictions - 1/2)
     classwise_max = np.max(classwise_scores, axis=1)
     query_idx = multi_argmax(classwise_max, n_instances)
 
     return query_idx, X_pool[query_idx]
 
 
-def mean_score(classifier: BaseEstimator,
-               X_pool: modALinput,
-               n_instances: int = 1) -> Tuple[np.ndarray, modALinput]:
-    classwise_uncertainty = classifier.predict_proba(X_pool)
+def avg_score(classifier: BaseEstimator,
+              X_pool: modALinput,
+              n_instances: int = 1) -> Tuple[np.ndarray, modALinput]:
+    """
+    AvgScore query strategy for multilabel classification.
+
+    For more details on this query strategy, see
+    Esuli and Sebastiani., Active Learning Strategies for Multi-Label Text Classification
+    (http://dx.doi.org/10.1007/978-3-642-00958-7_12)
+
+    Args:
+        classifier: The multilabel classifier for which the labels are to be queried.
+        X: The pool of samples to query from.
+
+    Returns:
+        The index of the instance from X chosen to be labelled; the instance from X chosen to be labelled.
+    """
+
+    classwise_confidence = classifier.predict_proba(X_pool)
     classwise_predictions = classifier.predict(X_pool)
-    classwise_scores = classwise_uncertainty*(classwise_predictions-1/2)
+    classwise_scores = classwise_confidence*(classwise_predictions-1/2)
     classwise_mean = np.mean(classwise_scores, axis=1)
     query_idx = multi_argmax(classwise_mean, n_instances)
 
