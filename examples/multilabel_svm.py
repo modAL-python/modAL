@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from modAL.models import ActiveLearner
-from modAL.multilabel import SVM_binary_minimum
+from modAL.multilabel import *
 
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import SVC
@@ -28,7 +28,7 @@ with plt.style.context('seaborn-white'):
 
 learner = ActiveLearner(
     estimator=OneVsRestClassifier(SVC(probability=True)),
-    query_strategy=SVM_binary_minimum,
+    query_strategy=mean_score,
     X_training=X_initial, y_training=y_initial
 )
 

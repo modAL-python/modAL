@@ -117,3 +117,47 @@ def mean_max_loss(classifier: BaseEstimator,
 
     query_idx = multi_argmax(loss, n_instances)
     return query_idx, X_pool[query_idx]
+
+
+def max_uncertainty(classifier: BaseEstimator,
+                    X_pool: modALinput,
+                    n_instances: int = 1) -> Tuple[np.ndarray, modALinput]:
+    classwise_uncertainty = classifier.predict_proba(X_pool)
+    classwise_max = np.max(classwise_uncertainty, axis=1)
+    query_idx = multi_argmax(classwise_max, n_instances)
+
+    return query_idx, X_pool[query_idx]
+
+
+def mean_uncertainty(classifier: BaseEstimator,
+                     X_pool: modALinput,
+                     n_instances: int = 1) -> Tuple[np.ndarray, modALinput]:
+    classwise_uncertainty = classifier.predict_proba(X_pool)
+    classwise_mean = np.mean(classwise_uncertainty, axis=1)
+    query_idx = multi_argmax(classwise_mean, n_instances)
+
+    return query_idx, X_pool[query_idx]
+
+
+def max_score(classifier: BaseEstimator,
+              X_pool: modALinput,
+              n_instances: int = 1) -> Tuple[np.ndarray, modALinput]:
+    classwise_uncertainty = classifier.predict_proba(X_pool)
+    classwise_predictions = classifier.predict(X_pool)
+    classwise_scores = classwise_uncertainty*(classwise_predictions - 1/2)
+    classwise_max = np.max(classwise_scores, axis=1)
+    query_idx = multi_argmax(classwise_max, n_instances)
+
+    return query_idx, X_pool[query_idx]
+
+
+def mean_score(classifier: BaseEstimator,
+               X_pool: modALinput,
+               n_instances: int = 1) -> Tuple[np.ndarray, modALinput]:
+    classwise_uncertainty = classifier.predict_proba(X_pool)
+    classwise_predictions = classifier.predict(X_pool)
+    classwise_scores = classwise_uncertainty*(classwise_predictions-1/2)
+    classwise_mean = np.mean(classwise_scores, axis=1)
+    query_idx = multi_argmax(classwise_mean, n_instances)
+
+    return query_idx, X_pool[query_idx]
