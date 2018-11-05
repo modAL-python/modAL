@@ -62,6 +62,7 @@ modAL is an active learning framework for Python3, designed with *modularity, fl
    content/apireference/models.rst
    content/apireference/uncertainty.rst
    content/apireference/disagreement.rst
+   content/apireference/multilabel.rst
    content/apireference/acquisition.rst
    content/apireference/batch.rst
    content/apireference/density.rst
