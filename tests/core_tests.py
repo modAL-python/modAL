@@ -942,29 +942,21 @@ class TestMultilabel(unittest.TestCase):
                 self.assertEqual(avg_loss.shape, (len(X_pool), ))
                 self.assertEqual(mcc_loss.shape, (len(X_pool),))
 
-    def test_mean_max_loss(self):
+    def test_strategies(self):
         for n_classes in range(2, 10):
             for n_pool_instances in range(1, 10):
                 for n_query_instances in range(1, min(n_pool_instances, 3)):
                     X_training = np.random.rand(n_pool_instances, 5)
                     y_training = np.random.randint(0, 2, size=(n_pool_instances, n_classes))
                     X_pool = np.random.rand(n_pool_instances, 5)
-                    y_pool = np.random.randint(0, 2, size=(n_pool_instances, n_classes))
-                    classifier = OneVsRestClassifier(SVC())
-                    classifier.fit(X_training, y_training)
-                    query_idx, query_inst = modAL.multilabel.mean_max_loss(classifier, X_pool, n_query_instances)
-
-    def test_max_loss(self):
-        for n_classes in range(2, 10):
-            for n_pool_instances in range(1, 10):
-                for n_query_instances in range(1, min(n_pool_instances, 3)):
-                    X_training = np.random.rand(n_pool_instances, 5)
-                    y_training = np.random.randint(0, 2, size=(n_pool_instances, n_classes))
-                    X_pool = np.random.rand(n_pool_instances, 5)
-                    y_pool = np.random.randint(0, 2, size=(n_pool_instances, n_classes))
                     classifier = OneVsRestClassifier(SVC(probability=True))
                     classifier.fit(X_training, y_training)
-                    query_idx, query_inst = modAL.multilabel.max_loss(classifier, X_pool, n_query_instances)
+                    modAL.multilabel.mean_max_loss(classifier, X_pool, n_query_instances)
+                    modAL.multilabel.max_loss(classifier, X_pool, n_query_instances)
+                    modAL.multilabel.min_confidence(classifier, X_pool, n_query_instances)
+                    modAL.multilabel.avg_confidence(classifier, X_pool, n_query_instances)
+                    modAL.multilabel.max_score(classifier, X_pool, n_query_instances)
+                    modAL.multilabel.avg_score(classifier, X_pool, n_query_instances)
 
 
 class TestExamples(unittest.TestCase):
