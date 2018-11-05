@@ -59,12 +59,6 @@ class BaseLearner(ABC, BaseEstimator):
         if X_training is not None:
             self._fit_to_known(bootstrap=bootstrap_init, **fit_kwargs)
 
-    def __getattr__(self, item):
-        try:
-            return getattr(self, item)
-        except AttributeError:
-            return getattr(self.estimator, item)
-
     def _add_training_data(self, X: modALinput, y: modALinput) -> None:
         """
         Adds the new data and label to the known data, but does not retrain the model.
