@@ -27,9 +27,10 @@ with plt.style.context('seaborn-white'):
     plt.show()
 
 learner = ActiveLearner(
-    estimator=OneVsRestClassifier(SVC(probability=True)),
+    estimator=OneVsRestClassifier(SVC(probability=True, gamma='auto')),
     query_strategy=avg_score,
     X_training=X_initial, y_training=y_initial
 )
 
-learner.query(X_pool)
+query_idx, query_inst = learner.query(X_pool)
+learner.teach(X_pool[query_idx], y_pool[query_idx])

@@ -642,7 +642,7 @@ class TestActiveLearner(unittest.TestCase):
 
     def test_sklearn(self):
         learner = modAL.models.learners.ActiveLearner(
-            estimator=RandomForestClassifier(),
+            estimator=RandomForestClassifier(n_estimators=10),
             X_training=np.random.rand(10, 10),
             y_training=np.random.randint(0, 2, size=(10,))
         )
@@ -667,7 +667,7 @@ class TestActiveLearner(unittest.TestCase):
             initial_idx = np.random.choice(range(n_samples), size=5, replace=False)
 
             learner = modAL.models.learners.ActiveLearner(
-                estimator=RandomForestClassifier(), query_strategy=query_strategy,
+                estimator=RandomForestClassifier(n_estimators=10), query_strategy=query_strategy,
                 X_training=X_pool[initial_idx], y_training=y_pool[initial_idx]
             )
             query_idx, query_inst = learner.query(X_pool)
@@ -949,7 +949,7 @@ class TestMultilabel(unittest.TestCase):
                     X_training = np.random.rand(n_pool_instances, 5)
                     y_training = np.random.randint(0, 2, size=(n_pool_instances, n_classes))
                     X_pool = np.random.rand(n_pool_instances, 5)
-                    classifier = OneVsRestClassifier(SVC(probability=True))
+                    classifier = OneVsRestClassifier(SVC(probability=True, gamma='auto'))
                     classifier.fit(X_training, y_training)
                     modAL.multilabel.mean_max_loss(classifier, X_pool, n_query_instances)
                     modAL.multilabel.max_loss(classifier, X_pool, n_query_instances)
