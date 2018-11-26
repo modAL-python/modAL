@@ -31,6 +31,7 @@ Currently supported active learning strategies are
    content/overview/modAL-in-a-nutshell
    content/overview/Installation
    content/overview/Extending-modAL
+   content/overview/Contributing
 
 .. toctree::
    :maxdepth: 1
