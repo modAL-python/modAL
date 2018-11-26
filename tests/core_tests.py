@@ -943,7 +943,7 @@ class TestMultilabel(unittest.TestCase):
                 self.assertEqual(mcc_loss.shape, (len(X_pool),))
 
     def test_strategies(self):
-        for n_classes in range(2, 10):
+        for n_classes in range(3, 10):
             for n_pool_instances in range(1, 10):
                 for n_query_instances in range(1, min(n_pool_instances, 3)):
                     X_training = np.random.rand(n_pool_instances, 5)
@@ -951,12 +951,17 @@ class TestMultilabel(unittest.TestCase):
                     X_pool = np.random.rand(n_pool_instances, 5)
                     classifier = OneVsRestClassifier(SVC(probability=True, gamma='auto'))
                     classifier.fit(X_training, y_training)
+
+                    active_learner = modAL.models.ActiveLearner(classifier)
+                    modAL.multilabel.SVM_binary_minimum(active_learner, X_pool)
+
                     modAL.multilabel.mean_max_loss(classifier, X_pool, n_query_instances)
                     modAL.multilabel.max_loss(classifier, X_pool, n_query_instances)
                     modAL.multilabel.min_confidence(classifier, X_pool, n_query_instances)
                     modAL.multilabel.avg_confidence(classifier, X_pool, n_query_instances)
                     modAL.multilabel.max_score(classifier, X_pool, n_query_instances)
                     modAL.multilabel.avg_score(classifier, X_pool, n_query_instances)
+
 
 
 class TestExamples(unittest.TestCase):

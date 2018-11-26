@@ -3,13 +3,14 @@ import numpy as np
 from sklearn.base import BaseEstimator
 from sklearn.multiclass import OneVsRestClassifier
 
+from modAL.models import ActiveLearner
 from modAL.utils.data import modALinput
 from modAL.utils.selection import multi_argmax
 from typing import Tuple, Optional
 from itertools import combinations
 
 
-def _SVM_loss(multiclass_classifier: OneVsRestClassifier,
+def _SVM_loss(multiclass_classifier: ActiveLearner,
               X: modALinput,
               most_certain_classes: Optional[int] = None) -> np.ndarray:
     """
@@ -42,7 +43,7 @@ def _SVM_loss(multiclass_classifier: OneVsRestClassifier,
         return cls_loss
 
 
-def SVM_binary_minimum(classifier: BaseEstimator,
+def SVM_binary_minimum(classifier: ActiveLearner,
                        X_pool: modALinput) -> Tuple[np.ndarray, modALinput]:
     """
     SVM binary minimum multilabel active learning strategy. For details see the paper
@@ -57,12 +58,16 @@ def SVM_binary_minimum(classifier: BaseEstimator,
     Returns:
         The index of the instance from X chosen to be labelled; the instance from X chosen to be labelled.
     """
-    min_abs_dist = np.min(np.abs(classifier.estimator.decision_function(X_pool)), axis=1)
+
+    decision_function = np.array([svm.decision_function(X_pool)
+                                  for svm in classifier.estimator.estimators_]).T
+
+    min_abs_dist = np.min(np.abs(decision_function), axis=1)
     query_idx = np.argmin(min_abs_dist)
     return query_idx, X_pool[query_idx]
 
 
-def max_loss(classifier: BaseEstimator,
+def max_loss(classifier: OneVsRestClassifier,
              X_pool: modALinput,
              n_instances: int = 1) -> Tuple[np.ndarray, modALinput]:
 
@@ -92,7 +97,7 @@ def max_loss(classifier: BaseEstimator,
     return query_idx, X_pool[query_idx]
 
 
-def mean_max_loss(classifier: BaseEstimator,
+def mean_max_loss(classifier: OneVsRestClassifier,
                   X_pool: modALinput,
                   n_instances: int = 1) -> Tuple[np.ndarray, modALinput]:
     """
@@ -119,7 +124,7 @@ def mean_max_loss(classifier: BaseEstimator,
     return query_idx, X_pool[query_idx]
 
 
-def min_confidence(classifier: BaseEstimator,
+def min_confidence(classifier: OneVsRestClassifier,
                    X_pool: modALinput,
                    n_instances: int = 1) -> Tuple[np.ndarray, modALinput]:
     """
@@ -144,7 +149,7 @@ def min_confidence(classifier: BaseEstimator,
     return query_idx, X_pool[query_idx]
 
 
-def avg_confidence(classifier: BaseEstimator,
+def avg_confidence(classifier: OneVsRestClassifier,
                    X_pool: modALinput,
                    n_instances: int = 1) -> Tuple[np.ndarray, modALinput]:
     """
@@ -169,7 +174,7 @@ def avg_confidence(classifier: BaseEstimator,
     return query_idx, X_pool[query_idx]
 
 
-def max_score(classifier: BaseEstimator,
+def max_score(classifier: OneVsRestClassifier,
               X_pool: modALinput,
               n_instances: int = 1) -> Tuple[np.ndarray, modALinput]:
     """
@@ -196,7 +201,7 @@ def max_score(classifier: BaseEstimator,
     return query_idx, X_pool[query_idx]
 
 
-def avg_score(classifier: BaseEstimator,
+def avg_score(classifier: OneVsRestClassifier,
               X_pool: modALinput,
               n_instances: int = 1) -> Tuple[np.ndarray, modALinput]:
     """
