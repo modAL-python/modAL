@@ -949,7 +949,7 @@ class TestMultilabel(unittest.TestCase):
                 y_training = np.random.randint(0, 2, size=(n_instances, n_classes))
                 X_pool = np.random.rand(n_instances, 5)
                 y_pool = np.random.randint(0, 2, size=(n_instances, n_classes))
-                classifier = OneVsRestClassifier(SVC())
+                classifier = OneVsRestClassifier(SVC(probability=True, gamma='auto'))
                 classifier.fit(X_training, y_training)
                 avg_loss = modAL.multilabel._SVM_loss(classifier, X_pool)
                 mcc_loss = modAL.multilabel._SVM_loss(classifier, X_pool,
