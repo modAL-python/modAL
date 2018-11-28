@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Container
 from itertools import chain
 
 import numpy as np
@@ -8,7 +8,7 @@ import scipy.sparse as sp
 modALinput = Union[list, np.ndarray, sp.csr_matrix]
 
 
-def data_vstack(blocks: modALinput) -> modALinput:
+def data_vstack(blocks: Container) -> modALinput:
     """
     Stack vertically both sparse and dense arrays.
 

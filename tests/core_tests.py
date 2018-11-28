@@ -5,13 +5,16 @@ import numpy as np
 import mock
 import modAL.models.base
 import modAL.models.learners
-import modAL.uncertainty
-import modAL.disagreement
-import modAL.density
 import modAL.utils.selection
 import modAL.utils.validation
 import modAL.utils.combination
+import modAL.acquisition
+import modAL.batch
+import modAL.density
+import modAL.disagreement
+import modAL.expected_error
 import modAL.multilabel
+import modAL.uncertainty
 
 from copy import deepcopy
 from itertools import chain, product
@@ -280,6 +283,119 @@ class TestAcquisitionFunctions(unittest.TestCase):
                 modAL.acquisition.max_UCB(optimizer, X, beta=np.random.rand(), n_instances=n_instances)
 
 
+class TestDensity(unittest.TestCase):
+
+    def test_similarize_distance(self):
+        from scipy.spatial.distance import cosine
+        sim = modAL.density.similarize_distance(cosine)
+        for _ in range(100):
+            for n_dim in range(1, 10):
+                X_1, X_2 = np.random.rand(n_dim), np.random.rand(n_dim)
+                np.testing.assert_almost_equal(
+                    sim(X_1, X_2),
+                    1/(1 + cosine(X_1, X_2))
+                )
+
+    def test_information_density(self):
+        for n_samples in range(1, 10):
+            for n_dim in range(1, 10):
+                X_pool = np.random.rand(n_samples, n_dim)
+                similarities = modAL.density.information_density(X_pool)
+                np.testing.assert_equal(len(similarities), n_samples)
+
+
+class TestDisagreements(unittest.TestCase):
+
+    def test_vote_entropy(self):
+        for n_samples in range(1, 10):
+            for n_classes in range(1, 10):
+                for true_query_idx in range(n_samples):
+                    # 1. fitted committee
+                    vote_return = np.zeros(shape=(n_samples, n_classes), dtype=np.int16)
+                    vote_return[true_query_idx] = np.asarray(range(n_classes), dtype=np.int16)
+                    committee = mock.MockCommittee(classes_=np.asarray(range(n_classes)), vote_return=vote_return)
+                    vote_entr = modAL.disagreement.vote_entropy(
+                        committee, np.random.rand(n_samples, n_classes)
+                    )
+                    true_entropy = np.zeros(shape=(n_samples, ))
+                    true_entropy[true_query_idx] = entropy(np.ones(n_classes)/n_classes)
+                    np.testing.assert_array_almost_equal(vote_entr, true_entropy)
+
+                    # 2. unfitted committee
+                    committee = mock.MockCommittee(fitted=False)
+                    true_entropy = np.zeros(shape=(n_samples,))
+                    vote_entr = modAL.disagreement.vote_entropy(
+                        committee, np.random.rand(n_samples, n_classes)
+                    )
+                    np.testing.assert_almost_equal(vote_entr, true_entropy)
+
+    def test_consensus_entropy(self):
+        for n_samples in range(1, 10):
+            for n_classes in range(2, 10):
+                for true_query_idx in range(n_samples):
+                    # 1. fitted committee
+                    proba = np.zeros(shape=(n_samples, n_classes))
+                    proba[:, 0] = 1.0
+                    proba[true_query_idx] = np.ones(n_classes)/n_classes
+                    committee = mock.MockCommittee(predict_proba_return=proba)
+                    consensus_entropy = modAL.disagreement.consensus_entropy(
+                        committee, np.random.rand(n_samples, n_classes)
+                    )
+                    true_entropy = np.zeros(shape=(n_samples,))
+                    true_entropy[true_query_idx] = entropy(np.ones(n_classes) / n_classes)
+                    np.testing.assert_array_almost_equal(consensus_entropy, true_entropy)
+
+                    # 2. unfitted committee
+                    committee = mock.MockCommittee(fitted=False)
+                    true_entropy = np.zeros(shape=(n_samples,))
+                    consensus_entropy = modAL.disagreement.consensus_entropy(
+                        committee, np.random.rand(n_samples, n_classes)
+                    )
+                    np.testing.assert_almost_equal(consensus_entropy, true_entropy)
+
+    def test_KL_max_disagreement(self):
+        for n_samples in range(1, 10):
+            for n_classes in range(2, 10):
+                for n_learners in range (2, 10):
+                    # 1. fitted committee
+                    vote_proba = np.zeros(shape=(n_samples, n_learners, n_classes))
+                    vote_proba[:, :, 0] = 1.0
+                    committee = mock.MockCommittee(
+                        n_learners=n_learners, classes_=range(n_classes),
+                        vote_proba_return=vote_proba
+                    )
+
+                    true_KL_disagreement = np.zeros(shape=(n_samples, ))
+
+                    try:
+                        np.testing.assert_array_almost_equal(
+                            true_KL_disagreement,
+                            modAL.disagreement.KL_max_disagreement(committee, np.random.rand(n_samples, 1))
+                        )
+                    except:
+                        modAL.disagreement.KL_max_disagreement(committee, np.random.rand(n_samples, 1))
+
+                    # 2. unfitted committee
+                    committee = mock.MockCommittee(fitted=False)
+                    true_KL_disagreement = np.zeros(shape=(n_samples,))
+                    returned_KL_disagreement = modAL.disagreement.KL_max_disagreement(
+                        committee, np.random.rand(n_samples, n_classes)
+                    )
+                    np.testing.assert_almost_equal(returned_KL_disagreement, true_KL_disagreement)
+
+
+class TestEER(unittest.TestCase):
+    def test_eer(self):
+        for n_pool, n_features, n_classes in product(range(1, 10), range(1, 5), range(2, 5)):
+            X_training, y_training = np.random.rand(10, n_features), np.random.randint(0, n_classes, size=10)
+            X_pool, y_pool = np.random.rand(n_pool, n_features), np.random.randint(0, n_classes+1, size=n_pool)
+
+            learner = modAL.models.ActiveLearner(RandomForestClassifier(n_estimators=2),
+                                                 X_training=X_training, y_training=y_training)
+
+            modAL.expected_error.expected_error_reduction(learner, X_pool)
+
+
 class TestUncertainties(unittest.TestCase):
 
     def test_classifier_uncertainty(self):
@@ -381,107 +497,6 @@ class TestUncertainties(unittest.TestCase):
                         classifier, np.random.rand(n_samples, n_classes)
                     )
                     np.testing.assert_array_equal(query_idx, true_query_idx)
-
-
-class TestDensity(unittest.TestCase):
-
-    def test_similarize_distance(self):
-        from scipy.spatial.distance import cosine
-        sim = modAL.density.similarize_distance(cosine)
-        for _ in range(100):
-            for n_dim in range(1, 10):
-                X_1, X_2 = np.random.rand(n_dim), np.random.rand(n_dim)
-                np.testing.assert_almost_equal(
-                    sim(X_1, X_2),
-                    1/(1 + cosine(X_1, X_2))
-                )
-
-    def test_information_density(self):
-        for n_samples in range(1, 10):
-            for n_dim in range(1, 10):
-                X_pool = np.random.rand(n_samples, n_dim)
-                similarities = modAL.density.information_density(X_pool)
-                np.testing.assert_equal(len(similarities), n_samples)
-
-
-class TestDisagreements(unittest.TestCase):
-
-    def test_vote_entropy(self):
-        for n_samples in range(1, 10):
-            for n_classes in range(1, 10):
-                for true_query_idx in range(n_samples):
-                    # 1. fitted committee
-                    vote_return = np.zeros(shape=(n_samples, n_classes), dtype=np.int16)
-                    vote_return[true_query_idx] = np.asarray(range(n_classes), dtype=np.int16)
-                    committee = mock.MockCommittee(classes_=np.asarray(range(n_classes)), vote_return=vote_return)
-                    vote_entr = modAL.disagreement.vote_entropy(
-                        committee, np.random.rand(n_samples, n_classes)
-                    )
-                    true_entropy = np.zeros(shape=(n_samples, ))
-                    true_entropy[true_query_idx] = entropy(np.ones(n_classes)/n_classes)
-                    np.testing.assert_array_almost_equal(vote_entr, true_entropy)
-
-                    # 2. unfitted committee
-                    committee = mock.MockCommittee(fitted=False)
-                    true_entropy = np.zeros(shape=(n_samples,))
-                    vote_entr = modAL.disagreement.vote_entropy(
-                        committee, np.random.rand(n_samples, n_classes)
-                    )
-                    np.testing.assert_almost_equal(vote_entr, true_entropy)
-
-    def test_consensus_entropy(self):
-        for n_samples in range(1, 10):
-            for n_classes in range(2, 10):
-                for true_query_idx in range(n_samples):
-                    # 1. fitted committee
-                    proba = np.zeros(shape=(n_samples, n_classes))
-                    proba[:, 0] = 1.0
-                    proba[true_query_idx] = np.ones(n_classes)/n_classes
-                    committee = mock.MockCommittee(predict_proba_return=proba)
-                    consensus_entropy = modAL.disagreement.consensus_entropy(
-                        committee, np.random.rand(n_samples, n_classes)
-                    )
-                    true_entropy = np.zeros(shape=(n_samples,))
-                    true_entropy[true_query_idx] = entropy(np.ones(n_classes) / n_classes)
-                    np.testing.assert_array_almost_equal(consensus_entropy, true_entropy)
-
-                    # 2. unfitted committee
-                    committee = mock.MockCommittee(fitted=False)
-                    true_entropy = np.zeros(shape=(n_samples,))
-                    consensus_entropy = modAL.disagreement.consensus_entropy(
-                        committee, np.random.rand(n_samples, n_classes)
-                    )
-                    np.testing.assert_almost_equal(consensus_entropy, true_entropy)
-
-    def test_KL_max_disagreement(self):
-        for n_samples in range(1, 10):
-            for n_classes in range(2, 10):
-                for n_learners in range (2, 10):
-                    # 1. fitted committee
-                    vote_proba = np.zeros(shape=(n_samples, n_learners, n_classes))
-                    vote_proba[:, :, 0] = 1.0
-                    committee = mock.MockCommittee(
-                        n_learners=n_learners, classes_=range(n_classes),
-                        vote_proba_return=vote_proba
-                    )
-
-                    true_KL_disagreement = np.zeros(shape=(n_samples, ))
-
-                    try:
-                        np.testing.assert_array_almost_equal(
-                            true_KL_disagreement,
-                            modAL.disagreement.KL_max_disagreement(committee, np.random.rand(n_samples, 1))
-                        )
-                    except:
-                        modAL.disagreement.KL_max_disagreement(committee, np.random.rand(n_samples, 1))
-
-                    # 2. unfitted committee
-                    committee = mock.MockCommittee(fitted=False)
-                    true_KL_disagreement = np.zeros(shape=(n_samples,))
-                    returned_KL_disagreement = modAL.disagreement.KL_max_disagreement(
-                        committee, np.random.rand(n_samples, n_classes)
-                    )
-                    np.testing.assert_almost_equal(returned_KL_disagreement, true_KL_disagreement)
 
 
 class TestQueries(unittest.TestCase):
@@ -961,7 +976,6 @@ class TestMultilabel(unittest.TestCase):
                     modAL.multilabel.avg_confidence(classifier, X_pool, n_query_instances)
                     modAL.multilabel.max_score(classifier, X_pool, n_query_instances)
                     modAL.multilabel.avg_score(classifier, X_pool, n_query_instances)
-
 
 
 class TestExamples(unittest.TestCase):
