@@ -61,7 +61,7 @@ def expected_error_reduction(learner: ActiveLearner, X: modALinput,
                 expected_error[x_idx] += np.sum(uncertainty)*X_proba[x_idx, y_idx]
 
         else:
-            expected_error[x_idx] -np.nan
+            expected_error[x_idx] = np.inf
 
     query_idx = multi_argmax(expected_error, n_instances)
 
@@ -114,7 +114,7 @@ def expected_log_loss_reduction(learner: ActiveLearner, X: modALinput,
                 expected_log_loss[x_idx] += np.sum(entr)*X_proba[x_idx, y_idx]
 
         else:
-            expected_log_loss[x_idx] -np.nan
+            expected_log_loss[x_idx] = np.inf
 
     query_idx = multi_argmax(expected_log_loss, n_instances)
 
