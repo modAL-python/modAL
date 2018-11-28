@@ -386,13 +386,14 @@ class TestDisagreements(unittest.TestCase):
 
 class TestEER(unittest.TestCase):
     def test_eer(self):
-        for n_pool, n_features, n_classes in product(range(1, 10), range(1, 5), range(2, 5)):
+        for n_pool, n_features, n_classes in product(range(5, 10), range(1, 5), range(2, 5)):
             X_training, y_training = np.random.rand(10, n_features), np.random.randint(0, n_classes, size=10)
             X_pool, y_pool = np.random.rand(n_pool, n_features), np.random.randint(0, n_classes+1, size=n_pool)
 
             learner = modAL.models.ActiveLearner(RandomForestClassifier(n_estimators=2),
                                                  X_training=X_training, y_training=y_training)
 
+            modAL.expected_error.expected_log_loss_reduction(learner, X_pool)
             modAL.expected_error.expected_error_reduction(learner, X_pool)
 
 
