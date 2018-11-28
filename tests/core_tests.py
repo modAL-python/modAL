@@ -395,6 +395,14 @@ class TestEER(unittest.TestCase):
 
             modAL.expected_error.expected_log_loss_reduction(learner, X_pool)
             modAL.expected_error.expected_error_reduction(learner, X_pool)
+            modAL.expected_error.expected_log_loss_reduction(learner, X_pool, p_subsample=0.1)
+            modAL.expected_error.expected_error_reduction(learner, X_pool, p_subsample=0.1)
+            modAL.expected_error.expected_log_loss_reduction(learner, X_pool)
+            modAL.expected_error.expected_error_reduction(learner, X_pool)
+            self.assertRaises(AssertionError, modAL.expected_error.expected_error_reduction,
+                              learner, X_pool, p_subsample=1.5)
+            self.assertRaises(AssertionError, modAL.expected_error.expected_log_loss_reduction,
+                              learner, X_pool, p_subsample=1.5)
 
 
 class TestUncertainties(unittest.TestCase):
