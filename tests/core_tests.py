@@ -411,6 +411,12 @@ class TestUncertainties(unittest.TestCase):
         test_cases = (Test(p * np.ones(shape=(k, l)), (1 - p) * np.ones(shape=(k, )))
                       for k in range(1, 100) for l in range(1, 10) for p in np.linspace(0, 1, 11))
         for case in test_cases:
+            # testing _proba_uncertainty
+            np.testing.assert_almost_equal(
+                modAL.uncertainty._proba_uncertainty(case.input),
+                case.output
+            )
+
             # fitted estimator
             fitted_estimator = mock.MockEstimator(predict_proba_return=case.input)
             np.testing.assert_almost_equal(
@@ -432,6 +438,12 @@ class TestUncertainties(unittest.TestCase):
                              p * np.ones(shape=(l, ))*int(k!=1))
                         for k in range(1, 10) for l in range(1, 100) for p in np.linspace(0, 1, 11))
         for case in chain(test_cases_1, test_cases_2):
+            # _proba_margin
+            np.testing.assert_almost_equal(
+                modAL.uncertainty._proba_margin(case.input),
+                case.output
+            )
+
             # fitted estimator
             fitted_estimator = mock.MockEstimator(predict_proba_return=case.input)
             np.testing.assert_almost_equal(
@@ -452,6 +464,12 @@ class TestUncertainties(unittest.TestCase):
                 proba = np.zeros(shape=(n_samples, n_classes))
                 for sample_idx in range(n_samples):
                     proba[sample_idx, np.random.choice(range(n_classes))] = 1.0
+
+                # _proba_entropy
+                np.testing.assert_almost_equal(
+                    modAL.uncertainty._proba_entropy(proba),
+                    np.zeros(shape=(n_samples,))
+                )
 
                 # fitted estimator
                 fitted_estimator = mock.MockEstimator(predict_proba_return=proba)

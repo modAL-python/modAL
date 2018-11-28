@@ -12,6 +12,54 @@ from modAL.utils.selection import multi_argmax
 from modAL.utils.data import modALinput
 
 
+def _proba_uncertainty(proba: np.ndarray) -> np.ndarray:
+    """
+    Calculates the uncertainty of the prediction probabilities.
+
+    Args:
+        proba: Prediction probabilities.
+
+    Returns:
+        Uncertainty of the prediction probabilities.
+    """
+
+    return 1 - np.max(proba, axis=1)
+
+
+def _proba_margin(proba: np.ndarray) -> np.ndarray:
+    """
+    Calculates the margin of the prediction probabilities.
+
+    Args:
+        proba: Prediction probabilities.
+
+    Returns:
+        Margin of the prediction probabilities.
+    """
+
+    if proba.shape[1] == 1:
+        return np.zeros(shape=len(proba))
+
+    part = np.partition(-proba, 1, axis=1)
+    margin = - part[:, 0] + part[:, 1]
+
+    return margin
+
+
+def _proba_entropy(proba: np.ndarray) -> np.ndarray:
+    """
+    Calculates the entropy of the prediction probabilities.
+
+    Args:
+        proba: Prediction probabilities.
+
+    Returns:
+        Uncertainty of the prediction probabilities.
+    """
+
+    return np.transpose(entropy(np.transpose(proba)))
+
+
 def classifier_uncertainty(classifier: BaseEstimator, X: modALinput, **predict_proba_kwargs) -> np.ndarray:
     """
     Classification uncertainty of the classifier for the provided samples.
