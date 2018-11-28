@@ -393,16 +393,14 @@ class TestEER(unittest.TestCase):
             learner = modAL.models.ActiveLearner(RandomForestClassifier(n_estimators=2),
                                                  X_training=X_training, y_training=y_training)
 
-            modAL.expected_error.expected_log_loss_reduction(learner, X_pool)
             modAL.expected_error.expected_error_reduction(learner, X_pool)
-            modAL.expected_error.expected_log_loss_reduction(learner, X_pool, p_subsample=0.1)
             modAL.expected_error.expected_error_reduction(learner, X_pool, p_subsample=0.1)
-            modAL.expected_error.expected_log_loss_reduction(learner, X_pool)
-            modAL.expected_error.expected_error_reduction(learner, X_pool)
+            modAL.expected_error.expected_error_reduction(learner, X_pool, loss='binary')
+            modAL.expected_error.expected_error_reduction(learner, X_pool, p_subsample=0.1, loss='log')
             self.assertRaises(AssertionError, modAL.expected_error.expected_error_reduction,
                               learner, X_pool, p_subsample=1.5)
-            self.assertRaises(AssertionError, modAL.expected_error.expected_log_loss_reduction,
-                              learner, X_pool, p_subsample=1.5)
+            self.assertRaises(AssertionError, modAL.expected_error.expected_error_reduction,
+                              learner, X_pool, loss=42)
 
 
 class TestUncertainties(unittest.TestCase):

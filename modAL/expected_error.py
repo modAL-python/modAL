@@ -2,7 +2,7 @@
 Expected error reduction framework for active learning.
 """
 
-from typing import Tuple
+from typing import Tuple, Callable
 
 import numpy as np
 
@@ -14,9 +14,10 @@ from sklearn.exceptions import NotFittedError
 from modAL.models import ActiveLearner
 from modAL.utils.data import modALinput, data_vstack
 from modAL.utils.selection import multi_argmax
+from modAL.uncertainty import _proba_uncertainty, _proba_entropy
 
 
-def expected_error_reduction(learner: ActiveLearner, X: modALinput,
+def expected_error_reduction(learner: ActiveLearner, X: modALinput, loss: str = 'binary',
                              p_subsample: np.float = 1.0, n_instances: int = 1) -> Tuple[np.ndarray, modALinput]:
     """
     Expected error reduction query strategy.
@@ -25,18 +26,23 @@ def expected_error_reduction(learner: ActiveLearner, X: modALinput,
         Roy and McCallum, 2001 (http://groups.csail.mit.edu/rrg/papers/icml01.pdf)
 
     Args:
-        learner: The ActiveLearner object for which the expected error is to be estimated.
+        learner: The ActiveLearner object for which the expected error
+            is to be estimated.
         X: The samples.
-        p_subsample: Probability of keeping a sample from the pool when calculating expected error.
-            Significantly improves runtime for large sample pools.
+        loss: The loss function to be used. Can be 'binary' or 'log'.
+        p_subsample: Probability of keeping a sample from the pool when
+            calculating expected error. Significantly improves runtime
+            for large sample pools.
         n_instances: The number of instances to be sampled.
 
 
     Returns:
-        The indices of the instances from X chosen to be labelled; the instances from X chosen to be labelled.
+        The indices of the instances from X chosen to be labelled;
+        the instances from X chosen to be labelled.
     """
 
     assert 0.0 <= p_subsample <= 1.0, 'p_subsample subsampling keep ratio must be between 0.0 and 1.0'
+    assert loss in ['binary', 'log'], 'loss must be \'binary\' or \'log\''
 
     expected_error = np.zeros(shape=(len(X), ))
     possible_labels = np.unique(learner.y_training)
@@ -56,66 +62,17 @@ def expected_error_reduction(learner: ActiveLearner, X: modALinput,
                 y_new = data_vstack((learner.y_training, np.array(y).reshape(1, )))
 
                 refitted_estimator = clone(learner.estimator).fit(X_new, y_new)
-                uncertainty = 1 - np.max(refitted_estimator.predict_proba(X), axis=1)
+                refitted_proba = refitted_estimator.predict_proba(X)
+                if loss is 'binary':
+                    loss = _proba_uncertainty(refitted_proba)
+                elif loss is 'log':
+                    loss = _proba_entropy(refitted_proba)
 
-                expected_error[x_idx] += np.sum(uncertainty)*X_proba[x_idx, y_idx]
+                expected_error[x_idx] += np.sum(loss)*X_proba[x_idx, y_idx]
 
         else:
             expected_error[x_idx] = np.inf
 
     query_idx = multi_argmax(expected_error, n_instances)
-
-    return query_idx, X[query_idx]
-
-
-def expected_log_loss_reduction(learner: ActiveLearner, X: modALinput,
-                                p_subsample: np.float = 1.0, n_instances: int = 1) -> Tuple[np.ndarray, modALinput]:
-    """
-    Expected log loss reduction query strategy.
-
-    References:
-        Roy and McCallum, 2001 (http://groups.csail.mit.edu/rrg/papers/icml01.pdf)
-
-    Args:
-        learner: The ActiveLearner object for which the expected log loss is to be estimated.
-        X: The samples.
-        p_subsample: Probability of keeping a sample from the pool when calculating expected log loss.
-            Significantly improves runtime for large sample pools.
-        n_instances: The number of instances to be sampled.
-
-
-    Returns:
-        The indices of the instances from X chosen to be labelled; the instances from X chosen to be labelled.
-    """
-
-    assert 0.0 <= p_subsample <= 1.0, 'p_subsample subsampling keep ratio must be between 0.0 and 1.0'
-
-    expected_log_loss = np.zeros(shape=(len(X), ))
-    possible_labels = np.unique(learner.y_training)
-
-    try:
-        X_proba = learner.predict_proba(X)
-    except NotFittedError:
-        # TODO: implement a proper cold-start
-        return 0, X[0]
-
-    for x_idx, x in enumerate(X):
-        # subsample the data if needed
-        if np.random.rand() <= p_subsample:
-            # estimate the expected error
-            for y_idx, y in enumerate(possible_labels):
-                X_new = data_vstack((learner.X_training, x.reshape(1, -1)))
-                y_new = data_vstack((learner.y_training, np.array(y).reshape(1, )))
-
-                refitted_estimator = clone(learner.estimator).fit(X_new, y_new)
-                refitted_proba = refitted_estimator.predict_proba(X)
-                entr = np.transpose(entropy(np.transpose(refitted_proba)))
-
-                expected_log_loss[x_idx] += np.sum(entr)*X_proba[x_idx, y_idx]
-
-        else:
-            expected_log_loss[x_idx] = np.inf
-
-    query_idx = multi_argmax(expected_log_loss, n_instances)
 
     return query_idx, X[query_idx]
