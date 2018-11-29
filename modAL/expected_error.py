@@ -2,11 +2,9 @@
 Expected error reduction framework for active learning.
 """
 
-from typing import Tuple, Callable
+from typing import Tuple
 
 import numpy as np
-
-from scipy.stats import entropy
 
 from sklearn.base import clone
 from sklearn.exceptions import NotFittedError
