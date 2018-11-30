@@ -76,6 +76,7 @@ Currently supported active learning strategies are
    content/apireference/uncertainty.rst
    content/apireference/disagreement.rst
    content/apireference/multilabel.rst
+   content/apireference/expected_error.rst
    content/apireference/acquisition.rst
    content/apireference/batch.rst
    content/apireference/density.rst
