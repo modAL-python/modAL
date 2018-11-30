@@ -51,6 +51,8 @@ def expected_error_reduction(learner: ActiveLearner, X: modALinput, loss: str = 
         # TODO: implement a proper cold-start
         return 0, X[0]
 
+    cloned_estimator = clone(learner.estimator)
+
     for x_idx, x in enumerate(X):
         # subsample the data if needed
         if np.random.rand() <= p_subsample:
@@ -59,8 +61,8 @@ def expected_error_reduction(learner: ActiveLearner, X: modALinput, loss: str = 
                 X_new = data_vstack((learner.X_training, x.reshape(1, -1)))
                 y_new = data_vstack((learner.y_training, np.array(y).reshape(1, )))
 
-                refitted_estimator = clone(learner.estimator).fit(X_new, y_new)
-                refitted_proba = refitted_estimator.predict_proba(X)
+                cloned_estimator.fit(X_new, y_new)
+                refitted_proba = cloned_estimator.predict_proba(X)
                 if loss is 'binary':
                     loss = _proba_uncertainty(refitted_proba)
                 elif loss is 'log':
