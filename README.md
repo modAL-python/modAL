@@ -148,13 +148,13 @@ After a few queries, we can see that the prediction is much improved.
 ## Additional examples<a name="additional-examples"></a>
 Including this, many examples are available:
 - [Pool-based sampling](https://modal-python.readthedocs.io/en/latest/content/examples/pool-based_sampling.html)  
-- [Stream-based sampling](https://modal-python.readthedocs.io/en/latest/content/examples/Stream-based-sampling.html)  
+- [Stream-based sampling](https://modal-python.readthedocs.io/en/latest/content/examples/stream-based_sampling.html)  
 - [Active regression](https://modal-python.readthedocs.io/en/latest/content/examples/active_regression.html)  
 - [Ensemble regression](https://modal-python.readthedocs.io/en/latest/content/examples/ensemble_regression.html)  
 - [Bayesian optimization](https://modal-python.readthedocs.io/en/latest/content/examples/bayesian_optimization.html)  
-- [Query by committee](https://modal-python.readthedocs.io/en/latest/content/examples/Query-by-committee.html)  
-- [Bootstrapping and bagging](https://modal-python.readthedocs.io/en/latest/content/examples/Bootstrapping-and-bagging.html)  
-- [Keras integration](https://modal-python.readthedocs.io/en/latest/content/examples/Keras-integration.html)
+- [Query by committee](https://modal-python.readthedocs.io/en/latest/content/examples/query_by_committee.html)  
+- [Bootstrapping and bagging](https://modal-python.readthedocs.io/en/latest/content/examples/bootstrapping_and_bagging.html)  
+- [Keras integration](https://modal-python.readthedocs.io/en/latest/content/examples/Keras_integration.html)
 
 # Installation<a name="installation"></a>
 modAL requires
