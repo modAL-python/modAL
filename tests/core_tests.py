@@ -159,6 +159,40 @@ class TestUtils(unittest.TestCase):
         # not supported formats
         self.assertRaises(TypeError, modAL.utils.data.data_vstack, (1, 1))
 
+    # functions from modAL.utils.selection
+
+    def test_multi_argmax(self):
+        for n_pool in range(2, 100):
+            for n_instances in range(1, n_pool):
+                utility = np.zeros(n_pool)
+                max_idx = np.random.choice(range(n_pool), size=n_instances, replace=False)
+                utility[max_idx] = 1e-10 + np.random.rand(n_instances, )
+                np.testing.assert_equal(
+                    np.sort(modAL.utils.selection.multi_argmax(utility, n_instances)),
+                    np.sort(max_idx)
+                )
+
+    def test_shuffled_argmax(self):
+        for n_pool in range(1, 100):
+            for n_instances in range(1, n_pool+1):
+                values = np.random.permutation(n_pool)
+                true_query_idx = np.argsort(values)[:n_instances]
+
+                np.testing.assert_equal(
+                    true_query_idx,
+                    modAL.utils.selection.shuffled_argmax(values, n_instances)
+                )
+
+    def test_weighted_random(self):
+        for n_pool in range(2, 100):
+            for n_instances in range(1, n_pool):
+                utility = np.ones(n_pool)
+                query_idx = modAL.utils.selection.weighted_random(utility, n_instances)
+                # testing for correct number of returned indices
+                np.testing.assert_equal(len(query_idx), n_instances)
+                # testing for uniqueness of each query index
+                np.testing.assert_equal(len(query_idx), len(np.unique(query_idx)))
+
 
 class TestAcquisitionFunctions(unittest.TestCase):
     def test_acquisition_functions(self):
@@ -522,30 +556,6 @@ class TestUncertainties(unittest.TestCase):
                         classifier, np.random.rand(n_samples, n_classes)
                     )
                     np.testing.assert_array_equal(query_idx, true_query_idx)
-
-
-class TestQueries(unittest.TestCase):
-
-    def test_multi_argmax(self):
-        for n_pool in range(2, 100):
-            for n_instances in range(1, n_pool):
-                utility = np.zeros(n_pool)
-                max_idx = np.random.choice(range(n_pool), size=n_instances, replace=False)
-                utility[max_idx] = 1e-10 + np.random.rand(n_instances, )
-                np.testing.assert_equal(
-                    np.sort(modAL.utils.selection.multi_argmax(utility, n_instances)),
-                    np.sort(max_idx)
-                )
-
-    def test_weighted_random(self):
-        for n_pool in range(2, 100):
-            for n_instances in range(1, n_pool):
-                utility = np.ones(n_pool)
-                query_idx = modAL.utils.selection.weighted_random(utility, n_instances)
-                # testing for correct number of returned indices
-                np.testing.assert_equal(len(query_idx), n_instances)
-                # testing for uniqueness of each query index
-                np.testing.assert_equal(len(query_idx), len(np.unique(query_idx)))
 
 
 class TestActiveLearner(unittest.TestCase):
