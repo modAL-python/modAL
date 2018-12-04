@@ -8,8 +8,8 @@ from scipy.stats import entropy
 from sklearn.exceptions import NotFittedError
 from sklearn.base import BaseEstimator
 
-from modAL.utils.selection import multi_argmax
 from modAL.utils.data import modALinput
+from modAL.utils.selection import multi_argmax, shuffled_argmax
 
 
 def _proba_uncertainty(proba: np.ndarray) -> np.ndarray:
@@ -131,7 +131,8 @@ def classifier_entropy(classifier: BaseEstimator, X: modALinput, **predict_proba
 
 
 def uncertainty_sampling(classifier: BaseEstimator, X: modALinput,
-                         n_instances: int = 1, **uncertainty_measure_kwargs) -> Tuple[np.ndarray, modALinput]:
+                         n_instances: int = 1, random_tie_break: bool = False,
+                         **uncertainty_measure_kwargs) -> Tuple[np.ndarray, modALinput]:
     """
     Uncertainty sampling query strategy. Selects the least sure instances for labelling.
 
@@ -139,53 +140,74 @@ def uncertainty_sampling(classifier: BaseEstimator, X: modALinput,
         classifier: The classifier for which the labels are to be queried.
         X: The pool of samples to query from.
         n_instances: Number of samples to be queried.
-        **uncertainty_measure_kwargs: Keyword arguments to be passed for the uncertainty measure function.
+        random_tie_break: If True, shuffles utility scores to randomize the order. This
+            can be used to break the tie when the highest utility score is not unique.
+        **uncertainty_measure_kwargs: Keyword arguments to be passed for the uncertainty
+            measure function.
 
     Returns:
-        The indices of the instances from X chosen to be labelled; the instances from X chosen to be labelled.
+        The indices of the instances from X chosen to be labelled;
+        the instances from X chosen to be labelled.
     """
     uncertainty = classifier_uncertainty(classifier, X, **uncertainty_measure_kwargs)
-    query_idx = multi_argmax(uncertainty, n_instances=n_instances)
+
+    if not random_tie_break:
+        query_idx = multi_argmax(uncertainty, n_instances=n_instances)
+    else:
+        query_idx = shuffled_argmax(uncertainty, n_instances=n_instances)
 
     return query_idx, X[query_idx]
 
 
 def margin_sampling(classifier: BaseEstimator, X: modALinput,
-                    n_instances: int = 1, **uncertainty_measure_kwargs) -> Tuple[np.ndarray, modALinput]:
+                    n_instances: int = 1, random_tie_break: bool = False,
+                    **uncertainty_measure_kwargs) -> Tuple[np.ndarray, modALinput]:
     """
     Margin sampling query strategy. Selects the instances where the difference between the first most likely and second
     most likely classes are the smallest.
-
     Args:
         classifier: The classifier for which the labels are to be queried.
         X: The pool of samples to query from.
         n_instances: Number of samples to be queried.
         **uncertainty_measure_kwargs: Keyword arguments to be passed for the uncertainty measure function.
-
     Returns:
         The indices of the instances from X chosen to be labelled; the instances from X chosen to be labelled.
     """
     margin = classifier_margin(classifier, X, **uncertainty_measure_kwargs)
-    query_idx = multi_argmax(-margin, n_instances=n_instances)
+
+    if not random_tie_break:
+        query_idx = multi_argmax(-margin, n_instances=n_instances)
+    else:
+        query_idx = shuffled_argmax(-margin, n_instances=n_instances)
 
     return query_idx, X[query_idx]
 
 
 def entropy_sampling(classifier: BaseEstimator, X: modALinput,
-                     n_instances: int = 1, **uncertainty_measure_kwargs) -> Tuple[np.ndarray, modALinput]:
+                     n_instances: int = 1, random_tie_break: bool = False,
+                     **uncertainty_measure_kwargs) -> Tuple[np.ndarray, modALinput]:
     """
-    Entropy sampling query strategy. Selects the instances where the class probabilities have the largest entropy.
+    Entropy sampling query strategy. Selects the instances where the class probabilities
+    have the largest entropy.
 
     Args:
         classifier: The classifier for which the labels are to be queried.
         X: The pool of samples to query from.
         n_instances: Number of samples to be queried.
-        **uncertainty_measure_kwargs: Keyword arguments to be passed for the uncertainty measure function.
+        random_tie_break: If True, shuffles utility scores to randomize the order. This
+            can be used to break the tie when the highest utility score is not unique.
+        **uncertainty_measure_kwargs: Keyword arguments to be passed for the uncertainty
+            measure function.
 
     Returns:
-        The indices of the instances from X chosen to be labelled; the instances from X chosen to be labelled.
+        The indices of the instances from X chosen to be labelled;
+        the instances from X chosen to be labelled.
     """
     entropy = classifier_entropy(classifier, X, **uncertainty_measure_kwargs)
-    query_idx = multi_argmax(entropy, n_instances=n_instances)
+
+    if not random_tie_break:
+        query_idx = multi_argmax(entropy, n_instances=n_instances)
+    else:
+        query_idx = shuffled_argmax(entropy, n_instances=n_instances)
 
     return query_idx, X[query_idx]

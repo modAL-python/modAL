@@ -528,6 +528,10 @@ class TestUncertainties(unittest.TestCase):
                     query_idx, query_instance = modAL.uncertainty.uncertainty_sampling(
                         classifier, np.random.rand(n_samples, n_classes)
                     )
+                    shuffled_query_idx, shuffled_query_instance = modAL.uncertainty.uncertainty_sampling(
+                        classifier, np.random.rand(n_samples, n_classes),
+                        random_tie_break=True
+                    )
                     np.testing.assert_array_equal(query_idx, true_query_idx)
 
     def test_margin_sampling(self):
@@ -540,6 +544,10 @@ class TestUncertainties(unittest.TestCase):
                     classifier = mock.MockEstimator(predict_proba_return=predict_proba)
                     query_idx, query_instance = modAL.uncertainty.margin_sampling(
                         classifier, np.random.rand(n_samples, n_classes)
+                    )
+                    shuffled_query_idx, shuffled_query_instance = modAL.uncertainty.margin_sampling(
+                        classifier, np.random.rand(n_samples, n_classes),
+                        random_tie_break=True
                     )
                     np.testing.assert_array_equal(query_idx, true_query_idx)
 
@@ -554,6 +562,10 @@ class TestUncertainties(unittest.TestCase):
                     classifier = mock.MockEstimator(predict_proba_return=predict_proba)
                     query_idx, query_instance = modAL.uncertainty.entropy_sampling(
                         classifier, np.random.rand(n_samples, n_classes)
+                    )
+                    shuffled_query_idx, shuffled_query_instance = modAL.uncertainty.entropy_sampling(
+                        classifier, np.random.rand(n_samples, n_classes),
+                        random_tie_break=True
                     )
                     np.testing.assert_array_equal(query_idx, true_query_idx)
 
