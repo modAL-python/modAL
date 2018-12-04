@@ -5,6 +5,37 @@ Functions to select certain element indices from arrays.
 import numpy as np
 
 
+def shuffled_argmax(values: np.ndarray, n_instances: int = 1) -> np.ndarray:
+    """
+    Shuffles the values and sorts them afterwards. This can be used to break
+    the tie when the highest utility score is not unique. The shuffle randomizes
+    order, which is preserved by the mergesort algorithm.
+
+    Args:
+        values:
+        n_instances:
+
+    Args:
+        values: Contains the values to be selected from.
+        n_instances: Specifies how many indices to return.
+
+    Returns:
+        The indices of the n_instances largest values.
+    """
+
+    # shuffling indices and corresponding values
+    shuffled_idx = np.random.permutation(len(values))
+    shuffled_values = values[shuffled_idx]
+
+    # getting the n_instances best instance
+    # since mergesort is used, the shuffled order is preserved
+    sorted_query_idx = np.argsort(shuffled_values, kind='mergesort')[:n_instances]
+
+    # inverting the shuffle
+    query_idx = shuffled_idx[sorted_query_idx]
+    return query_idx
+
+
 def multi_argmax(values: np.ndarray, n_instances: int = 1) -> np.ndarray:
     """
     Selects the indices of the n_instances highest values.
@@ -14,7 +45,7 @@ def multi_argmax(values: np.ndarray, n_instances: int = 1) -> np.ndarray:
         n_instances: Specifies how many indices to return.
 
     Returns:
-        Contains the indices of the n_instances largest values.
+        The indices of the n_instances largest values.
     """
     assert n_instances <= values.shape[0], 'n_instances must be less or equal than the size of utility'
 
