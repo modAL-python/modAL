@@ -462,6 +462,7 @@ class TestEER(unittest.TestCase):
                                                  X_training=X_training, y_training=y_training)
 
             modAL.expected_error.expected_error_reduction(learner, X_pool)
+            modAL.expected_error.expected_error_reduction(learner, X_pool, random_tie_break=True)
             modAL.expected_error.expected_error_reduction(learner, X_pool, p_subsample=0.1)
             modAL.expected_error.expected_error_reduction(learner, X_pool, loss='binary')
             modAL.expected_error.expected_error_reduction(learner, X_pool, p_subsample=0.1, loss='log')
