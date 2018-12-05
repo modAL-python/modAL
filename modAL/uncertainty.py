@@ -163,15 +163,19 @@ def margin_sampling(classifier: BaseEstimator, X: modALinput,
                     n_instances: int = 1, random_tie_break: bool = False,
                     **uncertainty_measure_kwargs) -> Tuple[np.ndarray, modALinput]:
     """
-    Margin sampling query strategy. Selects the instances where the difference between the first most likely and second
-    most likely classes are the smallest.
+    Margin sampling query strategy. Selects the instances where the difference between
+    the first most likely and second most likely classes are the smallest.
     Args:
         classifier: The classifier for which the labels are to be queried.
         X: The pool of samples to query from.
         n_instances: Number of samples to be queried.
-        **uncertainty_measure_kwargs: Keyword arguments to be passed for the uncertainty measure function.
+        random_tie_break: If True, shuffles utility scores to randomize the order. This
+            can be used to break the tie when the highest utility score is not unique.
+        **uncertainty_measure_kwargs: Keyword arguments to be passed for the uncertainty
+            measure function.
     Returns:
-        The indices of the instances from X chosen to be labelled; the instances from X chosen to be labelled.
+        The indices of the instances from X chosen to be labelled;
+        the instances from X chosen to be labelled.
     """
     margin = classifier_margin(classifier, X, **uncertainty_measure_kwargs)
 
