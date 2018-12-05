@@ -30,7 +30,7 @@ for member_idx in range(n_members):
 
     # initializing learner
     learner = ActiveLearner(
-        estimator=RandomForestClassifier(),
+        estimator=RandomForestClassifier(n_estimators=10),
         X_training=X_train, y_training=y_train
     )
     learner_list.append(learner)

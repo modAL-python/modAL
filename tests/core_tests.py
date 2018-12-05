@@ -1049,14 +1049,22 @@ class TestMultilabel(unittest.TestCase):
                     classifier.fit(X_training, y_training)
 
                     active_learner = modAL.models.ActiveLearner(classifier)
+                    # no random tie break
                     modAL.multilabel.SVM_binary_minimum(active_learner, X_pool)
-
                     modAL.multilabel.mean_max_loss(classifier, X_pool, n_query_instances)
                     modAL.multilabel.max_loss(classifier, X_pool, n_query_instances)
                     modAL.multilabel.min_confidence(classifier, X_pool, n_query_instances)
                     modAL.multilabel.avg_confidence(classifier, X_pool, n_query_instances)
                     modAL.multilabel.max_score(classifier, X_pool, n_query_instances)
                     modAL.multilabel.avg_score(classifier, X_pool, n_query_instances)
+                    # random tie break
+                    modAL.multilabel.SVM_binary_minimum(active_learner, X_pool, random_tie_break=True)
+                    modAL.multilabel.mean_max_loss(classifier, X_pool, n_query_instances, random_tie_break=True)
+                    modAL.multilabel.max_loss(classifier, X_pool, n_query_instances, random_tie_break=True)
+                    modAL.multilabel.min_confidence(classifier, X_pool, n_query_instances, random_tie_break=True)
+                    modAL.multilabel.avg_confidence(classifier, X_pool, n_query_instances, random_tie_break=True)
+                    modAL.multilabel.max_score(classifier, X_pool, n_query_instances, random_tie_break=True)
+                    modAL.multilabel.avg_score(classifier, X_pool, n_query_instances, random_tie_break=True)
 
 
 class TestExamples(unittest.TestCase):

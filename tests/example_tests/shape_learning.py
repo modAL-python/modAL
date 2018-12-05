@@ -34,7 +34,7 @@ X_train, y_train = X_pool[initial_idx], y_pool[initial_idx]
 
 # create an ActiveLearner instance
 learner = ActiveLearner(
-    estimator=RandomForestClassifier(),
+    estimator=RandomForestClassifier(n_estimators=10),
     X_training=X_train, y_training=y_train
 )
 initial_prediction = learner.predict_proba(X_full)[:, 1].reshape(im_height, im_width)
