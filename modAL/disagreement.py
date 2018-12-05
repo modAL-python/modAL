@@ -214,5 +214,5 @@ def max_std_sampling(regressor: BaseEstimator, X: modALinput,
         query_idx = multi_argmax(std, n_instances=n_instances)
     else:
         query_idx = shuffled_argmax(std, n_instances=n_instances)
-    
+
     return query_idx, X[query_idx]

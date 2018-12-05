@@ -21,6 +21,7 @@ from itertools import chain, product
 from collections import namedtuple
 
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.exceptions import NotFittedError
 from sklearn.metrics import confusion_matrix
 from sklearn.svm import SVC
@@ -416,6 +417,39 @@ class TestDisagreements(unittest.TestCase):
                         committee, np.random.rand(n_samples, n_classes)
                     )
                     np.testing.assert_almost_equal(returned_KL_disagreement, true_KL_disagreement)
+
+    def test_vote_entropy_sampling(self):
+        for n_samples, n_features, n_classes in product(range(1, 10), range(1, 10), range(1, 10)):
+            committee = mock.MockCommittee(classes_=np.asarray(range(n_classes)),
+                                           vote_return=np.zeros(shape=(n_samples, n_classes), dtype=np.int16))
+            modAL.disagreement.vote_entropy_sampling(committee, np.random.rand(n_samples, n_features))
+            modAL.disagreement.vote_entropy_sampling(committee, np.random.rand(n_samples, n_features),
+                                                     random_tie_break=True)
+
+    def test_consensus_entropy_sampling(self):
+        for n_samples, n_features, n_classes in product(range(1, 10), range(1, 10), range(1, 10)):
+            committee = mock.MockCommittee(predict_proba_return=np.random.rand(n_samples, n_classes))
+            modAL.disagreement.consensus_entropy_sampling(committee, np.random.rand(n_samples, n_features))
+            modAL.disagreement.consensus_entropy_sampling(committee, np.random.rand(n_samples, n_features),
+                                                          random_tie_break=True)
+
+    def test_max_disagreement_sampling(self):
+        for n_samples, n_features, n_classes, n_learners in product(range(1, 10), range(1, 10), range(1, 10), range(2, 5)):
+            committee = mock.MockCommittee(
+                n_learners=n_learners, classes_=range(n_classes),
+                vote_proba_return=np.zeros(shape=(n_samples, n_learners, n_classes))
+            )
+            modAL.disagreement.max_disagreement_sampling(committee, np.random.rand(n_samples, n_features))
+            modAL.disagreement.max_disagreement_sampling(committee, np.random.rand(n_samples, n_features),
+                                                         random_tie_break=True)
+
+    def test_max_std_sampling(self):
+        for n_samples, n_features in product(range(1, 10), range(1, 10)):
+            regressor = GaussianProcessRegressor()
+            regressor.fit(np.random.rand(n_samples, n_features), np.random.rand(n_samples))
+            modAL.disagreement.max_std_sampling(regressor, np.random.rand(n_samples, n_features))
+            modAL.disagreement.max_std_sampling(regressor, np.random.rand(n_samples, n_features),
+                                                random_tie_break=True)
 
 
 class TestEER(unittest.TestCase):
