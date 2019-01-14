@@ -101,7 +101,10 @@ def select_instance(
     scores = alpha * (1 - similarity_scores) + (1 - alpha) * X_uncertainty[mask]
 
     # Isolate and return our best instance for labeling as the one with the largest score.
-    best_instance_index = np.argmax(scores)
+    best_instance_index_in_unlabeled = np.argmax(scores)
+    n_pool, _ = X_pool.shape
+    unlabeled_indices = [i for i in range(n_pool) if mask[i]]
+    best_instance_index = unlabeled_indices[best_instance_index_in_unlabeled]
     mask[best_instance_index] = 0
     return best_instance_index, X_pool[best_instance_index].reshape(1, -1), mask
 
