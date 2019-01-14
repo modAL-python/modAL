@@ -15,7 +15,7 @@ from modAL.uncertainty import classifier_uncertainty
 
 def select_cold_start_instance(X: modALinput,
                                metric: Union[str, Callable],
-                               n_jobs: Union[int, None]) -> modALinput:
+                               n_jobs: Union[int, None]) -> Tuple[int, modALinput]:
     """
     Define what to do if our batch-mode sampling doesn't have any labeled data -- a cold start.
 
@@ -35,7 +35,8 @@ def select_cold_start_instance(X: modALinput,
         n_jobs: This parameter is passed to :func:`~sklearn.metrics.pairwise.pairwise_distances`.
 
     Returns:
-        Best instance for cold-start.
+        Index of the best cold-start instance from `X` chosen to be labelled; record of the best cold-start instance
+        from `X` chosen to be labelled.
     """
     # Compute all pairwise distances in our unlabeled data and obtain the row-wise average for each of our records in X.
     n_jobs = n_jobs if n_jobs else 1
@@ -43,7 +44,7 @@ def select_cold_start_instance(X: modALinput,
 
     # Isolate and return our best instance for labeling as the record with the least average distance.
     best_coldstart_instance_index = np.argmin(average_distances)
-    return X[best_coldstart_instance_index].reshape(1, -1)
+    return best_coldstart_instance_index, X[best_coldstart_instance_index].reshape(1, -1)
 
 
 def select_instance(
@@ -133,14 +134,16 @@ def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
         The indices of the top n_instances ranked unlabelled samples.
     """
     # Make a local copy of our classifier's training data.
+    # Define our record container and record the best cold start instance in the case of cold start.
     if classifier.X_training is None:
-        labeled = select_cold_start_instance(X=unlabeled, metric=metric, n_jobs=n_jobs)
+        best_coldstart_instance_index, labeled = select_cold_start_instance(X=unlabeled, metric=metric, n_jobs=n_jobs)
+        instance_index_ranking = [best_coldstart_instance_index]
     elif classifier.X_training.shape[0] > 0:
         labeled = classifier.X_training[:]
-
-    # Define our record container and the maximum number of records to sample.
-    instance_index_ranking = []
-    ceiling = np.minimum(unlabeled.shape[0], n_instances)
+        instance_index_ranking = []
+    
+    # The maximum number of records to sample.
+    ceiling = np.minimum(unlabeled.shape[0], n_instances) - len(instance_index_ranking)
 
     # mask for unlabeled initialized as transparent
     mask = np.ones(unlabeled.shape[0], np.bool)
