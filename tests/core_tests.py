@@ -177,8 +177,8 @@ class TestUtils(unittest.TestCase):
         for n_pool in range(1, 100):
             for n_instances in range(1, n_pool+1):
                 values = np.random.permutation(n_pool)
-                true_query_idx = np.argsort(values)[:n_instances]
-
+                true_query_idx = np.argsort(values)[len(values)-n_instances:]
+                
                 np.testing.assert_equal(
                     true_query_idx,
                     modAL.utils.selection.shuffled_argmax(values, n_instances)

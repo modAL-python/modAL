@@ -22,6 +22,7 @@ def shuffled_argmax(values: np.ndarray, n_instances: int = 1) -> np.ndarray:
     Returns:
         The indices of the n_instances largest values.
     """
+    assert n_instances <= values.shape[0], 'n_instances must be less or equal than the size of utility'
 
     # shuffling indices and corresponding values
     shuffled_idx = np.random.permutation(len(values))
@@ -29,7 +30,7 @@ def shuffled_argmax(values: np.ndarray, n_instances: int = 1) -> np.ndarray:
 
     # getting the n_instances best instance
     # since mergesort is used, the shuffled order is preserved
-    sorted_query_idx = np.argsort(shuffled_values, kind='mergesort')[:n_instances]
+    sorted_query_idx = np.argsort(shuffled_values, kind='mergesort')[len(shuffled_values)-n_instances:]
 
     # inverting the shuffle
     query_idx = shuffled_idx[sorted_query_idx]
