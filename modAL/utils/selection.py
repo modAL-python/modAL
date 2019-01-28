@@ -12,10 +12,6 @@ def shuffled_argmax(values: np.ndarray, n_instances: int = 1) -> np.ndarray:
     order, which is preserved by the mergesort algorithm.
 
     Args:
-        values:
-        n_instances:
-
-    Args:
         values: Contains the values to be selected from.
         n_instances: Specifies how many indices to return.
 
