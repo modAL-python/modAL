@@ -181,7 +181,7 @@ If you use modAL in your projects, you can cite it as
 @article{modAL2018,
     title={mod{AL}: {A} modular active learning framework for {P}ython},
     author={Tivadar Danka and Peter Horvath},
-    url={https://github.com/cosmic-cortex/modAL},
+    url={https://github.com/modAL-python/modAL},
     note={available on arXiv at \url{https://arxiv.org/abs/1805.00979}}
 }
 ```
