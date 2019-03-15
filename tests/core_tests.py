@@ -164,7 +164,7 @@ class TestUtils(unittest.TestCase):
 
     def test_multi_argmax(self):
         for n_pool in range(2, 100):
-            for n_instances in range(1, n_pool):
+            for n_instances in range(1, n_pool+1):
                 utility = np.zeros(n_pool)
                 max_idx = np.random.choice(range(n_pool), size=n_instances, replace=False)
                 utility[max_idx] = 1e-10 + np.random.rand(n_instances, )
@@ -1087,3 +1087,4 @@ class TestExamples(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
+0
