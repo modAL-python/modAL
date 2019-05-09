@@ -1071,6 +1071,7 @@ class TestMultilabel(unittest.TestCase):
 class TestExamples(unittest.TestCase):
 
     def test_examples(self):
+        import example_tests.multidimensional_data
         import example_tests.active_regression
         import example_tests.bagging
         import example_tests.ensemble

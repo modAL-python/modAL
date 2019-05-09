@@ -79,9 +79,11 @@ def select_instance(
         Index of the best index from X chosen to be labelled; a single record from our unlabeled set that is considered
         the most optimal incremental record for including in our query set.
     """
+    X_pool_masked = X_pool[mask]
+
     # Extract the number of labeled and unlabeled records.
-    n_labeled_records, _ = X_training.shape
-    n_unlabeled, _ = X_pool[mask].shape
+    n_labeled_records, *rest = X_training.shape
+    n_unlabeled, *rest = X_pool_masked.shape
 
     # Determine our alpha parameter as |U| / (|U| + |D|). Note that because we
     # append to X_training and remove from X_pool within `ranked_batch`,
@@ -90,10 +92,15 @@ def select_instance(
 
     # Compute pairwise distance (and then similarity) scores from every unlabeled record
     # to every record in X_training. The result is an array of shape (n_samples, ).
+
     if n_jobs == 1 or n_jobs is None:
-        _, distance_scores = pairwise_distances_argmin_min(X_pool[mask], X_training, metric=metric)
+        _, distance_scores = pairwise_distances_argmin_min(X_pool_masked.reshape(n_unlabeled, -1),
+                                                           X_training.reshape(n_labeled_records, -1),
+                                                           metric=metric)
     else:
-        distance_scores = pairwise_distances(X_pool[mask], X_training, metric=metric, n_jobs=n_jobs).min(axis=1)
+        distance_scores = pairwise_distances(X_pool_masked.reshape(n_unlabeled, -1),
+                                             X_training.reshape(n_labeled_records, -1),
+                                             metric=metric, n_jobs=n_jobs).min(axis=1)
 
     similarity_scores = 1 / (1 + distance_scores)
 
@@ -103,11 +110,11 @@ def select_instance(
 
     # Isolate and return our best instance for labeling as the one with the largest score.
     best_instance_index_in_unlabeled = np.argmax(scores)
-    n_pool, _ = X_pool.shape
+    n_pool, *rest = X_pool.shape
     unlabeled_indices = [i for i in range(n_pool) if mask[i]]
     best_instance_index = unlabeled_indices[best_instance_index_in_unlabeled]
     mask[best_instance_index] = 0
-    return best_instance_index, X_pool[best_instance_index].reshape(1, -1), mask
+    return best_instance_index, np.expand_dims(X_pool[best_instance_index], axis=0), mask
 
 
 def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
