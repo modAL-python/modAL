@@ -1,11 +1,13 @@
 import numpy as np
+from sklearn.base import BaseEstimator
+
 from modAL.models import ActiveLearner
 from modAL.uncertainty import margin_sampling, entropy_sampling
 from modAL.batch import uncertainty_batch_sampling
 from modAL.expected_error import expected_error_reduction
 
 
-class MockClassifier:
+class MockClassifier(BaseEstimator):
     def __init__(self, n_classes=2):
         self.n_classes = n_classes
 
@@ -21,11 +23,11 @@ class MockClassifier:
 
 if __name__ == '__main__':
     X_train = np.random.rand(10, 5, 5)
-    y_train = np.random.rand(10, 1)
+    y_train = np.random.randint(0, 2, size=10)
     X_pool = np.random.rand(10, 5, 5)
-    y_pool = np.random.rand(10, 1)
+    y_pool = np.random.randint(0, 2, size=10)
 
-    strategies = [margin_sampling, entropy_sampling, uncertainty_batch_sampling]
+    strategies = [margin_sampling, entropy_sampling, uncertainty_batch_sampling, expected_error_reduction]
 
     for query_strategy in strategies:
         print("testing %s..." % query_strategy.__name__)
