@@ -1,16 +1,15 @@
 """
-This example demonstrates how to use the active learning interface with Keras.
-The example uses the scikit-learn wrappers of Keras. For more info, see https://keras.io/scikit-learn-api/
+This example demonstrates how to use the active learning interface with Pytorch.
+The example uses Skorch, a scikit learn wrapper of Pytorch.
+For more info, see https://skorch.readthedocs.io/en/stable/
 """
 
 import torch
-import keras
 import numpy as np
 from keras.datasets import mnist
 from torch import nn
 from skorch import NeuralNetClassifier
 from modAL.models import ActiveLearner
-from tqdm import tqdm
 
 # build class for the skorch API
 class Torch_Model(nn.Module):
@@ -84,7 +83,7 @@ learner = ActiveLearner(
 
 # the active learning loop
 n_queries = 10
-for idx in tqdm(range(n_queries)):
+for idx in range(n_queries):
     query_idx, query_instance = learner.query(X_pool, n_instances=100)
     print(query_idx)
     learner.teach(X_pool[query_idx], y_pool[query_idx], only_new=True)
