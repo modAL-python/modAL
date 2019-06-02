@@ -25,4 +25,7 @@ def data_vstack(blocks: Container) -> modALinput:
     elif sp.issparse(blocks[0]):
         return sp.vstack(blocks)
     else:
-        raise TypeError('%s datatype is not supported' % type(blocks[0]))
+        try:
+            return np.concatenate(blocks)
+        except:
+            raise TypeError('%s datatype is not supported' % type(blocks[0]))
