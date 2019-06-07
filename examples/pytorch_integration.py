@@ -68,8 +68,6 @@ X, y = next(iter(dataloader))
 X_train, X_test, y_train, y_test = X[:50000], X[50000:], y[:50000], y[50000:]
 X_train = X_train.reshape(50000, 1, 28, 28)
 X_test = X_test.reshape(10000, 1, 28, 28)
-y_train = y_train
-y_test  = y_test
 
 # assemble initial data
 n_initial = 1000
