@@ -67,19 +67,18 @@ def expected_error_reduction(learner: ActiveLearner, X: modALinput, loss: str = 
                 cloned_estimator.fit(X_new, y_new)
                 refitted_proba = cloned_estimator.predict_proba(X)
                 if loss is 'binary':
-                    loss = _proba_uncertainty(refitted_proba)
+                    nloss = _proba_uncertainty(refitted_proba)
                 elif loss is 'log':
-                    loss = _proba_entropy(refitted_proba)
+                    nloss = _proba_entropy(refitted_proba)
 
-                expected_error[x_idx] += np.sum(loss)*X_proba[x_idx, y_idx]
-
+                expected_error[x_idx] += np.sum(nloss)*X_proba[x_idx, y_idx]
 
         else:
             expected_error[x_idx] = np.inf
 
     if not random_tie_break:
-        query_idx = multi_argmax(expected_error, n_instances)
+        query_idx = multi_argmax(-expected_error, n_instances)
     else:
-        query_idx = shuffled_argmax(expected_error, n_instances)
+        query_idx = shuffled_argmax(-expected_error, n_instances)
 
     return query_idx, X[query_idx]
