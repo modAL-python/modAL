@@ -67,6 +67,7 @@ Currently supported active learning strategies are
    content/examples/query_by_committee
    content/examples/bootstrapping_and_bagging
    content/examples/Keras_integration
+   content/examples/Pytorch_integration
    
 .. toctree::
    :glob:
