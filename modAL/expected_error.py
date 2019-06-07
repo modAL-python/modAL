@@ -59,13 +59,14 @@ def expected_error_reduction(learner: ActiveLearner, X: modALinput, loss: str = 
     for x_idx, x in enumerate(X):
         # subsample the data if needed
         if np.random.rand() <= p_subsample:
+            X_reduced = np.delete(X, x_idx, axis=0)
             # estimate the expected error
             for y_idx, y in enumerate(possible_labels):
                 X_new = data_vstack((learner.X_training, np.expand_dims(x, axis=0)))
                 y_new = data_vstack((learner.y_training, np.array(y).reshape(1,)))
 
                 cloned_estimator.fit(X_new, y_new)
-                refitted_proba = cloned_estimator.predict_proba(X)
+                refitted_proba = cloned_estimator.predict_proba(X_reduced)
                 if loss is 'binary':
                     nloss = _proba_uncertainty(refitted_proba)
                 elif loss is 'log':
