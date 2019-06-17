@@ -16,7 +16,7 @@ def create_keras_model():
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
     model.add(Flatten())
-    model.add(Dense(128, activation='relu', kernel_regularizer=l2(weight_decay)))
+    model.add(Dense(128, activation='relu'))
     model.add(Dropout(0.5))
     model.add(Dense(10, activation='softmax'))
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=["accuracy"])
