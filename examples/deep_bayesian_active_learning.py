@@ -63,7 +63,8 @@ def max_entropy(learner, X, n_instances=1, T=100):
     learning_phase = True
     MC_samples = [MC_output([subset, learning_phase])[0] for _ in range(T)]
     MC_samples = np.array(MC_samples)  # [#samples x batch size x #classes]
-    acquisition = - np.mean(np.sum(MC_samples * np.log(MC_samples + 1e-10), axis=-1), axis=0)  # [batch size]
+    expected_p = np.mean(MC_samples, axis=0)
+    acquisition = - np.sum(expected_p * np.log(expected_p + 1e-10), axis=-1)  # [batch size]
     query_idx = (-acquisition).argsort()[:n_instances]
     return query_idx, X[query_idx]
 
