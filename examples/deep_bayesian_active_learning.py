@@ -13,7 +13,7 @@ def create_keras_model():
     model = Sequential()
     model.add(Conv2D(32, (3, 3), activation='relu'))
     model.add(Conv2D(32, (3, 3), activation='relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(MaxPooling2D(pool_size=(5, 5)))
     model.add(Dropout(0.25))
     model.add(Flatten())
     model.add(Dense(128, activation='relu'))
@@ -96,5 +96,6 @@ for index in range(n_queries):
     print('Accuracy after query {n}: {acc:0.4f}'.format(n=index + 1, acc=model_accuracy))
     perf_hist = [model_accuracy]
 
-np.save('/home/damien/Results/keras_modal_entropy.npy', perf_hist)
-print("saving to /home/damien/Results/keras_modal_entropy.npy")
+save_path = "/home/damien/Results/keras_modal_riashat_entropy.npy"
+np.save(save_path, perf_hist)
+print(save_path)
