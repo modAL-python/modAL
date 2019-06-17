@@ -15,8 +15,6 @@ def create_keras_model():
     model.add(Conv2D(32, (3, 3), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
-    c = 3.5
-    weight_decay = c / float(X_train.shape[0])
     model.add(Flatten())
     model.add(Dense(128, activation='relu', kernel_regularizer=l2(weight_decay)))
     model.add(Dropout(0.5))
