@@ -94,7 +94,7 @@ for index in range(n_queries):
     y_pool = np.delete(y_pool, query_idx, axis=0)
     model_accuracy = learner.score(X_test, y_test, verbose=0)
     print('Accuracy after query {n}: {acc:0.4f}'.format(n=index + 1, acc=model_accuracy))
-    perf_hist = [model_accuracy]
+    perf_hist.append(model_accuracy)
 
 save_path = "/home/damien/Results/keras_modal_riashat_entropy.npy"
 np.save(save_path, perf_hist)
