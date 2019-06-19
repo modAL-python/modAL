@@ -71,7 +71,7 @@ class BaseLearner(ABC, BaseEstimator):
             If the classifier has been fitted, the features in X have to agree with the training samples which the
             classifier has seen.
         """
-        check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True)
+        check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None)
 
         if self.X_training is None:
             self.X_training = X
@@ -117,7 +117,7 @@ class BaseLearner(ABC, BaseEstimator):
         Returns:
             self
         """
-        check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True)
+        check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None)
 
         if not bootstrap:
             self.estimator.fit(X, y, **fit_kwargs)
@@ -146,7 +146,7 @@ class BaseLearner(ABC, BaseEstimator):
         Returns:
             self
         """
-        check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True)
+        check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None)
         self.X_training, self.y_training = X, y
         return self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
