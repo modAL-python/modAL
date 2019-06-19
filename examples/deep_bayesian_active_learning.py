@@ -8,12 +8,11 @@ from keras.regularizers import l2
 from keras.wrappers.scikit_learn import KerasClassifier
 from modAL.models import ActiveLearner
 
-
 def create_keras_model():
     model = Sequential()
-    model.add(Conv2D(32, (3, 3), activation='relu'))
-    model.add(Conv2D(32, (3, 3), activation='relu'))
-    model.add(MaxPooling2D(pool_size=(5, 5)))
+    model.add(Conv2D(32, (4, 4), activation='relu'))
+    model.add(Conv2D(32, (4, 4), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
     model.add(Flatten())
     model.add(Dense(128, activation='relu'))
