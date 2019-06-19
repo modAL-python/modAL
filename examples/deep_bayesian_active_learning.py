@@ -54,15 +54,16 @@ Query Strategy
 """
 
 def max_entropy(learner, X, n_instances=1, T=100):
-    subset = X[np.random.choice(range(len(X)), size=2000, replace=False)]
+    random_subset = np.random.choice(X.shape[0], 2000, replace=False)
     MC_output = K.function([learner.estimator.model.layers[0].input, K.learning_phase()],
                            [learner.estimator.model.layers[-1].output])
     learning_phase = True
-    MC_samples = [MC_output([subset, learning_phase])[0] for _ in range(T)]
+    MC_samples = [MC_output([X[random_subset], learning_phase])[0] for _ in range(T)]
     MC_samples = np.array(MC_samples)  # [#samples x batch size x #classes]
     expected_p = np.mean(MC_samples, axis=0)
     acquisition = - np.sum(expected_p * np.log(expected_p + 1e-10), axis=-1)  # [batch size]
-    query_idx = (-acquisition).argsort()[:n_instances]
+    idx = (-acquisition).argsort()[:n_instances]
+    query_idx = random_subset[idx]
     return query_idx, X[query_idx]
 
 def uniform(learner, X, n_instances=1):
