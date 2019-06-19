@@ -44,8 +44,7 @@ y_test = keras.utils.to_categorical(y_test, 10)
 X_initial = X_train[initial_idx]
 y_initial = y_train[initial_idx]
 
-# generate the pool
-# remove the initial data from the training dataset
+# remove the initial data from the pool of unlabelled examples
 X_pool = np.delete(X_train, initial_idx, axis=0)
 y_pool = np.delete(y_train, initial_idx, axis=0)
 
@@ -95,7 +94,3 @@ for index in range(n_queries):
     model_accuracy = learner.score(X_test, y_test, verbose=0)
     print('Accuracy after query {n}: {acc:0.4f}'.format(n=index + 1, acc=model_accuracy))
     perf_hist.append(model_accuracy)
-
-save_path = "/home/damien/Results/keras_modal_riashat_entropy.npy"
-np.save(save_path, perf_hist)
-print(save_path)
