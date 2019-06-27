@@ -210,8 +210,8 @@ class TestAcquisitionFunctions(unittest.TestCase):
 
     def test_optimizer_PI(self):
         for n_samples in range(1, 100):
-            mean = np.random.rand(n_samples, 1)
-            std = np.random.rand(n_samples, 1)
+            mean = np.random.rand(n_samples, )
+            std = np.random.rand(n_samples, )
             tradeoff = np.random.rand()
             max_val = np.random.rand()
 
@@ -239,8 +239,8 @@ class TestAcquisitionFunctions(unittest.TestCase):
 
     def test_optimizer_EI(self):
         for n_samples in range(1, 100):
-            mean = np.random.rand(n_samples, 1)
-            std = np.random.rand(n_samples, 1)
+            mean = np.random.rand(n_samples, )
+            std = np.random.rand(n_samples, )
             tradeoff = np.random.rand()
             max_val = np.random.rand()
 
@@ -272,8 +272,8 @@ class TestAcquisitionFunctions(unittest.TestCase):
 
     def test_optimizer_UCB(self):
         for n_samples in range(1, 100):
-            mean = np.random.rand(n_samples, 1)
-            std = np.random.rand(n_samples, 1)
+            mean = np.random.rand(n_samples, )
+            std = np.random.rand(n_samples, )
             beta = np.random.rand()
 
             # 1. fitted estimator

@@ -47,7 +47,7 @@ def optimizer_PI(optimizer: BaseLearner, X: modALinput, tradeoff: float = 0) -> 
     """
     try:
         mean, std = optimizer.predict(X, return_std=True)
-        std = std.reshape(-1, 1)
+        mean, std = mean.reshape(-1, ), std.reshape(-1, )
     except NotFittedError:
         mean, std = np.zeros(shape=(X.shape[0], 1)), np.ones(shape=(X.shape[0], 1))
 
@@ -68,7 +68,7 @@ def optimizer_EI(optimizer: BaseLearner, X: modALinput, tradeoff: float = 0) -> 
     """
     try:
         mean, std = optimizer.predict(X, return_std=True)
-        std = std.reshape(-1, 1)
+        mean, std = mean.reshape(-1, ), std.reshape(-1, )
     except NotFittedError:
         mean, std = np.zeros(shape=(X.shape[0], 1)), np.ones(shape=(X.shape[0], 1))
 
@@ -89,7 +89,7 @@ def optimizer_UCB(optimizer: BaseLearner, X: modALinput, beta: float = 1) -> np.
     """
     try:
         mean, std = optimizer.predict(X, return_std=True)
-        std = std.reshape(-1, 1)
+        mean, std = mean.reshape(-1, ), std.reshape(-1, )
     except NotFittedError:
         mean, std = np.zeros(shape=(X.shape[0], 1)), np.ones(shape=(X.shape[0], 1))
 
