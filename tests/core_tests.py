@@ -734,6 +734,25 @@ class TestActiveLearner(unittest.TestCase):
 
                 learner.teach(X, y, bootstrap=bootstrap, only_new=only_new)
 
+    def test_nan(self):
+        X_training_nan = np.ones(shape=(10, 2)) * np.nan
+        X_training_inf = np.ones(shape=(10, 2)) * np.inf
+        y_training = np.random.randint(0, 2, size=10)
+
+        learner = modAL.models.learners.ActiveLearner(
+            X_training=X_training_nan, y_training=y_training,
+            estimator=mock.MockEstimator(),
+            force_all_finite=False
+        )
+        learner.teach(X_training_nan, y_training)
+
+        learner = modAL.models.learners.ActiveLearner(
+            X_training=X_training_inf, y_training=y_training,
+            estimator=mock.MockEstimator(),
+            force_all_finite=False
+        )
+        learner.teach(X_training_inf, y_training)
+
     def test_keras(self):
         pass
 

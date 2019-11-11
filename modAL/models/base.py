@@ -30,6 +30,8 @@ class BaseLearner(ABC, BaseEstimator):
             for instance, modAL.uncertainty.uncertainty_sampling.
         X_training: Initial training samples, if available.
         y_training: Initial training labels corresponding to initial training samples.
+        force_all_finite: When True, forces all values of the data finite.
+            When False, accepts np.nan and np.inf values.
         bootstrap_init: If initial training data is available, bootstrapping can be done during the first training.
             Useful when building Committee models with bagging.
         **fit_kwargs: keyword arguments.
@@ -47,6 +49,7 @@ class BaseLearner(ABC, BaseEstimator):
                  X_training: Optional[modALinput] = None,
                  y_training: Optional[modALinput] = None,
                  bootstrap_init: bool = False,
+                 force_all_finite: bool = True,
                  **fit_kwargs
                  ) -> None:
         assert callable(query_strategy), 'query_strategy must be callable'
@@ -58,6 +61,9 @@ class BaseLearner(ABC, BaseEstimator):
         self.y_training = y_training
         if X_training is not None:
             self._fit_to_known(bootstrap=bootstrap_init, **fit_kwargs)
+
+        assert isinstance(force_all_finite, bool), 'force_all_finite must be a bool'
+        self.force_all_finite = force_all_finite
 
     def _add_training_data(self, X: modALinput, y: modALinput) -> None:
         """
@@ -71,7 +77,8 @@ class BaseLearner(ABC, BaseEstimator):
             If the classifier has been fitted, the features in X have to agree with the training samples which the
             classifier has seen.
         """
-        check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None)
+        check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None,
+                  force_all_finite=self.force_all_finite)
 
         if self.X_training is None:
             self.X_training = X
@@ -117,7 +124,8 @@ class BaseLearner(ABC, BaseEstimator):
         Returns:
             self
         """
-        check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None)
+        check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None,
+                  force_all_finite=self.force_all_finite)
 
         if not bootstrap:
             self.estimator.fit(X, y, **fit_kwargs)
@@ -146,7 +154,8 @@ class BaseLearner(ABC, BaseEstimator):
         Returns:
             self
         """
-        check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None)
+        check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None,
+                  force_all_finite=self.force_all_finite)
         self.X_training, self.y_training = X, y
         return self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
