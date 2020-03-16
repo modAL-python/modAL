@@ -1,5 +1,5 @@
 """
-In this example the use of ActiveLearner is demonstrated in a pool-based sampling setting.
+In this example the use of ActiveLearner is demonstrated in a stream-based sampling setting.
 """
 
 import numpy as np
@@ -67,5 +67,5 @@ with plt.style.context('seaborn-white'):
     plt.figure(figsize=(7, 7))
     prediction = learner.predict_proba(X_full)[:, 1]
     plt.imshow(prediction.reshape(im_width, im_height))
-    plt.title('Initial prediction accuracy: %f' % learner.score(X_full, y_full))
+    plt.title('Final prediction accuracy: %f' % learner.score(X_full, y_full))
     plt.show()
