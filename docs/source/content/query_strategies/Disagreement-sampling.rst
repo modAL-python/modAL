@@ -3,7 +3,7 @@
 Disagreement sampling
 =====================
 
-When you have several hypothesis about your data, selecting the next instances to label can be done by measuring the disagreement between the hypotheses. Naturally, there are many ways to do that. In modAL, there are three built-in disagreement measures and query strategies: *vote entropy*, *consensus entropy* and *maximum disagreement*. In this quick tutorial, we are going to review them. For more details, see Section 3.4 of the awesome book `Active learning by Burr Settles <http://active-learning.net/>`__.
+When you have several hypotheses about your data, selecting the next instances to label can be done by measuring the disagreement between the hypotheses. Naturally, there are many ways to do that. In modAL, there are three built-in disagreement measures and query strategies: *vote entropy*, *consensus entropy* and *maximum disagreement*. In this quick tutorial, we are going to review them. For more details, see Section 3.4 of the awesome book `Active learning by Burr Settles <http://active-learning.net/>`__.
 
 Disagreement sampling for classifiers
 -------------------------------------
@@ -52,7 +52,7 @@ Instead of calculating the distribution of the votes, the *consensus
 entropy* disagreement measure first calculates the average of the class
 probabilities of each classifier. This is called the consensus
 probability. Then the entropy of the consensus probability is calculated
-and the instance with largest consensus entropy is selected.
+and the instance with the largest consensus entropy is selected.
 
 For an example, let's suppose that we continue the previous example with
 three classifiers, classes ``[0, 1, 2]`` and five instances to classify.
@@ -100,7 +100,7 @@ Even though the votes for the second instance are ``[1, 1, 2]``, since the class
 Max disagreement
 ^^^^^^^^^^^^^^^^
 
-The disagreement measures so far take the actual *disagreement* into account in a weak way. Instead of this, it is possible to to measure each learner's disagreement with the consensus probabilities and query the instance where the disagreement is largest for some learner. This is called *max disagreement sampling*. Continuing our example, if the vote probabilities for each learner and the consensus probabilities are given, we can calculate the `Kullback-Leibler divergence <https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence>`__ of each learner to the consensus prediction and then for each instance, select the largest value.
+The disagreement measures so far take the actual *disagreement* into account in a weak way. Instead of this, it is possible to measure each learner's disagreement with the consensus probabilities and query the instance where the disagreement is largest for some learner. This is called *max disagreement sampling*. Continuing our example, if the vote probabilities for each learner and the consensus probabilities are given, we can calculate the `Kullback-Leibler divergence <https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence>`__ of each learner to the consensus prediction and then for each instance, select the largest value.
 
 .. code:: python
 
@@ -123,7 +123,7 @@ In this case, one of the learner highly disagrees with the others in the class o
 Disagreement sampling for regressors
 ------------------------------------
 
-Since regressors in general don't provide a way to calculate prediction probabilities, disagreement measures for classifiers may not work with regressors. Despite of this, ensemble regression models can be always used in an active learning scenario, because the standard deviation of the predictions at a given point can be thought of as a measure of disagreement.
+Since regressors, in general, don't provide a way to calculate prediction probabilities, disagreement measures for classifiers may not work with regressors. Despite this, ensemble regression models can be always used in an active learning scenario, because the standard deviation of the predictions at a given point can be thought of as a measure of disagreement.
 
 Standard deviation sampling
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -131,7 +131,7 @@ Standard deviation sampling
 .. figure:: img/er-initial.png
    :align: center
 
-When a committee of regressors is available, uncertainty of predictions can be estimated by calculating the standard deviation of predictions. This is done by the ``modAL.disagreement.max_std_sampling`` function.
+When a committee of regressors is available, the uncertainty of predictions can be estimated by calculating the standard deviation of predictions. This is done by the ``modAL.disagreement.max_std_sampling`` function.
 
 Disagreement measures in action
 -------------------------------
@@ -151,7 +151,7 @@ The consensus predictions of these learners are
 .. figure:: img/dis-consensus.png
    :align: center
 
-In this case, the disagreement measures from left to right are vote entropy, consensus entropy and max disagreement.
+In this case, the disagreement measures from left to right are vote entropy, consensus entropy, and max disagreement.
 
 .. figure:: img/dis-measures.png
    :align: center
