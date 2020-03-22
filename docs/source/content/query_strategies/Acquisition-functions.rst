@@ -3,7 +3,7 @@
 Acquisition functions
 =====================
 
-In Bayesian optimization, a so-called *acquisition funciton* is used instead of the uncertainty based utility measures of active learning. In modAL, Bayesian optimization algorithms are implemented in the ``modAL.models.BayesianOptimizer`` class. Currently, there are three available acquisition funcions: probability of improvement, expected improvement and upper confidence bound.
+In Bayesian optimization, a so-called *acquisition funciton* is used instead of the uncertainty based utility measures of active learning. In modAL, Bayesian optimization algorithms are implemented in the ``modAL.models.BayesianOptimizer`` class. Currently, there are three available acquisition functions: probability of improvement, expected improvement and upper confidence bound.
 
 Probability of improvement
 --------------------------
