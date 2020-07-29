@@ -36,7 +36,7 @@ class ActiveLearner(BaseLearner):
         estimator: The estimator to be used in the active learning loop.
         query_strategy: Function providing the query strategy for the active learning loop.
         X_training: If the model hasn't been fitted yet it is None, otherwise it contains the samples
-            which the model has been trained on.
+            which the model has been trained on. If provided, the method fit() of estimator is called during __init__()
         y_training: The labels corresponding to X_training.
 
     Examples:
