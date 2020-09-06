@@ -48,12 +48,10 @@ def select_cold_start_instance(X: modALinput,
 
 
 def select_instance(
-        X_training: modALinput,
-        X_pool: modALinput,
+        X_similarity_scores: np.ndarray,
         X_uncertainty: np.ndarray,
         mask: np.ndarray,
-        metric: Union[str, Callable],
-        n_jobs: Union[int, None]
+        alpha: float,
 ) -> Tuple[np.ndarray, modALinput, np.ndarray]:
     """
     Core iteration strategy for selecting another record from our unlabeled records.
@@ -68,53 +66,22 @@ def select_instance(
         - Add notebook for Active Learning bake-off (passive vs interactive vs batch vs ranked batch)
 
     Args:
-        X_training: Mix of both labeled and unlabeled records.
-        X_pool: Unlabeled records to be selected for labeling.
+        X_similarity_scores: Similarity between unlabeled (or already picked) records and labeled.
         X_uncertainty: Uncertainty scores for unlabeled records to be selected for labeling.
         mask: Mask to exclude previously selected instances from the pool.
-        metric: This parameter is passed to :func:`~sklearn.metrics.pairwise.pairwise_distances`.
-        n_jobs: This parameter is passed to :func:`~sklearn.metrics.pairwise.pairwise_distances`.
 
     Returns:
         Index of the best index from X chosen to be labelled; a single record from our unlabeled set that is considered
         the most optimal incremental record for including in our query set.
     """
-    X_pool_masked = X_pool[mask]
-
-    # Extract the number of labeled and unlabeled records.
-    n_labeled_records, *rest = X_training.shape
-    n_unlabeled, *rest = X_pool_masked.shape
-
-    # Determine our alpha parameter as |U| / (|U| + |D|). Note that because we
-    # append to X_training and remove from X_pool within `ranked_batch`,
-    # :alpha: is not fixed throughout our model's lifetime.
-    alpha = n_unlabeled / (n_unlabeled + n_labeled_records)
-
-    # Compute pairwise distance (and then similarity) scores from every unlabeled record
-    # to every record in X_training. The result is an array of shape (n_samples, ).
-
-    if n_jobs == 1 or n_jobs is None:
-        _, distance_scores = pairwise_distances_argmin_min(X_pool_masked.reshape(n_unlabeled, -1),
-                                                           X_training.reshape(n_labeled_records, -1),
-                                                           metric=metric)
-    else:
-        distance_scores = pairwise_distances(X_pool_masked.reshape(n_unlabeled, -1),
-                                             X_training.reshape(n_labeled_records, -1),
-                                             metric=metric, n_jobs=n_jobs).min(axis=1)
-
-    similarity_scores = 1 / (1 + distance_scores)
 
     # Compute our final scores, which are a balance between how dissimilar a given record
     # is with the records in X_uncertainty and how uncertain we are about its class.
-    scores = alpha * (1 - similarity_scores) + (1 - alpha) * X_uncertainty[mask]
+    scores = alpha * (1 - X_similarity_scores[mask]) + (1 - alpha) * X_uncertainty[mask]
 
     # Isolate and return our best instance for labeling as the one with the largest score.
     best_instance_index_in_unlabeled = np.argmax(scores)
-    n_pool, *rest = X_pool.shape
-    unlabeled_indices = [i for i in range(n_pool) if mask[i]]
-    best_instance_index = unlabeled_indices[best_instance_index_in_unlabeled]
-    mask[best_instance_index] = 0
-    return best_instance_index, np.expand_dims(X_pool[best_instance_index], axis=0), mask
+    return best_instance_index_in_unlabeled
 
 
 def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
@@ -149,23 +116,55 @@ def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
         labeled = classifier.X_training[:]
         instance_index_ranking = []
     
+    # Extract the number of labeled and unlabeled records.
+    n_labeled_records, *rest = labeled.shape
+    n_unlabeled, *rest = unlabeled.shape
+
     # The maximum number of records to sample.
-    ceiling = np.minimum(unlabeled.shape[0], n_instances) - len(instance_index_ranking)
+    ceiling = np.minimum(n_unlabeled, n_instances) - len(instance_index_ranking)
 
     # mask for unlabeled initialized as transparent
-    mask = np.ones(unlabeled.shape[0], np.bool)
+    mask = np.ones(n_unlabeled, np.bool)
+
+    # Compute pairwise distance (and then similarity) scores from every unlabeled record
+    # to every record in X_training. The result is an array of shape (n_samples, ).
+
+    if n_jobs == 1 or n_jobs is None:
+        _, distance_scores = pairwise_distances_argmin_min(unlabeled,
+                                                           labeled,
+                                                           metric=metric)
+    else:
+        distance_scores = pairwise_distances(unlabeled,
+                                             labeled,
+                                             metric=metric, n_jobs=n_jobs).min(axis=1)
+
+    similarity_scores = 1 / (1 + distance_scores)
 
     for _ in range(ceiling):
+        # Determine our alpha parameter as |U| / (|U| + |D|). Note that because we
+        # append to X_training and remove from X_pool within `ranked_batch`,
+        # :alpha: is not fixed throughout our model's lifetime.
+        alpha = n_unlabeled / (n_unlabeled + n_labeled_records)
 
         # Receive the instance and corresponding index from our unlabeled copy that scores highest.
-        instance_index, instance, mask = select_instance(X_training=labeled, X_pool=unlabeled,
-                                                         X_uncertainty=uncertainty_scores, mask=mask,
-                                                         metric=metric, n_jobs=n_jobs)
+        instance_index = select_instance(X_similarity_scores=similarity_scores,
+                                         X_uncertainty=uncertainty_scores, mask=mask, alpha=alpha)
+        
+        # Consider the newly selected sample as labeled
+        instance_vector = unlabeled[mask][[instance_index]]
+        mask[instance_index] = 0
+        n_unlabeled -= 1
+        n_labeled_records += 1
+
+        # Compute distance to labeled
+        distance_to_labeled = pairwise_distances(unlabeled,
+                                                 instance_vector,
+                                                 metric=metric)[:, 0]
 
         # Add our instance we've considered for labeling to our labeled set. Although we don't
         # know it's label, we want further iterations to consider the newly-added instance so
         # that we don't query the same instance redundantly.
-        labeled = data_vstack((labeled, instance))
+        similarity_scores = np.max([similarity_scores, 1 / (1 + distance_to_labeled)], axis=0)
 
         # Finally, append our instance's index to the bottom of our ranking.
         instance_index_ranking.append(instance_index)
