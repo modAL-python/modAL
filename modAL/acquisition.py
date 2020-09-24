@@ -104,7 +104,7 @@ Query strategies using acquisition functions
 
 
 def max_PI(optimizer: BaseLearner, X: modALinput, tradeoff: float = 0,
-           n_instances: int = 1) -> Tuple[np.ndarray, modALinput]:
+           n_instances: int = 1) -> np.ndarray:
     """
     Maximum PI query strategy. Selects the instance with highest probability of improvement.
 
@@ -118,13 +118,11 @@ def max_PI(optimizer: BaseLearner, X: modALinput, tradeoff: float = 0,
         The indices of the instances from X chosen to be labelled; the instances from X chosen to be labelled.
     """
     pi = optimizer_PI(optimizer, X, tradeoff=tradeoff)
-    query_idx = multi_argmax(pi, n_instances=n_instances)
-
-    return query_idx, X[query_idx]
+    return multi_argmax(pi, n_instances=n_instances)
 
 
 def max_EI(optimizer: BaseLearner, X: modALinput, tradeoff: float = 0,
-           n_instances: int = 1) -> Tuple[np.ndarray, modALinput]:
+           n_instances: int = 1) -> np.ndarray:
     """
     Maximum EI query strategy. Selects the instance with highest expected improvement.
 
@@ -138,13 +136,11 @@ def max_EI(optimizer: BaseLearner, X: modALinput, tradeoff: float = 0,
         The indices of the instances from X chosen to be labelled; the instances from X chosen to be labelled.
     """
     ei = optimizer_EI(optimizer, X, tradeoff=tradeoff)
-    query_idx = multi_argmax(ei, n_instances=n_instances)
-
-    return query_idx, X[query_idx]
+    return multi_argmax(ei, n_instances=n_instances)
 
 
 def max_UCB(optimizer: BaseLearner, X: modALinput, beta: float = 1,
-            n_instances: int = 1) -> Tuple[np.ndarray, modALinput]:
+            n_instances: int = 1) -> np.ndarray:
     """
     Maximum UCB query strategy. Selects the instance with highest upper confidence bound.
 
@@ -158,6 +154,4 @@ def max_UCB(optimizer: BaseLearner, X: modALinput, beta: float = 1,
         The indices of the instances from X chosen to be labelled; the instances from X chosen to be labelled.
     """
     ucb = optimizer_UCB(optimizer, X, beta=beta)
-    query_idx = multi_argmax(ucb, n_instances=n_instances)
-
-    return query_idx, X[query_idx]
+    return multi_argmax(ucb, n_instances=n_instances)

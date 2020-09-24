@@ -30,6 +30,8 @@ class ActiveLearner(BaseLearner):
         y_training: Initial training labels corresponding to initial training samples.
         bootstrap_init: If initial training data is available, bootstrapping can be done during the first training.
             Useful when building Committee models with bagging.
+        on_transformed: Whether to transform samples with the pipeline defined by the estimator
+            when applying the query strategy.
         **fit_kwargs: keyword arguments.
 
     Attributes:
@@ -73,10 +75,11 @@ class ActiveLearner(BaseLearner):
                  X_training: Optional[modALinput] = None,
                  y_training: Optional[modALinput] = None,
                  bootstrap_init: bool = False,
+                 on_transformed: bool = False,
                  **fit_kwargs
                  ) -> None:
         super().__init__(estimator, query_strategy,
-                         X_training, y_training, bootstrap_init, **fit_kwargs)
+                         X_training, y_training, bootstrap_init, on_transformed, **fit_kwargs)
 
     def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, only_new: bool = False, **fit_kwargs) -> None:
         """
@@ -177,9 +180,10 @@ class BayesianOptimizer(BaseLearner):
                  X_training: Optional[modALinput] = None,
                  y_training: Optional[modALinput] = None,
                  bootstrap_init: bool = False,
+                 on_transformed: bool = False,
                  **fit_kwargs) -> None:
         super(BayesianOptimizer, self).__init__(estimator, query_strategy,
-                                                X_training, y_training, bootstrap_init, **fit_kwargs)
+                                                X_training, y_training, bootstrap_init, on_transformed, **fit_kwargs)
         # setting the maximum value
         if self.y_training is not None:
             max_idx = np.argmax(self.y_training)
@@ -481,8 +485,7 @@ class CommitteeRegressor(BaseCommittee):
         >>> # query strategy for regression
         >>> def ensemble_regression_std(regressor, X):
         ...     _, std = regressor.predict(X, return_std=True)
-        ...     query_idx = np.argmax(std)
-        ...     return query_idx, X[query_idx]
+        ...     return np.argmax(std)
         >>>
         >>> # initializing the CommitteeRegressor
         >>> committee = CommitteeRegressor(

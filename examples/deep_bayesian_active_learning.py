@@ -62,12 +62,10 @@ def max_entropy(learner, X, n_instances=1, T=100):
     expected_p = np.mean(MC_samples, axis=0)
     acquisition = - np.sum(expected_p * np.log(expected_p + 1e-10), axis=-1)  # [batch size]
     idx = (-acquisition).argsort()[:n_instances]
-    query_idx = random_subset[idx]
-    return query_idx, X[query_idx]
+    return random_subset[idx]
 
 def uniform(learner, X, n_instances=1):
-    query_idx = np.random.choice(range(len(X)), size=n_instances, replace=False)
-    return query_idx, X[query_idx]
+    return np.random.choice(range(len(X)), size=n_instances, replace=False)
 
 """
 Training the ActiveLearner

@@ -12,8 +12,7 @@ from modAL.models import ActiveLearner
 # query strategy for regression
 def GP_regression_std(regressor, X):
     _, std = regressor.predict(X, return_std=True)
-    query_idx = np.argmax(std)
-    return query_idx, X[query_idx]
+    return np.argmax(std)
 
 
 # generating the data

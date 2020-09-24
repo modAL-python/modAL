@@ -140,8 +140,7 @@ class TestUtils(unittest.TestCase):
                 query_1 = query_strategy(learner, X)
                 query_2 = modAL.uncertainty.uncertainty_sampling(learner, X)
 
-                np.testing.assert_equal(query_1[0], query_2[0])
-                np.testing.assert_almost_equal(query_1[1], query_2[1])
+                np.testing.assert_equal(query_1, query_2)
 
     def test_data_vstack(self):
         for n_samples, n_features in product(range(1, 10), range(1, 10)):
@@ -560,10 +559,10 @@ class TestUncertainties(unittest.TestCase):
                     predict_proba = np.random.rand(n_samples, n_classes)
                     predict_proba[true_query_idx] = max_proba
                     classifier = mock.MockEstimator(predict_proba_return=predict_proba)
-                    query_idx, query_instance = modAL.uncertainty.uncertainty_sampling(
+                    query_idx = modAL.uncertainty.uncertainty_sampling(
                         classifier, np.random.rand(n_samples, n_classes)
                     )
-                    shuffled_query_idx, shuffled_query_instance = modAL.uncertainty.uncertainty_sampling(
+                    shuffled_query_idx = modAL.uncertainty.uncertainty_sampling(
                         classifier, np.random.rand(n_samples, n_classes),
                         random_tie_break=True
                     )
@@ -577,10 +576,10 @@ class TestUncertainties(unittest.TestCase):
                     predict_proba[:, 0] = 1.0
                     predict_proba[true_query_idx, 0] = 0.0
                     classifier = mock.MockEstimator(predict_proba_return=predict_proba)
-                    query_idx, query_instance = modAL.uncertainty.margin_sampling(
+                    query_idx = modAL.uncertainty.margin_sampling(
                         classifier, np.random.rand(n_samples, n_classes)
                     )
-                    shuffled_query_idx, shuffled_query_instance = modAL.uncertainty.margin_sampling(
+                    shuffled_query_idx = modAL.uncertainty.margin_sampling(
                         classifier, np.random.rand(n_samples, n_classes),
                         random_tie_break=True
                     )
@@ -595,10 +594,10 @@ class TestUncertainties(unittest.TestCase):
                     predict_proba[:, 0] = 1.0
                     predict_proba[true_query_idx] = max_proba
                     classifier = mock.MockEstimator(predict_proba_return=predict_proba)
-                    query_idx, query_instance = modAL.uncertainty.entropy_sampling(
+                    query_idx = modAL.uncertainty.entropy_sampling(
                         classifier, np.random.rand(n_samples, n_classes)
                     )
-                    shuffled_query_idx, shuffled_query_instance = modAL.uncertainty.entropy_sampling(
+                    shuffled_query_idx = modAL.uncertainty.entropy_sampling(
                         classifier, np.random.rand(n_samples, n_classes),
                         random_tie_break=True
                     )
@@ -698,7 +697,7 @@ class TestActiveLearner(unittest.TestCase):
             for n_features in range(1, 10):
                 X = np.random.rand(n_samples, n_features)
                 query_idx = np.random.randint(0, n_samples)
-                mock_query = mock.MockFunction(return_val=(query_idx, X[query_idx]))
+                mock_query = mock.MockFunction(return_val=query_idx)
                 learner = modAL.models.learners.ActiveLearner(
                     estimator=None,
                     query_strategy=mock_query
@@ -1107,4 +1106,3 @@ class TestExamples(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
-0

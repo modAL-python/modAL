@@ -132,7 +132,7 @@ def classifier_entropy(classifier: BaseEstimator, X: modALinput, **predict_proba
 
 def uncertainty_sampling(classifier: BaseEstimator, X: modALinput,
                          n_instances: int = 1, random_tie_break: bool = False,
-                         **uncertainty_measure_kwargs) -> Tuple[np.ndarray, modALinput]:
+                         **uncertainty_measure_kwargs) -> np.ndarray:
     """
     Uncertainty sampling query strategy. Selects the least sure instances for labelling.
 
@@ -152,16 +152,14 @@ def uncertainty_sampling(classifier: BaseEstimator, X: modALinput,
     uncertainty = classifier_uncertainty(classifier, X, **uncertainty_measure_kwargs)
 
     if not random_tie_break:
-        query_idx = multi_argmax(uncertainty, n_instances=n_instances)
-    else:
-        query_idx = shuffled_argmax(uncertainty, n_instances=n_instances)
+        return multi_argmax(uncertainty, n_instances=n_instances)
 
-    return query_idx, X[query_idx]
+    return shuffled_argmax(uncertainty, n_instances=n_instances)
 
 
 def margin_sampling(classifier: BaseEstimator, X: modALinput,
                     n_instances: int = 1, random_tie_break: bool = False,
-                    **uncertainty_measure_kwargs) -> Tuple[np.ndarray, modALinput]:
+                    **uncertainty_measure_kwargs) -> np.ndarray:
     """
     Margin sampling query strategy. Selects the instances where the difference between
     the first most likely and second most likely classes are the smallest.
@@ -180,16 +178,14 @@ def margin_sampling(classifier: BaseEstimator, X: modALinput,
     margin = classifier_margin(classifier, X, **uncertainty_measure_kwargs)
 
     if not random_tie_break:
-        query_idx = multi_argmax(-margin, n_instances=n_instances)
-    else:
-        query_idx = shuffled_argmax(-margin, n_instances=n_instances)
+        return multi_argmax(-margin, n_instances=n_instances)
 
-    return query_idx, X[query_idx]
+    return shuffled_argmax(-margin, n_instances=n_instances)
 
 
 def entropy_sampling(classifier: BaseEstimator, X: modALinput,
                      n_instances: int = 1, random_tie_break: bool = False,
-                     **uncertainty_measure_kwargs) -> Tuple[np.ndarray, modALinput]:
+                     **uncertainty_measure_kwargs) -> np.ndarray:
     """
     Entropy sampling query strategy. Selects the instances where the class probabilities
     have the largest entropy.
@@ -210,8 +206,6 @@ def entropy_sampling(classifier: BaseEstimator, X: modALinput,
     entropy = classifier_entropy(classifier, X, **uncertainty_measure_kwargs)
 
     if not random_tie_break:
-        query_idx = multi_argmax(entropy, n_instances=n_instances)
-    else:
-        query_idx = shuffled_argmax(entropy, n_instances=n_instances)
+        return multi_argmax(entropy, n_instances=n_instances)
 
-    return query_idx, X[query_idx]
+    return shuffled_argmax(entropy, n_instances=n_instances)

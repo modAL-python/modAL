@@ -100,12 +100,11 @@ import numpy as np
 X = np.random.choice(np.linspace(0, 20, 10000), size=200, replace=False).reshape(-1, 1)
 y = np.sin(X) + np.random.normal(scale=0.3, size=X.shape)
 ```
-For active learning, we shall define a custom query strategy tailored to Gaussian processes. In a nutshell, a *query stategy* in modAL is a function taking (at least) two arguments (an estimator object and a pool of examples), outputting the index of the queried instance and the instance itself. In our case, the arguments are ```regressor``` and ```X```.
+For active learning, we shall define a custom query strategy tailored to Gaussian processes. In a nutshell, a *query stategy* in modAL is a function taking (at least) two arguments (an estimator object and a pool of examples), outputting the index of the queried instance. In our case, the arguments are ```regressor``` and ```X```.
 ```python
 def GP_regression_std(regressor, X):
     _, std = regressor.predict(X, return_std=True)
-    query_idx = np.argmax(std)
-    return query_idx, X[query_idx]
+    return np.argmax(std)
 ```
 After setting up the query strategy and the data, the active learner can be initialized.
 ```python

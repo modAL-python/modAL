@@ -118,15 +118,13 @@ the *noisy sine* function:
 For active learning, we shall define a custom query strategy tailored to
 Gaussian processes. In a nutshell, a *query stategy* in modAL is a
 function taking (at least) two arguments (an estimator object and a pool
-of examples), outputting the index of the queried instance and the
-instance itself. In our case, the arguments are ``regressor`` and ``X``.
+of examples), outputting the index of the queried instance. In our case, the arguments are ``regressor`` and ``X``.
 
 .. code:: python
 
     def GP_regression_std(regressor, X):
         _, std = regressor.predict(X, return_std=True)
-        query_idx = np.argmax(std)
-        return query_idx, X[query_idx]
+        return np.argmax(std)
 
 After setting up the query strategy and the data, the active learner can
 be initialized.

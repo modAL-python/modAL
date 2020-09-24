@@ -57,8 +57,7 @@ final_prediction = learner.predict_proba(X_full)[:, 1].reshape(im_height, im_wid
 
 
 def random_sampling(classsifier, X):
-    query_idx = np.random.randint(len(X))
-    return query_idx, X[query_idx]
+    return np.random.randint(len(X))
 
 
 X_pool = deepcopy(X_full)

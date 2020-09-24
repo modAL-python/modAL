@@ -1,11 +1,12 @@
-from typing import Union, Container
+from typing import Union, Container, List
 from itertools import chain
 
 import numpy as np
+import pandas as pd
 import scipy.sparse as sp
 
 
-modALinput = Union[list, np.ndarray, sp.csr_matrix]
+modALinput = Union[list, np.ndarray, sp.csr_matrix, pd.DataFrame]
 
 
 def data_vstack(blocks: Container) -> modALinput:
@@ -24,8 +25,34 @@ def data_vstack(blocks: Container) -> modALinput:
         return list(chain(blocks))
     elif sp.issparse(blocks[0]):
         return sp.vstack(blocks)
+    elif isinstance(blocks[0], pd.DataFrame):
+        return blocks[0].append(blocks[1])
     else:
         try:
             return np.concatenate(blocks)
         except:
             raise TypeError('%s datatype is not supported' % type(blocks[0]))
+
+
+def retrieve_rows(X: modALinput,
+                  I: Union[int, List[int], np.ndarray]) -> Union[sp.csc_matrix, np.ndarray, pd.DataFrame]:
+    """
+    Returns the rows I from the data set X
+    """
+    if isinstance(X, pd.DataFrame):
+        return X.iloc[I]
+
+    return X[I]
+
+def drop_rows(X: modALinput,
+              I: Union[int, List[int], np.ndarray]) -> Union[sp.csc_matrix, np.ndarray, pd.DataFrame]:
+    if isinstance(X, pd.DataFrame):
+        return X.drop(I, axis=0)
+
+    return np.delete(X, I, axis=0)
+
+def enumerate_data(X: modALinput):
+    if isinstance(X, pd.DataFrame):
+        return X.iterrows()
+
+    return enumerate(X)
