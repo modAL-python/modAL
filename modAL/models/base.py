@@ -16,7 +16,7 @@ from sklearn.utils import check_X_y
 
 import scipy.sparse as sp
 
-from modAL.utils.data import data_vstack, modALinput, retrieve_rows
+from modAL.utils.data import data_vstack, data_hstack, modALinput, retrieve_rows
 
 if sys.version_info >= (3, 4):
     ABC = abc.ABC
@@ -143,13 +143,7 @@ class BaseLearner(ABC, BaseEstimator):
 
         ################################
         # concatenate all transformations and return
-        # TODO: maybe use a newly implemented data_hstack() instead
-
-        # use sparse representation if any of the pipelines do
-        if any([isinstance(Xti, sp.csr_matrix) for Xti in Xt]):
-            return sp.hstack([sp.csc_matrix(Xti) for Xti in Xt])
-
-        return np.hstack(Xt)
+        return data_hstack(Xt)
 
     def _fit_to_known(self, bootstrap: bool = False, **fit_kwargs) -> 'BaseLearner':
         """
@@ -297,12 +291,15 @@ class BaseCommittee(ABC, BaseEstimator):
     Args:
         learner_list: List of ActiveLearner objects to form committee.
         query_strategy: Function to query labels.
+        on_transformed: Whether to transform samples with the pipeline defined by each learner's estimator
+            when applying the query strategy.
     """
-    def __init__(self, learner_list: List[BaseLearner], query_strategy: Callable) -> None:
+    def __init__(self, learner_list: List[BaseLearner], query_strategy: Callable, on_transformed: bool = False) -> None:
         assert type(learner_list) == list, 'learners must be supplied in a list'
 
         self.learner_list = learner_list
         self.query_strategy = query_strategy
+        self.on_transformed = on_transformed
 
     def __iter__(self) -> Iterator[BaseLearner]:
         for learner in self.learner_list:
@@ -368,6 +365,17 @@ class BaseCommittee(ABC, BaseEstimator):
             learner.fit(X, y, **fit_kwargs)
 
         return self
+
+    def transform_without_estimating(self, X: modALinput) -> Union[np.ndarray, sp.csr_matrix]:
+        """
+        Transforms the data as supplied to each learner's estimator and concatenates transformations.
+        Args:
+            X: dataset to be transformed
+
+        Returns:
+            Transformed data set
+        """
+        return data_hstack([learner.transform_without_estimating(X) for learner in self.learner_list])
 
     def query(self, X_pool, *query_args, **query_kwargs) -> Union[Tuple, modALinput]:
         """

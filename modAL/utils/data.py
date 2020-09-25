@@ -1,4 +1,4 @@
-from typing import Union, Container, List
+from typing import Union, List, Sequence
 from itertools import chain
 
 import numpy as np
@@ -9,9 +9,9 @@ import scipy.sparse as sp
 modALinput = Union[list, np.ndarray, sp.csr_matrix, pd.DataFrame]
 
 
-def data_vstack(blocks: Container) -> modALinput:
+def data_vstack(blocks: Sequence[modALinput]) -> modALinput:
     """
-    Stack vertically both sparse and dense arrays.
+    Stack vertically sparse/dense arrays and pandas data frames.
 
     Args:
         blocks: Sequence of modALinput objects.
@@ -32,6 +32,26 @@ def data_vstack(blocks: Container) -> modALinput:
             return np.concatenate(blocks)
         except:
             raise TypeError('%s datatype is not supported' % type(blocks[0]))
+
+
+def data_hstack(blocks: Sequence[modALinput]) -> modALinput:
+    """
+    Stack horizontally both sparse and dense arrays
+
+    Args:
+        blocks: Sequence of modALinput objects.
+
+    Returns:
+        New sequence of horizontally stacked elements.
+    """
+    # use sparse representation if any of the blocks do
+    if any([sp.issparse(b) for b in blocks]):
+        return sp.hstack(blocks)
+
+    try:
+        return np.hstack(blocks)
+    except:
+        raise TypeError('%s datatype is not supported' % type(blocks[0]))
 
 
 def retrieve_rows(X: modALinput,
