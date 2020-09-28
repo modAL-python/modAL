@@ -300,6 +300,8 @@ class BaseCommittee(ABC, BaseEstimator):
         self.learner_list = learner_list
         self.query_strategy = query_strategy
         self.on_transformed = on_transformed
+        # TODO: update training data when using fit() and teach() methods
+        self.X_training = None
 
     def __iter__(self) -> Iterator[BaseLearner]:
         for learner in self.learner_list:

@@ -7,7 +7,7 @@ from sklearn.metrics import accuracy_score
 
 from modAL.models.base import BaseLearner, BaseCommittee
 from modAL.utils.validation import check_class_labels, check_class_proba
-from modAL.utils.data import modALinput
+from modAL.utils.data import modALinput, retrieve_rows
 from modAL.uncertainty import uncertainty_sampling
 from modAL.disagreement import vote_entropy_sampling, max_std_sampling
 from modAL.acquisition import max_EI
@@ -187,7 +187,7 @@ class BayesianOptimizer(BaseLearner):
         # setting the maximum value
         if self.y_training is not None:
             max_idx = np.argmax(self.y_training)
-            self.X_max = self.X_training[max_idx]
+            self.X_max = retrieve_rows(self.X_training, max_idx)
             self.y_max = self.y_training[max_idx]
         else:
             self.X_max = None
@@ -198,7 +198,7 @@ class BayesianOptimizer(BaseLearner):
         y_max = y[max_idx]
         if y_max > self.y_max:
             self.y_max = y_max
-            self.X_max = X[max_idx]
+            self.X_max = retrieve_rows(X, max_idx)
 
     def get_max(self) -> Tuple:
         """
@@ -248,6 +248,8 @@ class Committee(BaseCommittee):
         learner_list: A list of ActiveLearners forming the Committee.
         query_strategy: Query strategy function. Committee supports disagreement-based query strategies from
             :mod:`modAL.disagreement`, but uncertainty-based ones from :mod:`modAL.uncertainty` are also supported.
+        on_transformed: Whether to transform samples with the pipeline defined by each learner's estimator
+            when applying the query strategy.
 
     Attributes:
         classes_: Class labels known by the Committee.
@@ -288,8 +290,9 @@ class Committee(BaseCommittee):
         ...     y=iris['target'][query_idx].reshape(1, )
         ... )
     """
-    def __init__(self, learner_list: List[ActiveLearner], query_strategy: Callable = vote_entropy_sampling) -> None:
-        super().__init__(learner_list, query_strategy)
+    def __init__(self, learner_list: List[ActiveLearner], query_strategy: Callable = vote_entropy_sampling,
+                 on_transformed: bool = False) -> None:
+        super().__init__(learner_list, query_strategy, on_transformed)
         self._set_classes()
 
     def _set_classes(self):
@@ -456,6 +459,8 @@ class CommitteeRegressor(BaseCommittee):
     Args:
         learner_list: A list of ActiveLearners forming the CommitteeRegressor.
         query_strategy: Query strategy function.
+        on_transformed: Whether to transform samples with the pipeline defined by each learner's estimator
+            when applying the query strategy.
 
     Examples:
 
@@ -499,8 +504,9 @@ class CommitteeRegressor(BaseCommittee):
         ...     query_idx, query_instance = committee.query(X.reshape(-1, 1))
         ...     committee.teach(X[query_idx].reshape(-1, 1), y[query_idx].reshape(-1, 1))
     """
-    def __init__(self, learner_list: List[ActiveLearner], query_strategy: Callable = max_std_sampling) -> None:
-        super().__init__(learner_list, query_strategy)
+    def __init__(self, learner_list: List[ActiveLearner], query_strategy: Callable = max_std_sampling,
+                 on_transformed: bool = False) -> None:
+        super().__init__(learner_list, query_strategy, on_transformed)
 
     def predict(self, X: modALinput, return_std: bool = False, **predict_kwargs) -> Any:
         """
