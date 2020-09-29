@@ -211,6 +211,7 @@ class BaseLearner(ABC, BaseEstimator):
         check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None,
                   force_all_finite=self.force_all_finite)
         self.X_training, self.y_training = X, y
+        self.Xt_training = self.transform_without_estimating(self.X_training) if self.on_transformed else None
         return self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
     def predict(self, X: modALinput, **predict_kwargs) -> Any:
