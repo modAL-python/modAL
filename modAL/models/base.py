@@ -132,8 +132,10 @@ class BaseLearner(ABC, BaseEstimator):
             if isinstance(pipe, Pipeline):
                 # NOTE: The used pipeline class might be an extension to sklearn's!
                 #       Create a new instance of the used pipeline class with all
-                #       components but the final estimator.
-                transformation_pipe = pipe.__class__(steps=pipe.steps[:-1])
+                #       components but the final estimator, which is replaced by an empty (passthrough) component.
+                #       This prevents any special handling of the final transformation pipe, which is usually
+                #       expected to be an estimator.
+                transformation_pipe = pipe.__class__(steps=[*pipe.steps[:-1], ('passthrough', 'passthrough')])
                 Xt.append(transformation_pipe.transform(X))
 
         # in case no transformation pipelines are used by the estimator,
