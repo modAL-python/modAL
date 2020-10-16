@@ -457,21 +457,24 @@ class TestDisagreements(unittest.TestCase):
 class TestEER(unittest.TestCase):
     def test_eer(self):
         for n_pool, n_features, n_classes in product(range(5, 10), range(1, 5), range(2, 5)):
-            X_training, y_training = np.random.rand(10, n_features), np.random.randint(0, n_classes, size=10)
-            X_pool, y_pool = np.random.rand(n_pool, n_features), np.random.randint(0, n_classes+1, size=n_pool)
+            X_training_, y_training = np.random.rand(10, n_features).tolist(), np.random.randint(0, n_classes, size=10)
+            X_pool_, y_pool = np.random.rand(n_pool, n_features).tolist(), np.random.randint(0, n_classes+1, size=n_pool)
 
-            learner = modAL.models.ActiveLearner(RandomForestClassifier(n_estimators=2),
-                                                 X_training=X_training, y_training=y_training)
+            for data_type in (sp.csr_matrix, pd.DataFrame, np.array, list):
+                X_training, X_pool = data_type(X_training_), data_type(X_pool_)
 
-            modAL.expected_error.expected_error_reduction(learner, X_pool)
-            modAL.expected_error.expected_error_reduction(learner, X_pool, random_tie_break=True)
-            modAL.expected_error.expected_error_reduction(learner, X_pool, p_subsample=0.1)
-            modAL.expected_error.expected_error_reduction(learner, X_pool, loss='binary')
-            modAL.expected_error.expected_error_reduction(learner, X_pool, p_subsample=0.1, loss='log')
-            self.assertRaises(AssertionError, modAL.expected_error.expected_error_reduction,
-                              learner, X_pool, p_subsample=1.5)
-            self.assertRaises(AssertionError, modAL.expected_error.expected_error_reduction,
-                              learner, X_pool, loss=42)
+                learner = modAL.models.ActiveLearner(RandomForestClassifier(n_estimators=2),
+                                                     X_training=X_training, y_training=y_training)
+
+                modAL.expected_error.expected_error_reduction(learner, X_pool)
+                modAL.expected_error.expected_error_reduction(learner, X_pool, random_tie_break=True)
+                modAL.expected_error.expected_error_reduction(learner, X_pool, p_subsample=0.1)
+                modAL.expected_error.expected_error_reduction(learner, X_pool, loss='binary')
+                modAL.expected_error.expected_error_reduction(learner, X_pool, p_subsample=0.1, loss='log')
+                self.assertRaises(AssertionError, modAL.expected_error.expected_error_reduction,
+                                  learner, X_pool, p_subsample=1.5)
+                self.assertRaises(AssertionError, modAL.expected_error.expected_error_reduction,
+                                  learner, X_pool, loss=42)
 
 
 class TestUncertainties(unittest.TestCase):

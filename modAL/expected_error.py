@@ -10,7 +10,7 @@ from sklearn.base import clone
 from sklearn.exceptions import NotFittedError
 
 from modAL.models import ActiveLearner
-from modAL.utils.data import modALinput, data_vstack, enumerate_data, drop_rows
+from modAL.utils.data import modALinput, data_vstack, enumerate_data, drop_rows, data_shape, add_row
 from modAL.utils.selection import multi_argmax, shuffled_argmax
 from modAL.uncertainty import _proba_uncertainty, _proba_entropy
 
@@ -38,14 +38,13 @@ def expected_error_reduction(learner: ActiveLearner, X: modALinput, loss: str = 
 
 
     Returns:
-        The indices of the instances from X chosen to be labelled;
-        the instances from X chosen to be labelled.
+        The indices of the instances from X chosen to be labelled.
     """
 
     assert 0.0 <= p_subsample <= 1.0, 'p_subsample subsampling keep ratio must be between 0.0 and 1.0'
     assert loss in ['binary', 'log'], 'loss must be \'binary\' or \'log\''
 
-    expected_error = np.zeros(shape=(len(X), ))
+    expected_error = np.zeros(shape=(data_shape(X)[0],))
     possible_labels = np.unique(learner.y_training)
 
     try:
@@ -62,7 +61,7 @@ def expected_error_reduction(learner: ActiveLearner, X: modALinput, loss: str = 
             X_reduced = drop_rows(X, x_idx)
             # estimate the expected error
             for y_idx, y in enumerate(possible_labels):
-                X_new = data_vstack((learner.X_training, [x]))
+                X_new = add_row(learner.X_training, x)
                 y_new = data_vstack((learner.y_training, np.array(y).reshape(1,)))
 
                 cloned_estimator.fit(X_new, y_new)
