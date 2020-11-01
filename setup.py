@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='modAL',
-    version='0.3.6',
+    version='0.4.0',
     author='Tivadar Danka',
     author_email='85a5187a@opayq.com',
     description='A modular active learning framework for Python3',
