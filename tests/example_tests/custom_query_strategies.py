@@ -42,8 +42,7 @@ product = make_product(
 # classifier uncertainty and classifier margin
 def custom_query_strategy(classifier, X, n_instances=1):
     utility = linear_combination(classifier, X)
-    query_idx = multi_argmax(utility, n_instances=n_instances)
-    return query_idx, X[query_idx]
+    return multi_argmax(utility, n_instances=n_instances)
 
 custom_query_learner = ActiveLearner(
     estimator=GaussianProcessClassifier(1.0 * RBF(1.0)),

@@ -1,6 +1,7 @@
 import random
 import unittest
 import numpy as np
+import pandas as pd
 
 import mock
 import modAL.models.base
@@ -26,6 +27,8 @@ from sklearn.exceptions import NotFittedError
 from sklearn.metrics import confusion_matrix
 from sklearn.svm import SVC
 from sklearn.multiclass import OneVsRestClassifier
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import FunctionTransformer
 from scipy.stats import entropy, norm
 from scipy.special import ndtr
 from scipy import sparse as sp
@@ -140,8 +143,7 @@ class TestUtils(unittest.TestCase):
                 query_1 = query_strategy(learner, X)
                 query_2 = modAL.uncertainty.uncertainty_sampling(learner, X)
 
-                np.testing.assert_equal(query_1[0], query_2[0])
-                np.testing.assert_almost_equal(query_1[1], query_2[1])
+                np.testing.assert_equal(query_1, query_2)
 
     def test_data_vstack(self):
         for n_samples, n_features in product(range(1, 10), range(1, 10)):
@@ -455,21 +457,24 @@ class TestDisagreements(unittest.TestCase):
 class TestEER(unittest.TestCase):
     def test_eer(self):
         for n_pool, n_features, n_classes in product(range(5, 10), range(1, 5), range(2, 5)):
-            X_training, y_training = np.random.rand(10, n_features), np.random.randint(0, n_classes, size=10)
-            X_pool, y_pool = np.random.rand(n_pool, n_features), np.random.randint(0, n_classes+1, size=n_pool)
+            X_training_, y_training = np.random.rand(10, n_features).tolist(), np.random.randint(0, n_classes, size=10)
+            X_pool_, y_pool = np.random.rand(n_pool, n_features).tolist(), np.random.randint(0, n_classes+1, size=n_pool)
 
-            learner = modAL.models.ActiveLearner(RandomForestClassifier(n_estimators=2),
-                                                 X_training=X_training, y_training=y_training)
+            for data_type in (sp.csr_matrix, pd.DataFrame, np.array, list):
+                X_training, X_pool = data_type(X_training_), data_type(X_pool_)
 
-            modAL.expected_error.expected_error_reduction(learner, X_pool)
-            modAL.expected_error.expected_error_reduction(learner, X_pool, random_tie_break=True)
-            modAL.expected_error.expected_error_reduction(learner, X_pool, p_subsample=0.1)
-            modAL.expected_error.expected_error_reduction(learner, X_pool, loss='binary')
-            modAL.expected_error.expected_error_reduction(learner, X_pool, p_subsample=0.1, loss='log')
-            self.assertRaises(AssertionError, modAL.expected_error.expected_error_reduction,
-                              learner, X_pool, p_subsample=1.5)
-            self.assertRaises(AssertionError, modAL.expected_error.expected_error_reduction,
-                              learner, X_pool, loss=42)
+                learner = modAL.models.ActiveLearner(RandomForestClassifier(n_estimators=2),
+                                                     X_training=X_training, y_training=y_training)
+
+                modAL.expected_error.expected_error_reduction(learner, X_pool)
+                modAL.expected_error.expected_error_reduction(learner, X_pool, random_tie_break=True)
+                modAL.expected_error.expected_error_reduction(learner, X_pool, p_subsample=0.1)
+                modAL.expected_error.expected_error_reduction(learner, X_pool, loss='binary')
+                modAL.expected_error.expected_error_reduction(learner, X_pool, p_subsample=0.1, loss='log')
+                self.assertRaises(AssertionError, modAL.expected_error.expected_error_reduction,
+                                  learner, X_pool, p_subsample=1.5)
+                self.assertRaises(AssertionError, modAL.expected_error.expected_error_reduction,
+                                  learner, X_pool, loss=42)
 
 
 class TestUncertainties(unittest.TestCase):
@@ -560,10 +565,10 @@ class TestUncertainties(unittest.TestCase):
                     predict_proba = np.random.rand(n_samples, n_classes)
                     predict_proba[true_query_idx] = max_proba
                     classifier = mock.MockEstimator(predict_proba_return=predict_proba)
-                    query_idx, query_instance = modAL.uncertainty.uncertainty_sampling(
+                    query_idx = modAL.uncertainty.uncertainty_sampling(
                         classifier, np.random.rand(n_samples, n_classes)
                     )
-                    shuffled_query_idx, shuffled_query_instance = modAL.uncertainty.uncertainty_sampling(
+                    shuffled_query_idx = modAL.uncertainty.uncertainty_sampling(
                         classifier, np.random.rand(n_samples, n_classes),
                         random_tie_break=True
                     )
@@ -577,10 +582,10 @@ class TestUncertainties(unittest.TestCase):
                     predict_proba[:, 0] = 1.0
                     predict_proba[true_query_idx, 0] = 0.0
                     classifier = mock.MockEstimator(predict_proba_return=predict_proba)
-                    query_idx, query_instance = modAL.uncertainty.margin_sampling(
+                    query_idx = modAL.uncertainty.margin_sampling(
                         classifier, np.random.rand(n_samples, n_classes)
                     )
-                    shuffled_query_idx, shuffled_query_instance = modAL.uncertainty.margin_sampling(
+                    shuffled_query_idx = modAL.uncertainty.margin_sampling(
                         classifier, np.random.rand(n_samples, n_classes),
                         random_tie_break=True
                     )
@@ -595,10 +600,10 @@ class TestUncertainties(unittest.TestCase):
                     predict_proba[:, 0] = 1.0
                     predict_proba[true_query_idx] = max_proba
                     classifier = mock.MockEstimator(predict_proba_return=predict_proba)
-                    query_idx, query_instance = modAL.uncertainty.entropy_sampling(
+                    query_idx = modAL.uncertainty.entropy_sampling(
                         classifier, np.random.rand(n_samples, n_classes)
                     )
-                    shuffled_query_idx, shuffled_query_instance = modAL.uncertainty.entropy_sampling(
+                    shuffled_query_idx = modAL.uncertainty.entropy_sampling(
                         classifier, np.random.rand(n_samples, n_classes),
                         random_tie_break=True
                     )
@@ -698,7 +703,7 @@ class TestActiveLearner(unittest.TestCase):
             for n_features in range(1, 10):
                 X = np.random.rand(n_samples, n_features)
                 query_idx = np.random.randint(0, n_samples)
-                mock_query = mock.MockFunction(return_val=(query_idx, X[query_idx]))
+                mock_query = mock.MockFunction(return_val=query_idx)
                 learner = modAL.models.learners.ActiveLearner(
                     estimator=None,
                     query_strategy=mock_query
@@ -788,6 +793,68 @@ class TestActiveLearner(unittest.TestCase):
             )
             query_idx, query_inst = learner.query(X_pool)
             learner.teach(X_pool[query_idx], y_pool[query_idx])
+
+    def test_on_transformed(self):
+        n_samples = 10
+        n_features = 5
+        query_strategies = [
+            modAL.batch.uncertainty_batch_sampling
+            # add further strategies which work with instance representations
+            # no further ones as of 25.09.2020
+        ]
+        X_pool = np.random.rand(n_samples, n_features)
+
+        # use pandas data frame as X_pool, which will be transformed back to numpy with sklearn pipeline
+        X_pool = pd.DataFrame(X_pool)
+
+        y_pool = np.random.randint(0, 2, size=(n_samples,))
+        train_idx = np.random.choice(range(n_samples), size=2, replace=False)
+
+        for query_strategy in query_strategies:
+            learner = modAL.models.learners.ActiveLearner(
+                estimator=make_pipeline(
+                    FunctionTransformer(func=pd.DataFrame.to_numpy),
+                    RandomForestClassifier(n_estimators=10)
+                ),
+                query_strategy=query_strategy,
+                X_training=X_pool.iloc[train_idx],
+                y_training=y_pool[train_idx],
+                on_transformed=True
+            )
+            query_idx, query_inst = learner.query(X_pool)
+            learner.teach(X_pool.iloc[query_idx], y_pool[query_idx])
+
+    def test_old_query_strategy_interface(self):
+        n_samples = 10
+        n_features = 5
+        X_pool = np.random.rand(n_samples, n_features)
+        y_pool = np.random.randint(0, 2, size=(n_samples,))
+
+        # defining a custom query strategy also returning the selected instance
+        # make sure even if a query strategy works in some funny way
+        # (e.g. instance not matching instance index),
+        # the old interface remains unchanged
+        query_idx_ = np.random.choice(n_samples, 2)
+        query_instance_ = X_pool[(query_idx_ + 1) % len(X_pool)]
+
+        def custom_query_strategy(classifier, X):
+            return query_idx_, query_instance_
+
+
+        train_idx = np.random.choice(range(n_samples), size=2, replace=False)
+        custom_query_learner = modAL.models.learners.ActiveLearner(
+            estimator=RandomForestClassifier(n_estimators=10),
+            query_strategy=custom_query_strategy,
+            X_training=X_pool[train_idx], y_training=y_pool[train_idx]
+        )
+
+        query_idx, query_instance = custom_query_learner.query(X_pool)
+        custom_query_learner.teach(
+            X=X_pool[query_idx],
+            y=y_pool[query_idx]
+        )
+        np.testing.assert_equal(query_idx, query_idx_)
+        np.testing.assert_equal(query_instance, query_instance_)
 
 
 class TestBayesianOptimizer(unittest.TestCase):
@@ -897,6 +964,39 @@ class TestBayesianOptimizer(unittest.TestCase):
                         X_training=X, y_training=y
                     )
                     learner.teach(X, y, bootstrap=bootstrap, only_new=only_new)
+
+    def test_on_transformed(self):
+        n_samples = 10
+        n_features = 5
+        query_strategies = [
+            # TODO remove, added just to make sure on_transformed doesn't break anything
+            # but it has no influence on this strategy, nothing special tested here
+            mock.MockFunction(return_val=[np.random.randint(0, n_samples)])
+
+            # add further strategies which work with instance representations
+            # no further ones as of 25.09.2020
+        ]
+        X_pool = np.random.rand(n_samples, n_features)
+
+        # use pandas data frame as X_pool, which will be transformed back to numpy with sklearn pipeline
+        X_pool = pd.DataFrame(X_pool)
+
+        y_pool = np.random.rand(n_samples)
+        train_idx = np.random.choice(range(n_samples), size=2, replace=False)
+
+        for query_strategy in query_strategies:
+            learner = modAL.models.learners.BayesianOptimizer(
+                estimator=make_pipeline(
+                    FunctionTransformer(func=pd.DataFrame.to_numpy),
+                    GaussianProcessRegressor()
+                ),
+                query_strategy=query_strategy,
+                X_training=X_pool.iloc[train_idx],
+                y_training=y_pool[train_idx],
+                on_transformed=True
+            )
+            query_idx, query_inst = learner.query(X_pool)
+            learner.teach(X_pool.iloc[query_idx], y_pool[query_idx])
 
 
 class TestCommittee(unittest.TestCase):
@@ -1008,6 +1108,42 @@ class TestCommittee(unittest.TestCase):
 
                 committee.teach(X, y, bootstrap=bootstrap, only_new=only_new)
 
+    def test_on_transformed(self):
+        n_samples = 10
+        n_features = 5
+        query_strategies = [
+            modAL.batch.uncertainty_batch_sampling
+            # add further strategies which work with instance representations
+            # no further ones as of 25.09.2020
+        ]
+        X_pool = np.random.rand(n_samples, n_features)
+
+        # use pandas data frame as X_pool, which will be transformed back to numpy with sklearn pipeline
+        X_pool = pd.DataFrame(X_pool)
+
+        y_pool = np.random.randint(0, 2, size=(n_samples,))
+        train_idx = np.random.choice(range(n_samples), size=5, replace=False)
+
+        learner_list = [modAL.models.learners.ActiveLearner(
+            estimator=make_pipeline(
+                FunctionTransformer(func=pd.DataFrame.to_numpy),
+                RandomForestClassifier(n_estimators=10)
+            ),
+            # committee learners can contain different amounts of
+            # different instances
+            X_training=X_pool.iloc[train_idx[(np.arange(i + 1) + i) % len(train_idx)]],
+            y_training=y_pool[train_idx[(np.arange(i + 1) + i) % len(train_idx)]],
+        ) for i in range(3)]
+
+        for query_strategy in query_strategies:
+            committee = modAL.models.learners.Committee(
+                learner_list=learner_list,
+                query_strategy=query_strategy,
+                on_transformed=True
+            )
+            query_idx, query_inst = committee.query(X_pool)
+            committee.teach(X_pool.iloc[query_idx], y_pool[query_idx])
+
 
 class TestCommitteeRegressor(unittest.TestCase):
 
@@ -1040,6 +1176,45 @@ class TestCommitteeRegressor(unittest.TestCase):
                     committee.vote(np.random.rand(n_instances).reshape(-1, 1)),
                     vote_output
                 )
+
+    def test_on_transformed(self):
+        n_samples = 10
+        n_features = 5
+        query_strategies = [
+            # TODO remove, added just to make sure on_transformed doesn't break anything
+            # but it has no influence on this strategy, nothing special tested here
+            mock.MockFunction(return_val=[np.random.randint(0, n_samples)])
+
+            # add further strategies which work with instance representations
+            # no further ones as of 25.09.2020
+        ]
+        X_pool = np.random.rand(n_samples, n_features)
+
+        # use pandas data frame as X_pool, which will be transformed back to numpy with sklearn pipeline
+        X_pool = pd.DataFrame(X_pool)
+
+        y_pool = np.random.rand(n_samples)
+        train_idx = np.random.choice(range(n_samples), size=2, replace=False)
+
+        learner_list = [modAL.models.learners.ActiveLearner(
+            estimator=make_pipeline(
+                FunctionTransformer(func=pd.DataFrame.to_numpy),
+                GaussianProcessRegressor()
+            ),
+            # committee learners can contain different amounts of
+            # different instances
+            X_training=X_pool.iloc[train_idx[(np.arange(i + 1) + i) % len(train_idx)]],
+            y_training=y_pool[train_idx[(np.arange(i + 1) + i) % len(train_idx)]],
+        ) for i in range(3)]
+
+        for query_strategy in query_strategies:
+            committee = modAL.models.learners.CommitteeRegressor(
+                learner_list=learner_list,
+                query_strategy=query_strategy,
+                on_transformed=True
+            )
+            query_idx, query_inst = committee.query(X_pool)
+            committee.teach(X_pool.iloc[query_idx], y_pool[query_idx])
 
 
 class TestMultilabel(unittest.TestCase):
@@ -1107,4 +1282,3 @@ class TestExamples(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
-0

@@ -78,7 +78,6 @@ def make_query_strategy(utility_measure: Callable, selector: Callable) -> Callab
     """
     def query_strategy(classifier: BaseEstimator, X: modALinput) -> Tuple:
         utility = utility_measure(classifier, X)
-        query_idx = selector(utility)
-        return query_idx, X[query_idx]
+        return selector(utility)
 
     return query_strategy

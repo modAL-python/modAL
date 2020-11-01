@@ -10,14 +10,14 @@ from sklearn.base import clone
 from sklearn.exceptions import NotFittedError
 
 from modAL.models import ActiveLearner
-from modAL.utils.data import modALinput, data_vstack
+from modAL.utils.data import modALinput, data_vstack, enumerate_data, drop_rows, data_shape, add_row
 from modAL.utils.selection import multi_argmax, shuffled_argmax
 from modAL.uncertainty import _proba_uncertainty, _proba_entropy
 
 
 def expected_error_reduction(learner: ActiveLearner, X: modALinput, loss: str = 'binary',
                              p_subsample: np.float = 1.0, n_instances: int = 1,
-                             random_tie_break: bool = False) -> Tuple[np.ndarray, modALinput]:
+                             random_tie_break: bool = False) -> np.ndarray:
     """
     Expected error reduction query strategy.
 
@@ -38,31 +38,30 @@ def expected_error_reduction(learner: ActiveLearner, X: modALinput, loss: str = 
 
 
     Returns:
-        The indices of the instances from X chosen to be labelled;
-        the instances from X chosen to be labelled.
+        The indices of the instances from X chosen to be labelled.
     """
 
     assert 0.0 <= p_subsample <= 1.0, 'p_subsample subsampling keep ratio must be between 0.0 and 1.0'
     assert loss in ['binary', 'log'], 'loss must be \'binary\' or \'log\''
 
-    expected_error = np.zeros(shape=(len(X), ))
+    expected_error = np.zeros(shape=(data_shape(X)[0],))
     possible_labels = np.unique(learner.y_training)
 
     try:
         X_proba = learner.predict_proba(X)
     except NotFittedError:
         # TODO: implement a proper cold-start
-        return 0, X[0]
+        return np.array([0])
 
     cloned_estimator = clone(learner.estimator)
 
-    for x_idx, x in enumerate(X):
+    for x_idx, x in enumerate_data(X):
         # subsample the data if needed
         if np.random.rand() <= p_subsample:
-            X_reduced = np.delete(X, x_idx, axis=0)
+            X_reduced = drop_rows(X, x_idx)
             # estimate the expected error
             for y_idx, y in enumerate(possible_labels):
-                X_new = data_vstack((learner.X_training, np.expand_dims(x, axis=0)))
+                X_new = add_row(learner.X_training, x)
                 y_new = data_vstack((learner.y_training, np.array(y).reshape(1,)))
 
                 cloned_estimator.fit(X_new, y_new)
@@ -78,8 +77,6 @@ def expected_error_reduction(learner: ActiveLearner, X: modALinput, loss: str = 
             expected_error[x_idx] = np.inf
 
     if not random_tie_break:
-        query_idx = multi_argmax(-expected_error, n_instances)
-    else:
-        query_idx = shuffled_argmax(-expected_error, n_instances)
+        return multi_argmax(-expected_error, n_instances)
 
-    return query_idx, X[query_idx]
+    return shuffled_argmax(-expected_error, n_instances)

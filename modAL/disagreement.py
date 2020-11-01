@@ -104,7 +104,7 @@ def KL_max_disagreement(committee: BaseCommittee, X: modALinput, **predict_proba
 
 def vote_entropy_sampling(committee: BaseCommittee, X: modALinput,
                           n_instances: int = 1, random_tie_break=False,
-                          **disagreement_measure_kwargs) -> Tuple[np.ndarray, modALinput]:
+                          **disagreement_measure_kwargs) -> np.ndarray:
     """
     Vote entropy sampling strategy.
 
@@ -124,16 +124,14 @@ def vote_entropy_sampling(committee: BaseCommittee, X: modALinput,
     disagreement = vote_entropy(committee, X, **disagreement_measure_kwargs)
 
     if not random_tie_break:
-        query_idx = multi_argmax(disagreement, n_instances=n_instances)
-    else:
-        query_idx = shuffled_argmax(disagreement, n_instances=n_instances)
+        return multi_argmax(disagreement, n_instances=n_instances)
 
-    return query_idx, X[query_idx]
+    return shuffled_argmax(disagreement, n_instances=n_instances)
 
 
 def consensus_entropy_sampling(committee: BaseCommittee, X: modALinput,
                                n_instances: int = 1, random_tie_break=False,
-                               **disagreement_measure_kwargs) -> Tuple[np.ndarray, modALinput]:
+                               **disagreement_measure_kwargs) -> np.ndarray:
     """
     Consensus entropy sampling strategy.
 
@@ -153,16 +151,14 @@ def consensus_entropy_sampling(committee: BaseCommittee, X: modALinput,
     disagreement = consensus_entropy(committee, X, **disagreement_measure_kwargs)
 
     if not random_tie_break:
-        query_idx = multi_argmax(disagreement, n_instances=n_instances)
-    else:
-        query_idx = shuffled_argmax(disagreement, n_instances=n_instances)
+        return multi_argmax(disagreement, n_instances=n_instances)
 
-    return query_idx, X[query_idx]
+    return shuffled_argmax(disagreement, n_instances=n_instances)
 
 
 def max_disagreement_sampling(committee: BaseCommittee, X: modALinput,
                               n_instances: int = 1, random_tie_break=False,
-                              **disagreement_measure_kwargs) -> Tuple[np.ndarray, modALinput]:
+                              **disagreement_measure_kwargs) -> np.ndarray:
     """
     Maximum disagreement sampling strategy.
 
@@ -182,16 +178,14 @@ def max_disagreement_sampling(committee: BaseCommittee, X: modALinput,
     disagreement = KL_max_disagreement(committee, X, **disagreement_measure_kwargs)
 
     if not random_tie_break:
-        query_idx = multi_argmax(disagreement, n_instances=n_instances)
-    else:
-        query_idx = shuffled_argmax(disagreement, n_instances=n_instances)
+        return multi_argmax(disagreement, n_instances=n_instances)
 
-    return query_idx, X[query_idx]
+    return shuffled_argmax(disagreement, n_instances=n_instances)
 
 
 def max_std_sampling(regressor: BaseEstimator, X: modALinput,
                      n_instances: int = 1,  random_tie_break=False,
-                     **predict_kwargs) -> Tuple[np.ndarray, modALinput]:
+                     **predict_kwargs) -> np.ndarray:
     """
     Regressor standard deviation sampling strategy.
 
@@ -211,8 +205,6 @@ def max_std_sampling(regressor: BaseEstimator, X: modALinput,
     std = std.reshape(X.shape[0], )
 
     if not random_tie_break:
-        query_idx = multi_argmax(std, n_instances=n_instances)
-    else:
-        query_idx = shuffled_argmax(std, n_instances=n_instances)
+        return multi_argmax(std, n_instances=n_instances)
 
-    return query_idx, X[query_idx]
+    return shuffled_argmax(std, n_instances=n_instances)

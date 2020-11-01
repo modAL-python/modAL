@@ -5,14 +5,18 @@ Base classes for active learning algorithms
 
 import abc
 import sys
+import warnings
 from typing import Union, Callable, Optional, Tuple, List, Iterator, Any
 
 import numpy as np
 from sklearn.base import BaseEstimator
+from sklearn.ensemble._base import _BaseHeterogeneousEnsemble
+from sklearn.pipeline import Pipeline
 from sklearn.utils import check_X_y
 
-from modAL.utils.data import data_vstack, modALinput
+import scipy.sparse as sp
 
+from modAL.utils.data import data_vstack, data_hstack, modALinput, retrieve_rows
 
 if sys.version_info >= (3, 4):
     ABC = abc.ABC
@@ -34,6 +38,8 @@ class BaseLearner(ABC, BaseEstimator):
             When False, accepts np.nan and np.inf values.
         bootstrap_init: If initial training data is available, bootstrapping can be done during the first training.
             Useful when building Committee models with bagging.
+        on_transformed: Whether to transform samples with the pipeline defined by the estimator
+            when applying the query strategy.
         **fit_kwargs: keyword arguments.
 
     Attributes:
@@ -49,6 +55,7 @@ class BaseLearner(ABC, BaseEstimator):
                  X_training: Optional[modALinput] = None,
                  y_training: Optional[modALinput] = None,
                  bootstrap_init: bool = False,
+                 on_transformed: bool = False,
                  force_all_finite: bool = True,
                  **fit_kwargs
                  ) -> None:
@@ -56,11 +63,14 @@ class BaseLearner(ABC, BaseEstimator):
 
         self.estimator = estimator
         self.query_strategy = query_strategy
+        self.on_transformed = on_transformed
 
         self.X_training = X_training
+        self.Xt_training = None
         self.y_training = y_training
         if X_training is not None:
             self._fit_to_known(bootstrap=bootstrap_init, **fit_kwargs)
+            self.Xt_training = self.transform_without_estimating(self.X_training) if self.on_transformed else None
 
         assert isinstance(force_all_finite, bool), 'force_all_finite must be a bool'
         self.force_all_finite = force_all_finite
@@ -82,14 +92,60 @@ class BaseLearner(ABC, BaseEstimator):
 
         if self.X_training is None:
             self.X_training = X
+            self.Xt_training = self.transform_without_estimating(self.X_training) if self.on_transformed else None
             self.y_training = y
         else:
             try:
                 self.X_training = data_vstack((self.X_training, X))
+                self.Xt_training = data_vstack((
+                    self.Xt_training,
+                    self.transform_without_estimating(X)
+                )) if self.on_transformed else None
                 self.y_training = data_vstack((self.y_training, y))
             except ValueError:
                 raise ValueError('the dimensions of the new training data and label must'
                                  'agree with the training data and labels provided so far')
+
+    def transform_without_estimating(self, X: modALinput) -> Union[np.ndarray, sp.csr_matrix]:
+        """
+        Transforms the data as supplied to the estimator.
+
+        * In case the estimator is an skearn pipeline, it applies all pipeline components but the last one.
+        * In case the estimator is an ensemble, it concatenates the transformations for each classfier
+            (pipeline) in the ensemble.
+        * Otherwise returns the non-transformed dataset X
+        Args:
+            X: dataset to be transformed
+
+        Returns:
+            Transformed data set
+        """
+        Xt = []
+        pipes = [self.estimator]
+
+        if isinstance(self.estimator, _BaseHeterogeneousEnsemble):
+            pipes = self.estimator.estimators_
+
+        ################################
+        # transform data with pipelines used by estimator
+        for pipe in pipes:
+            if isinstance(pipe, Pipeline):
+                # NOTE: The used pipeline class might be an extension to sklearn's!
+                #       Create a new instance of the used pipeline class with all
+                #       components but the final estimator, which is replaced by an empty (passthrough) component.
+                #       This prevents any special handling of the final transformation pipe, which is usually
+                #       expected to be an estimator.
+                transformation_pipe = pipe.__class__(steps=[*pipe.steps[:-1], ('passthrough', 'passthrough')])
+                Xt.append(transformation_pipe.transform(X))
+
+        # in case no transformation pipelines are used by the estimator,
+        # return the original, non-transfored data
+        if not Xt:
+            return X
+
+        ################################
+        # concatenate all transformations and return
+        return data_hstack(Xt)
 
     def _fit_to_known(self, bootstrap: bool = False, **fit_kwargs) -> 'BaseLearner':
         """
@@ -157,6 +213,7 @@ class BaseLearner(ABC, BaseEstimator):
         check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None,
                   force_all_finite=self.force_all_finite)
         self.X_training, self.y_training = X, y
+        self.Xt_training = self.transform_without_estimating(self.X_training) if self.on_transformed else None
         return self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
     def predict(self, X: modALinput, **predict_kwargs) -> Any:
@@ -185,11 +242,12 @@ class BaseLearner(ABC, BaseEstimator):
         """
         return self.estimator.predict_proba(X, **predict_proba_kwargs)
 
-    def query(self, *query_args, **query_kwargs) -> Union[Tuple, modALinput]:
+    def query(self, X_pool, *query_args, **query_kwargs) -> Union[Tuple, modALinput]:
         """
         Finds the n_instances most informative point in the data provided by calling the query_strategy function.
 
         Args:
+            X_pool: Pool of unlabeled instances to retrieve most informative instances from
             *query_args: The arguments for the query strategy. For instance, in the case of
                 :func:`~modAL.uncertainty.uncertainty_sampling`, it is the pool of samples from which the query strategy
                 should choose instances to request labels.
@@ -200,8 +258,15 @@ class BaseLearner(ABC, BaseEstimator):
             labelled and the instances themselves. Can be different in other cases, for instance only the instance to be
             labelled upon query synthesis.
         """
-        query_result = self.query_strategy(self, *query_args, **query_kwargs)
-        return query_result
+        query_result = self.query_strategy(self, X_pool, *query_args, **query_kwargs)
+
+        if isinstance(query_result, tuple):
+            warnings.warn("Query strategies should no longer return the selected instances, "
+                          "this is now handled by the query method. "
+                          "Please return only the indices of the selected instances.", DeprecationWarning)
+            return query_result
+
+        return query_result, retrieve_rows(X_pool, query_result)
 
     def score(self, X: modALinput, y: modALinput, **score_kwargs) -> Any:
         """
@@ -229,12 +294,17 @@ class BaseCommittee(ABC, BaseEstimator):
     Args:
         learner_list: List of ActiveLearner objects to form committee.
         query_strategy: Function to query labels.
+        on_transformed: Whether to transform samples with the pipeline defined by each learner's estimator
+            when applying the query strategy.
     """
-    def __init__(self, learner_list: List[BaseLearner], query_strategy: Callable) -> None:
+    def __init__(self, learner_list: List[BaseLearner], query_strategy: Callable, on_transformed: bool = False) -> None:
         assert type(learner_list) == list, 'learners must be supplied in a list'
 
         self.learner_list = learner_list
         self.query_strategy = query_strategy
+        self.on_transformed = on_transformed
+        # TODO: update training data when using fit() and teach() methods
+        self.X_training = None
 
     def __iter__(self) -> Iterator[BaseLearner]:
         for learner in self.learner_list:
@@ -301,11 +371,23 @@ class BaseCommittee(ABC, BaseEstimator):
 
         return self
 
-    def query(self, *query_args, **query_kwargs) -> Union[Tuple, modALinput]:
+    def transform_without_estimating(self, X: modALinput) -> Union[np.ndarray, sp.csr_matrix]:
+        """
+        Transforms the data as supplied to each learner's estimator and concatenates transformations.
+        Args:
+            X: dataset to be transformed
+
+        Returns:
+            Transformed data set
+        """
+        return data_hstack([learner.transform_without_estimating(X) for learner in self.learner_list])
+
+    def query(self, X_pool, *query_args, **query_kwargs) -> Union[Tuple, modALinput]:
         """
         Finds the n_instances most informative point in the data provided by calling the query_strategy function.
 
         Args:
+            X_pool: Pool of unlabeled instances to retrieve most informative instances from
             *query_args: The arguments for the query strategy. For instance, in the case of
                 :func:`~modAL.disagreement.max_disagreement_sampling`, it is the pool of samples from which the query.
                 strategy should choose instances to request labels.
@@ -316,8 +398,15 @@ class BaseCommittee(ABC, BaseEstimator):
             be labelled and the instances themselves. Can be different in other cases, for instance only the instance to
             be labelled upon query synthesis.
         """
-        query_result = self.query_strategy(self, *query_args, **query_kwargs)
-        return query_result
+        query_result = self.query_strategy(self, X_pool, *query_args, **query_kwargs)
+
+        if isinstance(query_result, tuple):
+            warnings.warn("Query strategies should no longer return the selected instances, "
+                          "this is now handled by the query method. "
+                          "Please return only the indices of the selected instances", DeprecationWarning)
+            return query_result
+
+        return query_result, retrieve_rows(X_pool, query_result)
 
     def rebag(self, **fit_kwargs) -> None:
         """

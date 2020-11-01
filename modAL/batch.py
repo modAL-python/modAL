@@ -114,7 +114,7 @@ def select_instance(
     unlabeled_indices = [i for i in range(n_pool) if mask[i]]
     best_instance_index = unlabeled_indices[best_instance_index_in_unlabeled]
     mask[best_instance_index] = 0
-    return best_instance_index, np.expand_dims(X_pool[best_instance_index], axis=0), mask
+    return best_instance_index, X_pool[[best_instance_index]], mask
 
 
 def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
@@ -142,11 +142,16 @@ def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
     """
     # Make a local copy of our classifier's training data.
     # Define our record container and record the best cold start instance in the case of cold start.
+
+    # transform unlabeled data if needed
+    if classifier.on_transformed:
+        unlabeled = classifier.transform_without_estimating(unlabeled)
+
     if classifier.X_training is None:
         best_coldstart_instance_index, labeled = select_cold_start_instance(X=unlabeled, metric=metric, n_jobs=n_jobs)
         instance_index_ranking = [best_coldstart_instance_index]
     elif classifier.X_training.shape[0] > 0:
-        labeled = classifier.X_training[:]
+        labeled = classifier.Xt_training[:] if classifier.on_transformed else classifier.X_training[:]
         instance_index_ranking = []
     
     # The maximum number of records to sample.
@@ -180,7 +185,7 @@ def uncertainty_batch_sampling(classifier: Union[BaseLearner, BaseCommittee],
                                metric: Union[str, Callable] = 'euclidean',
                                n_jobs: Optional[int] = None,
                                **uncertainty_measure_kwargs
-                               ) -> Tuple[np.ndarray, Union[np.ndarray, sp.csr_matrix]]:
+                               ) -> np.ndarray:
     """
     Batch sampling query strategy. Selects the least sure instances for labelling.
 
@@ -206,6 +211,6 @@ def uncertainty_batch_sampling(classifier: Union[BaseLearner, BaseCommittee],
         Indices of the instances from `X` chosen to be labelled; records from `X` chosen to be labelled.
     """
     uncertainty = classifier_uncertainty(classifier, X, **uncertainty_measure_kwargs)
-    query_indices = ranked_batch(classifier, unlabeled=X, uncertainty_scores=uncertainty,
+    return ranked_batch(classifier, unlabeled=X, uncertainty_scores=uncertainty,
                                  n_instances=n_instances, metric=metric, n_jobs=n_jobs)
-    return query_indices, X[query_indices]
+

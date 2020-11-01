@@ -43,7 +43,7 @@ def _SVM_loss(multiclass_classifier: ActiveLearner,
 
 
 def SVM_binary_minimum(classifier: ActiveLearner, X_pool: modALinput,
-                       random_tie_break: bool = False) -> Tuple[np.ndarray, modALinput]:
+                       random_tie_break: bool = False) -> np.ndarray:
     """
     SVM binary minimum multilabel active learning strategy. For details see the paper
     Klaus Brinker, On Active Learning in Multi-label Classification
@@ -67,15 +67,13 @@ def SVM_binary_minimum(classifier: ActiveLearner, X_pool: modALinput,
     min_abs_dist = np.min(np.abs(decision_function), axis=1)
 
     if not random_tie_break:
-        query_idx = np.argmin(min_abs_dist)
-    else:
-        query_idx = shuffled_argmax(min_abs_dist)
+        return np.argmin(min_abs_dist)
 
-    return query_idx, X_pool[query_idx]
+    return shuffled_argmax(min_abs_dist)
 
 
 def max_loss(classifier: OneVsRestClassifier, X_pool: modALinput,
-             n_instances: int = 1, random_tie_break: bool = False) -> Tuple[np.ndarray, modALinput]:
+             n_instances: int = 1, random_tie_break: bool = False) -> np.ndarray:
 
     """
     Max Loss query strategy for SVM multilabel classification.
@@ -103,15 +101,13 @@ def max_loss(classifier: OneVsRestClassifier, X_pool: modALinput,
     loss = _SVM_loss(classifier, X_pool, most_certain_classes=most_certain_classes)
 
     if not random_tie_break:
-        query_idx = multi_argmax(loss, n_instances)
-    else:
-        query_idx = shuffled_argmax(loss, n_instances)
+        return multi_argmax(loss, n_instances)
 
-    return query_idx, X_pool[query_idx]
+    return shuffled_argmax(loss, n_instances)
 
 
 def mean_max_loss(classifier: OneVsRestClassifier, X_pool: modALinput,
-                  n_instances: int = 1, random_tie_break: bool = False) -> Tuple[np.ndarray, modALinput]:
+                  n_instances: int = 1, random_tie_break: bool = False) -> np.ndarray:
     """
     Mean Max Loss query strategy for SVM multilabel classification.
 
@@ -136,15 +132,13 @@ def mean_max_loss(classifier: OneVsRestClassifier, X_pool: modALinput,
     loss = _SVM_loss(classifier, X_pool)
 
     if not random_tie_break:
-        query_idx = multi_argmax(loss, n_instances)
-    else:
-        query_idx = shuffled_argmax(loss, n_instances)
+        return multi_argmax(loss, n_instances)
 
-    return query_idx, X_pool[query_idx]
+    return shuffled_argmax(loss, n_instances)
 
 
 def min_confidence(classifier: OneVsRestClassifier, X_pool: modALinput,
-                   n_instances: int = 1, random_tie_break: bool = False) -> Tuple[np.ndarray, modALinput]:
+                   n_instances: int = 1, random_tie_break: bool = False) -> np.ndarray:
     """
     MinConfidence query strategy for multilabel classification.
 
@@ -167,15 +161,13 @@ def min_confidence(classifier: OneVsRestClassifier, X_pool: modALinput,
     classwise_min = np.min(classwise_confidence, axis=1)
 
     if not random_tie_break:
-        query_idx = multi_argmax(-classwise_min, n_instances)
-    else:
-        query_idx = shuffled_argmax(-classwise_min, n_instances)
+        return multi_argmax(-classwise_min, n_instances)
 
-    return query_idx, X_pool[query_idx]
+    return shuffled_argmax(-classwise_min, n_instances)
 
 
 def avg_confidence(classifier: OneVsRestClassifier, X_pool: modALinput,
-                   n_instances: int = 1, random_tie_break: bool = False) -> Tuple[np.ndarray, modALinput]:
+                   n_instances: int = 1, random_tie_break: bool = False) -> np.ndarray:
     """
     AvgConfidence query strategy for multilabel classification.
 
@@ -198,15 +190,13 @@ def avg_confidence(classifier: OneVsRestClassifier, X_pool: modALinput,
     classwise_mean = np.mean(classwise_confidence, axis=1)
 
     if not random_tie_break:
-        query_idx = multi_argmax(classwise_mean, n_instances)
-    else:
-        query_idx = shuffled_argmax(classwise_mean, n_instances)
+        return multi_argmax(classwise_mean, n_instances)
 
-    return query_idx, X_pool[query_idx]
+    return shuffled_argmax(classwise_mean, n_instances)
 
 
 def max_score(classifier: OneVsRestClassifier, X_pool: modALinput,
-              n_instances: int = 1, random_tie_break: bool = 1) -> Tuple[np.ndarray, modALinput]:
+              n_instances: int = 1, random_tie_break: bool = 1) -> np.ndarray:
     """
     MaxScore query strategy for multilabel classification.
 
@@ -231,15 +221,13 @@ def max_score(classifier: OneVsRestClassifier, X_pool: modALinput,
     classwise_max = np.max(classwise_scores, axis=1)
 
     if not random_tie_break:
-        query_idx = multi_argmax(classwise_max, n_instances)
-    else:
-        query_idx = shuffled_argmax(classwise_max, n_instances)
+        return multi_argmax(classwise_max, n_instances)
 
-    return query_idx, X_pool[query_idx]
+    return shuffled_argmax(classwise_max, n_instances)
 
 
 def avg_score(classifier: OneVsRestClassifier, X_pool: modALinput,
-              n_instances: int = 1, random_tie_break: bool = False) -> Tuple[np.ndarray, modALinput]:
+              n_instances: int = 1, random_tie_break: bool = False) -> np.ndarray:
     """
     AvgScore query strategy for multilabel classification.
 
@@ -264,8 +252,6 @@ def avg_score(classifier: OneVsRestClassifier, X_pool: modALinput,
     classwise_mean = np.mean(classwise_scores, axis=1)
 
     if not random_tie_break:
-        query_idx = multi_argmax(classwise_mean, n_instances)
-    else:
-        query_idx = shuffled_argmax(classwise_mean, n_instances)
+        return multi_argmax(classwise_mean, n_instances)
 
-    return query_idx, X_pool[query_idx]
+    return shuffled_argmax(classwise_mean, n_instances)

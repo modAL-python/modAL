@@ -5,18 +5,16 @@ Template for query strategies
 
 The first two arguments of a query strategy function is always the estimator and the pool
 of instances to be queried from. Additional arguments are accepted as keyword arguments.
-A valid query strategy function always returns a tuple of the indices of the queried
-instances and the instances themselves.
+A valid query strategy function always returns indices of the queried
+instances.
 
 def custom_query_strategy(classifier, X, a_keyword_argument=42):
     # measure the utility of each instance in the pool
     utility = utility_measure(classifier, X)
 
-    # select the indices of the instances to be queried
-    query_idx = select_instances(utility)
+    # select and return the indices of the instances to be queried
+    return select_instances(utility)
 
-    # return the indices and the instances
-    return query_idx, X[query_idx]
 
 This function can be used in the active learning workflow.
 
@@ -97,8 +95,7 @@ with plt.style.context('seaborn-white'):
 # classifier uncertainty and classifier margin
 def custom_query_strategy(classifier, X, n_instances=1):
     utility = linear_combination(classifier, X)
-    query_idx = multi_argmax(utility, n_instances=n_instances)
-    return query_idx, X[query_idx]
+    return multi_argmax(utility, n_instances=n_instances)
 
 custom_query_learner = ActiveLearner(
     estimator=GaussianProcessClassifier(1.0 * RBF(1.0)),
