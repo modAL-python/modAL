@@ -35,7 +35,6 @@ def vote_entropy(committee: BaseCommittee, X: modALinput, **predict_proba_kwargs
         return np.zeros(shape=(X.shape[0],))
 
     p_vote = np.zeros(shape=(X.shape[0], len(committee.classes_)))
-    entr = np.zeros(shape=(X.shape[0],))
 
     for vote_idx, vote in enumerate(votes):
         vote_counter = Counter(vote)
@@ -43,8 +42,7 @@ def vote_entropy(committee: BaseCommittee, X: modALinput, **predict_proba_kwargs
         for class_idx, class_label in enumerate(committee.classes_):
             p_vote[vote_idx, class_idx] = vote_counter[class_label]/n_learners
 
-        entr[vote_idx] = entropy(p_vote[vote_idx])
-
+    entr = entropy(p_vote, axis=1)
     return entr
 
 
