@@ -29,6 +29,7 @@ from sklearn.svm import SVC
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import FunctionTransformer
+from sklearn.feature_extraction.text import CountVectorizer
 from scipy.stats import entropy, norm
 from scipy.special import ndtr
 from scipy import sparse as sp
@@ -823,6 +824,45 @@ class TestActiveLearner(unittest.TestCase):
             )
             query_idx, query_inst = learner.query(X_pool)
             learner.teach(X_pool.iloc[query_idx], y_pool[query_idx])
+
+    def test_on_transformed_with_variable_transformation(self):
+        """
+        Learnable transformations naturally change after a model is retrained. Make sure this is handled
+        properly for on_transformed=True query strategies.
+        """
+        query_strategies = [
+            modAL.batch.uncertainty_batch_sampling
+            # add further strategies which work with instance representations
+            # no further ones as of 09.12.2020
+        ]
+
+        X_labeled = ['Dog', 'Cat', 'Tree']
+
+        # contains unseen in labeled words, training model on those
+        # will alter CountVectorizer transformations
+        X_pool = ['Airplane', 'House']
+
+        y = [0, 1, 1, 0, 1]  # irrelevant for test
+
+        for query_strategy in query_strategies:
+            learner = modAL.models.learners.ActiveLearner(
+                estimator=make_pipeline(
+                    CountVectorizer(),
+                    RandomForestClassifier(n_estimators=10)
+                ),
+                query_strategy=query_strategy,
+                X_training=X_labeled, y_training=y[:len(X_labeled)],
+                on_transformed=True,
+            )
+
+            for _ in range(len(X_pool)):
+                query_idx, query_instance = learner.query(X_pool, n_instances=1)
+                i = query_idx[0]
+
+                learner.teach(
+                    X=[X_pool[i]],
+                    y=[y[i]]
+                )
 
     def test_old_query_strategy_interface(self):
         n_samples = 10
