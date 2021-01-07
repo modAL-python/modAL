@@ -8,7 +8,7 @@ import numpy as np
 import scipy.sparse as sp
 from sklearn.metrics.pairwise import pairwise_distances, pairwise_distances_argmin_min
 
-from modAL.utils.data import data_vstack, modALinput
+from modAL.utils.data import data_vstack, modALinput, data_shape
 from modAL.models.base import BaseCommittee, BaseLearner
 from modAL.uncertainty import classifier_uncertainty
 
@@ -150,8 +150,10 @@ def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
     if classifier.X_training is None:
         best_coldstart_instance_index, labeled = select_cold_start_instance(X=unlabeled, metric=metric, n_jobs=n_jobs)
         instance_index_ranking = [best_coldstart_instance_index]
-    elif classifier.X_training.shape[0] > 0:
-        labeled = classifier.Xt_training[:] if classifier.on_transformed else classifier.X_training[:]
+    elif data_shape(classifier.X_training)[0] > 0:
+        labeled = classifier.transform_without_estimating(
+            classifier.X_training
+        ) if classifier.on_transformed else classifier.X_training[:]
         instance_index_ranking = []
     
     # The maximum number of records to sample.

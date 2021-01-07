@@ -66,11 +66,9 @@ class BaseLearner(ABC, BaseEstimator):
         self.on_transformed = on_transformed
 
         self.X_training = X_training
-        self.Xt_training = None
         self.y_training = y_training
         if X_training is not None:
             self._fit_to_known(bootstrap=bootstrap_init, **fit_kwargs)
-            self.Xt_training = self.transform_without_estimating(self.X_training) if self.on_transformed else None
 
         assert isinstance(force_all_finite, bool), 'force_all_finite must be a bool'
         self.force_all_finite = force_all_finite
@@ -92,15 +90,10 @@ class BaseLearner(ABC, BaseEstimator):
 
         if self.X_training is None:
             self.X_training = X
-            self.Xt_training = self.transform_without_estimating(self.X_training) if self.on_transformed else None
             self.y_training = y
         else:
             try:
                 self.X_training = data_vstack((self.X_training, X))
-                self.Xt_training = data_vstack((
-                    self.Xt_training,
-                    self.transform_without_estimating(X)
-                )) if self.on_transformed else None
                 self.y_training = data_vstack((self.y_training, y))
             except ValueError:
                 raise ValueError('the dimensions of the new training data and label must'
@@ -213,7 +206,6 @@ class BaseLearner(ABC, BaseEstimator):
         check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None,
                   force_all_finite=self.force_all_finite)
         self.X_training, self.y_training = X, y
-        self.Xt_training = self.transform_without_estimating(self.X_training) if self.on_transformed else None
         return self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
     def predict(self, X: modALinput, **predict_kwargs) -> Any:
