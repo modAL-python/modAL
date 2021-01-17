@@ -40,6 +40,9 @@ class BaseLearner(ABC, BaseEstimator):
             Useful when building Committee models with bagging.
         on_transformed: Whether to transform samples with the pipeline defined by the estimator
             when applying the query strategy.
+        accept_different_dim : bool 
+            if True: the dimensions of X and Y inputs for the teaching/ predict/ fit part 
+            do not have to match (needed for complex models e.g. Transformers)
         **fit_kwargs: keyword arguments.
 
     Attributes:
@@ -57,6 +60,7 @@ class BaseLearner(ABC, BaseEstimator):
                  bootstrap_init: bool = False,
                  on_transformed: bool = False,
                  force_all_finite: bool = True,
+                 accept_different_dim: bool = False, 
                  **fit_kwargs
                  ) -> None:
         assert callable(query_strategy), 'query_strategy must be callable'
@@ -64,6 +68,7 @@ class BaseLearner(ABC, BaseEstimator):
         self.estimator = estimator
         self.query_strategy = query_strategy
         self.on_transformed = on_transformed
+        self.accept_different_dim = accept_different_dim
 
         self.X_training = X_training
         self.y_training = y_training
@@ -85,8 +90,9 @@ class BaseLearner(ABC, BaseEstimator):
             If the classifier has been fitted, the features in X have to agree with the training samples which the
             classifier has seen.
         """
-        check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None,
-                  force_all_finite=self.force_all_finite)
+        if not self.accept_different_dim: 
+            check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None,
+                    force_all_finite=self.force_all_finite)
 
         if self.X_training is None:
             self.X_training = X
