@@ -65,7 +65,7 @@ class BaseLearner(ABC, BaseEstimator):
                  ) -> None:
         assert callable(query_strategy), 'query_strategy must be callable'
 
-        self.estimator = estimator
+        self.estimator = estimator #MultiOutputClassifier(estimator, n_jobs=-1)
         self.query_strategy = query_strategy
         self.on_transformed = on_transformed
         self.accept_different_dim = accept_different_dim
@@ -179,8 +179,9 @@ class BaseLearner(ABC, BaseEstimator):
         Returns:
             self
         """
-        check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None,
-                  force_all_finite=self.force_all_finite)
+        if not self.accept_different_dim:
+            check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None,
+                    force_all_finite=self.force_all_finite)
 
         if not bootstrap:
             self.estimator.fit(X, y, **fit_kwargs)
@@ -209,8 +210,10 @@ class BaseLearner(ABC, BaseEstimator):
         Returns:
             self
         """
-        check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None,
-                  force_all_finite=self.force_all_finite)
+        if not self.accept_different_dim:
+            check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None,
+                    force_all_finite=self.force_all_finite)
+                    
         self.X_training, self.y_training = X, y
         return self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
@@ -264,7 +267,7 @@ class BaseLearner(ABC, BaseEstimator):
                           "Please return only the indices of the selected instances.", DeprecationWarning)
             return query_result
 
-        return query_result, retrieve_rows(X_pool, query_result)
+        return query_result, retrieve_rows(X_pool, query_result, accept_different_dim=self.accept_different_dim)
 
     def score(self, X: modALinput, y: modALinput, **score_kwargs) -> Any:
         """
@@ -278,6 +281,18 @@ class BaseLearner(ABC, BaseEstimator):
         Returns:
             The score of the predictor.
         """
+
+        """
+            sklearn does only accept tensors of different dim for X and Y, if we use
+            Multilabel classifiaction. If we do not want to do this but we still want
+            to go with tensors of different size (e.g. Transformers) we have to use this
+            workaround.
+        """
+        if self.accept_different_dim: 
+            prediction = self.estimator.infer(X)
+            criterion = self.estimator.criterion()
+            return criterion(prediction, y).item()
+
         return self.estimator.score(X, y, **score_kwargs)
 
     @abc.abstractmethod
@@ -404,7 +419,7 @@ class BaseCommittee(ABC, BaseEstimator):
                           "Please return only the indices of the selected instances", DeprecationWarning)
             return query_result
 
-        return query_result, retrieve_rows(X_pool, query_result)
+        return query_result, retrieve_rows(X_pool, query_result, accept_different_dim=self.accept_different_dim)
 
     def rebag(self, **fit_kwargs) -> None:
         """
