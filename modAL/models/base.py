@@ -267,7 +267,7 @@ class BaseLearner(ABC, BaseEstimator):
                           "Please return only the indices of the selected instances.", DeprecationWarning)
             return query_result
 
-        return query_result, retrieve_rows(X_pool, query_result, accept_different_dim=self.accept_different_dim)
+        return query_result, retrieve_rows(X_pool, query_result)
 
     def score(self, X: modALinput, y: modALinput, **score_kwargs) -> Any:
         """
