@@ -178,9 +178,9 @@ def margin_sampling(classifier: BaseEstimator, X: modALinput,
     margin = classifier_margin(classifier, X, **uncertainty_measure_kwargs)
 
     if not random_tie_break:
-        return multi_argmax(-margin, n_instances=n_instances)
+        return multi_argmax(-margin, n_instances=n_instances, return_negative=True)
 
-    return shuffled_argmax(-margin, n_instances=n_instances)
+    return shuffled_argmax(-margin, n_instances=n_instances, return_negative=True)
 
 
 def entropy_sampling(classifier: BaseEstimator, X: modALinput,

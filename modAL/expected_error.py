@@ -77,6 +77,6 @@ def expected_error_reduction(learner: ActiveLearner, X: modALinput, loss: str = 
             expected_error[x_idx] = np.inf
 
     if not random_tie_break:
-        return multi_argmax(-expected_error, n_instances)
+        return multi_argmax(-expected_error, n_instances, return_negative=True)
 
-    return shuffled_argmax(-expected_error, n_instances)
+    return shuffled_argmax(-expected_error, n_instances, return_negative=True)

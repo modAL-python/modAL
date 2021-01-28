@@ -161,9 +161,9 @@ def min_confidence(classifier: OneVsRestClassifier, X_pool: modALinput,
     classwise_min = np.min(classwise_confidence, axis=1)
 
     if not random_tie_break:
-        return multi_argmax(-classwise_min, n_instances)
+        return multi_argmax(-classwise_min, n_instances, return_negative=True)
 
-    return shuffled_argmax(-classwise_min, n_instances)
+    return shuffled_argmax(-classwise_min, n_instances, return_negative=True)
 
 
 def avg_confidence(classifier: OneVsRestClassifier, X_pool: modALinput,

@@ -5,7 +5,7 @@ Functions to select certain element indices from arrays.
 import numpy as np
 
 
-def shuffled_argmax(values: np.ndarray, n_instances: int = 1) -> np.ndarray:
+def shuffled_argmax(values: np.ndarray, n_instances: int = 1, return_negative=False) -> np.ndarray:
     """
     Shuffles the values and sorts them afterwards. This can be used to break
     the tie when the highest utility score is not unique. The shuffle randomizes
@@ -13,10 +13,10 @@ def shuffled_argmax(values: np.ndarray, n_instances: int = 1) -> np.ndarray:
 
     Args:
         values: Contains the values to be selected from.
-        n_instances: Specifies how many indices to return.
-
+        n_instances: Specifies how many indices and values to return.
+        return_negative: if true: returns negative values
     Returns:
-        The indices of the n_instances largest values.
+        The indices and values of the n_instances largest values.
     """
     assert n_instances <= values.shape[0], 'n_instances must be less or equal than the size of utility'
 
@@ -30,24 +30,32 @@ def shuffled_argmax(values: np.ndarray, n_instances: int = 1) -> np.ndarray:
 
     # inverting the shuffle
     query_idx = shuffled_idx[sorted_query_idx]
-    return query_idx
+
+    if return_negative == True:
+        values = -values
+
+    return query_idx, values[max_idx]
 
 
-def multi_argmax(values: np.ndarray, n_instances: int = 1) -> np.ndarray:
+def multi_argmax(values: np.ndarray, n_instances: int = 1, return_negative=False) -> np.ndarray:
     """
-    Selects the indices of the n_instances highest values.
+    return the indices and values of the n_instances highest values.
 
     Args:
         values: Contains the values to be selected from.
-        n_instances: Specifies how many indices to return.
-
+        n_instances: Specifies how many indices and values to return.
+        return_negative: if true: returns negative values
     Returns:
-        The indices of the n_instances largest values.
+        The indices and values of the n_instances largest values.
     """
     assert n_instances <= values.shape[0], 'n_instances must be less or equal than the size of utility'
 
     max_idx = np.argpartition(-values, n_instances-1, axis=0)[:n_instances]
-    return max_idx
+
+    if return_negative == True:
+        values = -values
+
+    return max_idx, values[max_idx]
 
 
 def weighted_random(weights: np.ndarray, n_instances: int = 1) -> np.ndarray:

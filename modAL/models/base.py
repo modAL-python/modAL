@@ -259,7 +259,7 @@ class BaseLearner(ABC, BaseEstimator):
             labelled and the instances themselves. Can be different in other cases, for instance only the instance to be
             labelled upon query synthesis.
         """
-        query_result = self.query_strategy(self, X_pool, *query_args, **query_kwargs)
+        query_result, query_metrics = self.query_strategy(self, X_pool, *query_args, **query_kwargs)
 
         if isinstance(query_result, tuple):
             warnings.warn("Query strategies should no longer return the selected instances, "
@@ -267,7 +267,7 @@ class BaseLearner(ABC, BaseEstimator):
                           "Please return only the indices of the selected instances.", DeprecationWarning)
             return query_result
 
-        return query_result, retrieve_rows(X_pool, query_result)
+        return query_result, retrieve_rows(X_pool, query_result), query_metrics
 
     def score(self, X: modALinput, y: modALinput, **score_kwargs) -> Any:
         """
@@ -411,7 +411,7 @@ class BaseCommittee(ABC, BaseEstimator):
             be labelled and the instances themselves. Can be different in other cases, for instance only the instance to
             be labelled upon query synthesis.
         """
-        query_result = self.query_strategy(self, X_pool, *query_args, **query_kwargs)
+        query_result, query_metrics = self.query_strategy(self, X_pool, *query_args, **query_kwargs)
 
         if isinstance(query_result, tuple):
             warnings.warn("Query strategies should no longer return the selected instances, "
@@ -419,7 +419,7 @@ class BaseCommittee(ABC, BaseEstimator):
                           "Please return only the indices of the selected instances", DeprecationWarning)
             return query_result
 
-        return query_result, retrieve_rows(X_pool, query_result, accept_different_dim=self.accept_different_dim)
+        return query_result, retrieve_rows(X_pool, query_result), query_metrics
 
     def rebag(self, **fit_kwargs) -> None:
         """

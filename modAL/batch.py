@@ -178,7 +178,7 @@ def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
         instance_index_ranking.append(instance_index)
 
     # Return numpy array, not a list.
-    return np.array(instance_index_ranking)
+    return np.array(instance_index_ranking), uncertainty_scores[np.array(instance_index_ranking)]
 
 
 def uncertainty_batch_sampling(classifier: Union[BaseLearner, BaseCommittee],
