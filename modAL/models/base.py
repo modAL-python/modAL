@@ -15,7 +15,7 @@ from sklearn.pipeline import Pipeline
 
 import scipy.sparse as sp
 
-from modAL.utils.data import data_vstack, data_hstack, modALinput, retrieve_rows
+from modAL.utils.data import data_hstack, modALinput, retrieve_rows
 
 if sys.version_info >= (3, 4):
     ABC = abc.ABC

@@ -6,12 +6,15 @@ from sklearn.base import BaseEstimator
 from sklearn.metrics import accuracy_score
 
 from sklearn.utils import check_X_y
-from modAL.models.base import BaseLearner
+from modAL.models.base import BaseLearner, BaseCommittee
 from modAL.utils.validation import check_class_labels, check_class_proba
-from modAL.utils.data import modALinput, retrieve_rows
+from modAL.utils.data import modALinput, retrieve_rows, data_vstack
 from modAL.uncertainty import uncertainty_sampling
 from modAL.disagreement import vote_entropy_sampling, max_std_sampling
 from modAL.acquisition import max_EI
+
+from skorch.utils import to_numpy
+
 
 """
 Classes for active learning algorithms
@@ -234,6 +237,7 @@ class DeepActiveLearner(BaseLearner):
         #TODO: Check if given query strategy works for Deep Learning
         super().__init__(estimator, query_strategy,
                          bootstrap_init, on_transformed, **fit_kwargs)
+        self.estimator.initialize()
 
     def fit(self, X: modALinput, y: modALinput, bootstrap: bool = False, **fit_kwargs) -> 'BaseLearner':
         """
@@ -491,7 +495,7 @@ class Committee(BaseCommittee):
         for learner in self.learner_list:
             learner._add_training_data(X, y)
     
-     def _fit_to_known(self, bootstrap: bool = False, **fit_kwargs) -> None:
+    def _fit_to_known(self, bootstrap: bool = False, **fit_kwargs) -> None:
         """
         Fits all learners to the training data and labels provided to it so far.
 
