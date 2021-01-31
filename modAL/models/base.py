@@ -24,6 +24,7 @@ else:
     ABC = abc.ABCMeta('ABC', (), {})
 
 
+#TODO: Adapt BaseLearner to be common class for ML&DL
 class BaseLearner(ABC, BaseEstimator):
     """
     Core abstraction in modAL.
