@@ -3,6 +3,8 @@ import logging
 import sys
 
 from sklearn.base import BaseEstimator
+from sklearn.preprocessing import normalize
+
 from scipy.special import entr
 
 from modAL.utils.data import modALinput
@@ -12,6 +14,27 @@ from skorch.utils import to_numpy
 
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+
+def KL_divergence(classifier: BaseEstimator, X: modALinput, n_instances: int = 1,
+                random_tie_break: bool = False, dropout_layer_indexes: list = [], 
+                num_cycles : int = 50, **mc_dropout_kwargs) -> np.ndarray:
+    """
+    TODO: Work in progress 
+    """
+    # set dropout layers to train mode
+    set_dropout_mode(classifier.estimator.module_, dropout_layer_indexes, train_mode=True)
+
+    predictions = get_predictions(classifier, X, num_cycles)
+
+    # set dropout layers to eval
+    set_dropout_mode(classifier.estimator.module_, dropout_layer_indexes, train_mode=False)
+
+    #KL_divergence = _KL_divergence(predictions)
+    
+    if not random_tie_break:
+        return multi_argmax(KL_divergence, n_instances=n_instances)
+
+    return shuffled_argmax(KL_divergence, n_instances=n_instances)
 
 
 def mc_dropout(classifier: BaseEstimator, X: modALinput, n_instances: int = 1,
@@ -49,16 +72,7 @@ def mc_dropout(classifier: BaseEstimator, X: modALinput, n_instances: int = 1,
     # set dropout layers to train mode
     set_dropout_mode(classifier.estimator.module_, dropout_layer_indexes, train_mode=True)
 
-    predictions = []
-
-    #for each batch run num_cycles forward passes
-    for i in range(num_cycles):
-        logging.getLogger().info("Dropout: start prediction forward pass")
-        #call Skorch infer function to perform model forward pass
-        #In comparison to: predict(), predict_proba() the infer() 
-        # does not change train/eval mode of other layers 
-        prediction = classifier.estimator.infer(X)
-        predictions.append(to_numpy(prediction))
+    predictions = get_predictions(classifier, X, num_cycles)
 
     # set dropout layers to eval
     set_dropout_mode(classifier.estimator.module_, dropout_layer_indexes, train_mode=False)
@@ -70,6 +84,30 @@ def mc_dropout(classifier: BaseEstimator, X: modALinput, n_instances: int = 1,
         return multi_argmax(bald_scores, n_instances=n_instances)
 
     return shuffled_argmax(bald_scores, n_instances=n_instances)
+
+def get_predictions(classifier: BaseEstimator, X: modALinput, num_predictions: int = 50):
+    """
+        Runs num_predictions times the prediction of the classifier on the input X 
+        and puts the predictions in a list.
+
+        Args:
+            classifier: The classifier for which the labels are to be queried.
+            X: The pool of samples to query from.
+            num_predictions: Number of predictions which should be made
+        Return: 
+            prediction: list with all predictions
+    """
+
+    predictions = []
+    for i in range(num_predictions):
+        logging.getLogger().info("Dropout: start prediction forward pass")
+        #call Skorch infer function to perform model forward pass
+        #In comparison to: predict(), predict_proba() the infer() 
+        # does not change train/eval mode of other layers 
+        prediction = classifier.estimator.infer(X)
+        predictions.append(to_numpy(prediction))
+    return predictions
+
 
 def entropy_sum(values, axis=-1):
     #sum Scipy basic entropy function: entr()
@@ -103,6 +141,18 @@ def _bald_divergence(proba) -> np.ndarray:
     bald = np.sum(shaped, axis=-1)
 
     return bald
+
+def _KL_divergence(proba) -> np.ndarray:
+
+    #create 3D or 4D array from prediction dim: (drop_cycles, proba.shape[0], proba.shape[1], opt:proba.shape[2])
+    proba_stacked = np.stack(proba, axis=len(proba[0].shape))
+    # TODO work in progress
+    # TODO add dimensionality adaption
+    #number_of_dimensions = proba_stacked.ndim
+    #if proba_stacked.ndim > 2: 
+
+    normalized_proba = normalize(proba_stacked, axis=0)
+
 
 def set_dropout_mode(model, dropout_layer_indexes: list, train_mode: bool):
     """ 
