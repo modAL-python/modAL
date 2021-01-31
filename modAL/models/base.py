@@ -24,7 +24,6 @@ else:
     ABC = abc.ABCMeta('ABC', (), {})
 
 
-#TODO: Adapt BaseLearner to be common class for ML&DL
 class BaseLearner(ABC, BaseEstimator):
     """
     Core abstraction in modAL.
@@ -33,78 +32,34 @@ class BaseLearner(ABC, BaseEstimator):
         estimator: The estimator to be used in the active learning loop.
         query_strategy: Function providing the query strategy for the active learning loop,
             for instance, modAL.uncertainty.uncertainty_sampling.
-        X_training: Initial training samples, if available.
-        y_training: Initial training labels corresponding to initial training samples.
         force_all_finite: When True, forces all values of the data finite.
             When False, accepts np.nan and np.inf values.
         bootstrap_init: If initial training data is available, bootstrapping can be done during the first training.
             Useful when building Committee models with bagging.
         on_transformed: Whether to transform samples with the pipeline defined by the estimator
             when applying the query strategy.
-        accept_different_dim : bool 
-            if True: the dimensions of X and Y inputs for the teaching/ predict/ fit part 
-            do not have to match (needed for complex models e.g. Transformers)
         **fit_kwargs: keyword arguments.
 
     Attributes:
         estimator: The estimator to be used in the active learning loop.
         query_strategy: Function providing the query strategy for the active learning loop.
-        X_training: If the model hasn't been fitted yet it is None, otherwise it contains the samples
-            which the model has been trained on.
-        y_training: The labels corresponding to X_training.
     """
     def __init__(self,
                  estimator: BaseEstimator,
                  query_strategy: Callable,
-                 X_training: Optional[modALinput] = None,
-                 y_training: Optional[modALinput] = None,
                  bootstrap_init: bool = False,
                  on_transformed: bool = False,
                  force_all_finite: bool = True,
-                 accept_different_dim: bool = False, 
                  **fit_kwargs
                  ) -> None:
         assert callable(query_strategy), 'query_strategy must be callable'
 
-        self.estimator = estimator #MultiOutputClassifier(estimator, n_jobs=-1)
+        self.estimator = estimator
         self.query_strategy = query_strategy
         self.on_transformed = on_transformed
-        self.accept_different_dim = accept_different_dim
-
-        self.X_training = X_training
-        self.y_training = y_training
-        if X_training is not None:
-            self._fit_to_known(bootstrap=bootstrap_init, **fit_kwargs)
 
         assert isinstance(force_all_finite, bool), 'force_all_finite must be a bool'
         self.force_all_finite = force_all_finite
-
-    def _add_training_data(self, X: modALinput, y: modALinput) -> None:
-        """
-        Adds the new data and label to the known data, but does not retrain the model.
-
-        Args:
-            X: The new samples for which the labels are supplied by the expert.
-            y: Labels corresponding to the new instances in X.
-
-        Note:
-            If the classifier has been fitted, the features in X have to agree with the training samples which the
-            classifier has seen.
-        """
-        if not self.accept_different_dim: 
-            check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None,
-                    force_all_finite=self.force_all_finite)
-
-        if self.X_training is None:
-            self.X_training = X
-            self.y_training = y
-        else:
-            try:
-                self.X_training = data_vstack((self.X_training, X))
-                self.y_training = data_vstack((self.y_training, y))
-            except ValueError:
-                raise ValueError('the dimensions of the new training data and label must'
-                                 'agree with the training data and labels provided so far')
 
     def transform_without_estimating(self, X: modALinput) -> Union[np.ndarray, sp.csr_matrix]:
         """
@@ -147,26 +102,6 @@ class BaseLearner(ABC, BaseEstimator):
         # concatenate all transformations and return
         return data_hstack(Xt)
 
-    def _fit_to_known(self, bootstrap: bool = False, **fit_kwargs) -> 'BaseLearner':
-        """
-        Fits self.estimator to the training data and labels provided to it so far.
-
-        Args:
-            bootstrap: If True, the method trains the model on a set bootstrapped from the known training instances.
-            **fit_kwargs: Keyword arguments to be passed to the fit method of the predictor.
-
-        Returns:
-            self
-        """
-        if not bootstrap:
-            self.estimator.fit(self.X_training, self.y_training, **fit_kwargs)
-        else:
-            n_instances = self.X_training.shape[0]
-            bootstrap_idx = np.random.choice(range(n_instances), n_instances, replace=True)
-            self.estimator.fit(self.X_training[bootstrap_idx], self.y_training[bootstrap_idx], **fit_kwargs)
-
-        return self
-
     def _fit_on_new(self, X: modALinput, y: modALinput, bootstrap: bool = False, **fit_kwargs) -> 'BaseLearner':
         """
         Fits self.estimator to the given data and labels.
@@ -180,9 +115,6 @@ class BaseLearner(ABC, BaseEstimator):
         Returns:
             self
         """
-        if not self.accept_different_dim:
-            check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None,
-                    force_all_finite=self.force_all_finite)
 
         if not bootstrap:
             self.estimator.fit(X, y, **fit_kwargs)
@@ -191,32 +123,6 @@ class BaseLearner(ABC, BaseEstimator):
             self.estimator.fit(X[bootstrap_idx], y[bootstrap_idx])
 
         return self
-
-    def fit(self, X: modALinput, y: modALinput, bootstrap: bool = False, **fit_kwargs) -> 'BaseLearner':
-        """
-        Interface for the fit method of the predictor. Fits the predictor to the supplied data, then stores it
-        internally for the active learning loop.
-
-        Args:
-            X: The samples to be fitted.
-            y: The corresponding labels.
-            bootstrap: If true, trains the estimator on a set bootstrapped from X.
-                Useful for building Committee models with bagging.
-            **fit_kwargs: Keyword arguments to be passed to the fit method of the predictor.
-
-        Note:
-            When using scikit-learn estimators, calling this method will make the ActiveLearner forget all training data
-            it has seen!
-
-        Returns:
-            self
-        """
-        if not self.accept_different_dim:
-            check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None,
-                    force_all_finite=self.force_all_finite)
-                    
-        self.X_training, self.y_training = X, y
-        return self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
     def predict(self, X: modALinput, **predict_kwargs) -> Any:
         """
@@ -270,31 +176,6 @@ class BaseLearner(ABC, BaseEstimator):
 
         return query_result, retrieve_rows(X_pool, query_result), query_metrics
 
-    def score(self, X: modALinput, y: modALinput, **score_kwargs) -> Any:
-        """
-        Interface for the score method of the predictor.
-
-        Args:
-            X: The samples for which prediction accuracy is to be calculated.
-            y: Ground truth labels for X.
-            **score_kwargs: Keyword arguments to be passed to the .score() method of the predictor.
-
-        Returns:
-            The score of the predictor.
-        """
-
-        """
-            sklearn does only accept tensors of different dim for X and Y, if we use
-            Multilabel classifiaction. If we do not want to do this but we still want
-            to go with tensors of different size (e.g. Transformers) we have to use this
-            workaround.
-        """
-        if self.accept_different_dim: 
-            prediction = self.estimator.infer(X)
-            criterion = self.estimator.criterion()
-            return criterion(prediction, y).item()
-
-        return self.estimator.score(X, y, **score_kwargs)
 
     @abc.abstractmethod
     def teach(self, *args, **kwargs) -> None:

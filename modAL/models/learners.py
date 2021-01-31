@@ -80,7 +80,106 @@ class ActiveLearner(BaseLearner):
                  **fit_kwargs
                  ) -> None:
         super().__init__(estimator, query_strategy,
-                         X_training, y_training, bootstrap_init, on_transformed, **fit_kwargs)
+                         bootstrap_init, on_transformed, **fit_kwargs)
+
+        self.X_training = X_training
+        self.y_training = y_training
+
+    def _add_training_data(self, X: modALinput, y: modALinput) -> None:
+        """
+        Adds the new data and label to the known data, but does not retrain the model.
+
+        Args:
+            X: The new samples for which the labels are supplied by the expert.
+            y: Labels corresponding to the new instances in X.
+
+        Note:
+            If the classifier has been fitted, the features in X have to agree with the training samples which the
+            classifier has seen.
+        """
+        check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None,
+                force_all_finite=self.force_all_finite)
+
+        if self.X_training is None:
+            self.X_training = X
+            self.y_training = y
+        else:
+            try:
+                self.X_training = data_vstack((self.X_training, X))
+                self.y_training = data_vstack((self.y_training, y))
+            except ValueError:
+                raise ValueError('the dimensions of the new training data and label must'
+                                 'agree with the training data and labels provided so far')
+
+    def _fit_to_known(self, bootstrap: bool = False, **fit_kwargs) -> 'BaseLearner':
+        """
+        Fits self.estimator to the training data and labels provided to it so far.
+
+        Args:
+            bootstrap: If True, the method trains the model on a set bootstrapped from the known training instances.
+            **fit_kwargs: Keyword arguments to be passed to the fit method of the predictor.
+
+        Returns:
+            self
+        """
+        if not bootstrap:
+            self.estimator.fit(self.X_training, self.y_training, **fit_kwargs)
+        else:
+            n_instances = self.X_training.shape[0]
+            bootstrap_idx = np.random.choice(range(n_instances), n_instances, replace=True)
+            self.estimator.fit(self.X_training[bootstrap_idx], self.y_training[bootstrap_idx], **fit_kwargs)
+
+        return self    
+    
+    def fit(self, X: modALinput, y: modALinput, bootstrap: bool = False, **fit_kwargs) -> 'BaseLearner':
+        """
+        Interface for the fit method of the predictor. Fits the predictor to the supplied data, then stores it
+        internally for the active learning loop.
+
+        Args:
+            X: The samples to be fitted.
+            y: The corresponding labels.
+            bootstrap: If true, trains the estimator on a set bootstrapped from X.
+                Useful for building Committee models with bagging.
+            **fit_kwargs: Keyword arguments to be passed to the fit method of the predictor.
+
+        Note:
+            When using scikit-learn estimators, calling this method will make the ActiveLearner forget all training data
+            it has seen!
+
+        Returns:
+            self
+        """            
+        check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None,
+                    force_all_finite=self.force_all_finite)
+        self.X_training, self.y_training = X, y
+        return self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
+
+    def score(self, X: modALinput, y: modALinput, **score_kwargs) -> Any:
+        """
+        Interface for the score method of the predictor.
+
+        Args:
+            X: The samples for which prediction accuracy is to be calculated.
+            y: Ground truth labels for X.
+            **score_kwargs: Keyword arguments to be passed to the .score() method of the predictor.
+
+        Returns:
+            The score of the predictor.
+        """
+
+        """
+            sklearn does only accept tensors of different dim for X and Y, if we use
+            Multilabel classifiaction. If we do not want to do this but we still want
+            to go with tensors of different size (e.g. Transformers) we have to use this
+            workaround.
+        """
+        if self.accept_different_dim: 
+            prediction = self.estimator.infer(X)
+            criterion = self.estimator.criterion()
+            return criterion(prediction, y).item()
+
+        return self.estimator.score(X, y, **score_kwargs)
 
     def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, only_new: bool = False, **fit_kwargs) -> None:
         """
@@ -96,13 +195,14 @@ class ActiveLearner(BaseLearner):
                 tensorflow or keras).
             **fit_kwargs: Keyword arguments to be passed to the fit method of the predictor.
         """
-        self._add_training_data(X, y)
         if not only_new:
+            self._add_training_data(X, y)
             self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
         else:
+            check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None,
+                force_all_finite=self.force_all_finite)
             self._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
 
-#TODO: Adapt DeepACtiveLearner
 class DeepActiveLearner(BaseLearner):
     """
     This class is an abstract model of a general active learning algorithm.
@@ -138,9 +238,42 @@ class DeepActiveLearner(BaseLearner):
                  ) -> None:
         #TODO: Check if given query strategy works for Deep Learning
         super().__init__(estimator, query_strategy,
-                         X_training, y_training, bootstrap_init, on_transformed, **fit_kwargs)
+                         bootstrap_init, on_transformed, **fit_kwargs)
 
-    def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, only_new: bool = False, **fit_kwargs) -> None:
+    def fit(self, X: modALinput, y: modALinput, bootstrap: bool = False, **fit_kwargs) -> 'BaseLearner':
+        """
+        Interface for the fit method of the predictor. Fits the predictor to the supplied data, then stores it
+        internally for the active learning loop.
+
+        Args:
+            X: The samples to be fitted.
+            y: The corresponding labels.
+            bootstrap: If true, trains the estimator on a set bootstrapped from X.
+                Useful for building Committee models with bagging.
+            **fit_kwargs: Keyword arguments to be passed to the fit method of the predictor.
+
+        Returns:
+            self
+        """            
+        return self._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
+
+    def score(self, X: modALinput, y: modALinput) -> Any:
+        """
+        Interface for the score method of the predictor.
+
+        Args:
+            X: The samples for which prediction accuracy is to be calculated.
+            y: Ground truth labels for X.
+
+        Returns:
+            The score of the predictor.
+        """
+
+        prediction = self.estimator.infer(X)
+        criterion = self.estimator.criterion()
+        return criterion(prediction, y).item()
+
+    def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, **fit_kwargs) -> None:
         """
         Adds X and y to the known training data and retrains the predictor with the augmented dataset.
 
@@ -149,16 +282,9 @@ class DeepActiveLearner(BaseLearner):
             y: Labels corresponding to the new instances in X.
             bootstrap: If True, training is done on a bootstrapped dataset. Useful for building Committee models
                 with bagging.
-            only_new: If True, the model is retrained using only X and y, ignoring the previously provided examples.
-                Useful when working with models where the .fit() method doesn't retrain the model from scratch (e. g. in
-                tensorflow or keras).
             **fit_kwargs: Keyword arguments to be passed to the fit method of the predictor.
         """
-        ##self._add_training_data(X, y)
-        if not only_new:
-            self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
-        else:
-            self._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
+        self._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
 
 """
 Classes for Bayesian optimization
