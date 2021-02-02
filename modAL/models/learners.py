@@ -24,7 +24,7 @@ Classes for active learning algorithms
 
 class ActiveLearner(BaseLearner):
     """
-    This class is an abstract model of a general active learning algorithm.
+    This class is an abstract model of a general classic active learning algorithm.
 
     Args:
         estimator: The estimator to be used in the active learning loop.
@@ -84,9 +84,12 @@ class ActiveLearner(BaseLearner):
                  ) -> None:
         super().__init__(estimator, query_strategy,
                          bootstrap_init, on_transformed, **fit_kwargs)
-
+        
         self.X_training = X_training
         self.y_training = y_training
+
+        if X_training is not None:
+            self._fit_to_known(bootstrap=bootstrap_init, **fit_kwargs)
 
     def _add_training_data(self, X: modALinput, y: modALinput) -> None:
         """
@@ -209,8 +212,6 @@ class DeepActiveLearner(BaseLearner):
         estimator: The estimator to be used in the active learning loop.
         query_strategy: Function providing the query strategy for the active learning loop,
             for instance, modAL.uncertainty.uncertainty_sampling.
-        X_training: Initial training samples, if available.
-        y_training: Initial training labels corresponding to initial training samples.
         bootstrap_init: If initial training data is available, bootstrapping can be done during the first training.
             Useful when building Committee models with bagging.
         on_transformed: Whether to transform samples with the pipeline defined by the estimator
@@ -220,16 +221,11 @@ class DeepActiveLearner(BaseLearner):
     Attributes:
         estimator: The estimator to be used in the active learning loop.
         query_strategy: Function providing the query strategy for the active learning loop.
-        X_training: If the model hasn't been fitted yet it is None, otherwise it contains the samples
-            which the model has been trained on. If provided, the method fit() of estimator is called during __init__()
-        y_training: The labels corresponding to X_training.
     """
 
     def __init__(self,
                  estimator: BaseEstimator,
                  query_strategy: Callable = uncertainty_sampling,
-                 X_training: Optional[modALinput] = None,
-                 y_training: Optional[modALinput] = None,
                  bootstrap_init: bool = False,
                  on_transformed: bool = False,
                  **fit_kwargs
@@ -237,7 +233,8 @@ class DeepActiveLearner(BaseLearner):
         #TODO: Check if given query strategy works for Deep Learning
         super().__init__(estimator, query_strategy,
                          bootstrap_init, on_transformed, **fit_kwargs)
-        self.estimator.initialize()
+
+        self.estimator.initialize() # does maybe just work with pytorch
 
     def fit(self, X: modALinput, y: modALinput, bootstrap: bool = False, **fit_kwargs) -> 'BaseLearner':
         """
