@@ -114,9 +114,6 @@ def entropy_sum(values, axis=-1):
     return np.sum(entr(values), axis=axis)
 
 def _bald_divergence(proba) -> np.ndarray:
-    accumulated_score = np.zeros(shape=proba[0].shape)
-    accumulated_entropy = np.zeros(shape=(proba[0].shape[0]))
-
     #create 3D or 4D array from prediction dim: (drop_cycles, proba.shape[0], proba.shape[1], opt:proba.shape[2])
     proba_stacked = np.stack(proba, axis=len(proba[0].shape))
 
@@ -134,7 +131,7 @@ def _bald_divergence(proba) -> np.ndarray:
     g_x = entropy_sum(average_score, axis=-1)
 
     #entropy differences
-    diff = g_x - f_x
+    diff = np.subtract(g_x, f_x)
 
     #sum all dimensions of diff besides first dim (instances) 
     shaped = np.reshape(diff, (diff.shape[0], -1))
