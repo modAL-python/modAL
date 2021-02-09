@@ -139,6 +139,8 @@ def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
 
     Returns:
         The indices of the top n_instances ranked unlabelled samples.
+        The uncertainty scores of the chosen instances. 
+
     """
     # Make a local copy of our classifier's training data.
     # Define our record container and record the best cold start instance in the case of cold start.
@@ -210,7 +212,10 @@ def uncertainty_batch_sampling(classifier: Union[BaseLearner, BaseCommittee],
         **uncertainty_measure_kwargs: Keyword arguments to be passed for the :meth:`predict_proba` of the classifier.
 
     Returns:
-        Indices of the instances from `X` chosen to be labelled; records from `X` chosen to be labelled.
+        Indices of the instances from `X` chosen to be labelled
+        Records from `X` chosen to be labelled.
+        The uncertainty scores of the chosen instances. 
+
     """
     uncertainty = classifier_uncertainty(classifier, X, **uncertainty_measure_kwargs)
     return ranked_batch(classifier, unlabeled=X, uncertainty_scores=uncertainty,

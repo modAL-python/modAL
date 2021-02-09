@@ -116,8 +116,9 @@ def vote_entropy_sampling(committee: BaseCommittee, X: modALinput,
             measure function.
 
     Returns:
-        The indices of the instances from X chosen to be labelled;
-         the instances from X chosen to be labelled.
+        The indices of the instances from X chosen to be labelled.
+        The disagrerment metric of the chosen instances. 
+
     """
     disagreement = vote_entropy(committee, X, **disagreement_measure_kwargs)
 
@@ -143,8 +144,9 @@ def consensus_entropy_sampling(committee: BaseCommittee, X: modALinput,
             measure function.
 
     Returns:
-        The indices of the instances from X chosen to be labelled;
-        the instances from X chosen to be labelled.
+        The indices of the instances from X chosen to be labelled.
+        The disagrerment metric of the chosen instances. 
+
     """
     disagreement = consensus_entropy(committee, X, **disagreement_measure_kwargs)
 
@@ -170,8 +172,9 @@ def max_disagreement_sampling(committee: BaseCommittee, X: modALinput,
          measure function.
 
     Returns:
-        The indices of the instances from X chosen to be labelled;
-        the instances from X chosen to be labelled.
+        The indices of the instances from X chosen to be labelled.
+        The disagrerment metric of the chosen instances. 
+
     """
     disagreement = KL_max_disagreement(committee, X, **disagreement_measure_kwargs)
 
@@ -196,8 +199,9 @@ def max_std_sampling(regressor: BaseEstimator, X: modALinput,
         **predict_kwargs: Keyword arguments to be passed to :meth:`predict` of the CommiteeRegressor.
 
     Returns:
-        The indices of the instances from X chosen to be labelled;
-        the instances from X chosen to be labelled.
+        The indices of the instances from X chosen to be labelled.
+        The standard deviation of the chosen instances. 
+
     """
     _, std = regressor.predict(X, return_std=True, **predict_kwargs)
     std = std.reshape(X.shape[0], )

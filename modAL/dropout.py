@@ -67,6 +67,7 @@ def mc_dropout(classifier: BaseEstimator, X: modALinput, n_instances: int = 1,
 
     Returns:
         The indices of the instances from X chosen to be labelled;
+        The mc-dropout metric of the chosen instances; 
     """
 
     # set dropout layers to train mode

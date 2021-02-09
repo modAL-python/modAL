@@ -146,8 +146,8 @@ def uncertainty_sampling(classifier: BaseEstimator, X: modALinput,
             measure function.
 
     Returns:
-        The indices of the instances from X chosen to be labelled;
-        the instances from X chosen to be labelled.
+        The indices of the instances from X chosen to be labelled.
+        The uncertainty metric of the chosen instances. 
     """
     uncertainty = classifier_uncertainty(classifier, X, **uncertainty_measure_kwargs)
 
@@ -172,8 +172,8 @@ def margin_sampling(classifier: BaseEstimator, X: modALinput,
         **uncertainty_measure_kwargs: Keyword arguments to be passed for the uncertainty
             measure function.
     Returns:
-        The indices of the instances from X chosen to be labelled;
-        the instances from X chosen to be labelled.
+        The indices of the instances from X chosen to be labelled.
+        The margin metric of the chosen instances.
     """
     margin = classifier_margin(classifier, X, **uncertainty_measure_kwargs)
 
@@ -200,8 +200,8 @@ def entropy_sampling(classifier: BaseEstimator, X: modALinput,
             measure function.
 
     Returns:
-        The indices of the instances from X chosen to be labelled;
-        the instances from X chosen to be labelled.
+        The indices of the instances from X chosen to be labelled.
+        The entropy metric of the chosen instances.
     """
     entropy = classifier_entropy(classifier, X, **uncertainty_measure_kwargs)
 

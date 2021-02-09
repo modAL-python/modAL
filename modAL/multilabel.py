@@ -58,7 +58,8 @@ def SVM_binary_minimum(classifier: ActiveLearner, X_pool: modALinput,
 
     Returns:
         The index of the instance from X_pool chosen to be labelled;
-        the instance from X_pool chosen to be labelled.
+        The instance from X_pool chosen to be labelled.
+        The Minimum absolute distance metric of the chosen instance; 
     """
 
     decision_function = np.array([svm.decision_function(X_pool)
@@ -92,7 +93,9 @@ def max_loss(classifier: OneVsRestClassifier, X_pool: modALinput,
 
     Returns:
         The index of the instance from X_pool chosen to be labelled;
-        the instance from X_pool chosen to be labelled.
+        The instance from X_pool chosen to be labelled.
+        The SVM-loss-max metric of the chosen instances; 
+
     """
 
     assert len(X_pool) >= n_instances, 'n_instances cannot be larger than len(X_pool)'
@@ -124,8 +127,9 @@ def mean_max_loss(classifier: OneVsRestClassifier, X_pool: modALinput,
             can be used to break the tie when the highest utility score is not unique.
 
     Returns:
-        The index of the instance from X_pool chosen to be labelled;
-        the instance from X_pool chosen to be labelled.
+        The index of the instance from X_pool chosen to be labelled.
+        The SVM-loss metric of the chosen instances. 
+
     """
 
     assert len(X_pool) >= n_instances, 'n_instances cannot be larger than len(X_pool)'
@@ -153,8 +157,9 @@ def min_confidence(classifier: OneVsRestClassifier, X_pool: modALinput,
             can be used to break the tie when the highest utility score is not unique.
 
     Returns:
-        The index of the instance from X_pool chosen to be labelled;
-        the instance from X_pool chosen to be labelled.
+        The index of the instance from X_pool chosen to be labelled.
+        The minimal confidence metric of the chosen instance. 
+
     """
 
     classwise_confidence = classifier.predict_proba(X_pool)
@@ -182,8 +187,9 @@ def avg_confidence(classifier: OneVsRestClassifier, X_pool: modALinput,
             can be used to break the tie when the highest utility score is not unique.
 
     Returns:
-        The index of the instance from X_pool chosen to be labelled;
-        the instance from X_pool chosen to be labelled.
+        The index of the instance from X_pool chosen to be labelled.
+        The average confidence metric of the chosen instances. 
+
     """
 
     classwise_confidence = classifier.predict_proba(X_pool)
@@ -211,8 +217,9 @@ def max_score(classifier: OneVsRestClassifier, X_pool: modALinput,
             can be used to break the tie when the highest utility score is not unique.
 
     Returns:
-        The index of the instance from X_pool chosen to be labelled;
-        the instance from X_pool chosen to be labelled.
+        The index of the instance from X_pool chosen to be labelled.
+        The classwise maximum metric of the chosen instances. 
+
     """
 
     classwise_confidence = classifier.predict_proba(X_pool)
@@ -242,8 +249,9 @@ def avg_score(classifier: OneVsRestClassifier, X_pool: modALinput,
             can be used to break the tie when the highest utility score is not unique.
 
     Returns:
-        The index of the instance from X_pool chosen to be labelled;
-        the instance from X_pool chosen to be labelled.
+        The index of the instance from X_pool chosen to be labelled.
+        The classwise mean metric of the chosen instances.
+
     """
 
     classwise_confidence = classifier.predict_proba(X_pool)
