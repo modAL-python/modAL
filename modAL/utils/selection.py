@@ -34,7 +34,7 @@ def shuffled_argmax(values: np.ndarray, n_instances: int = 1, return_negative=Fa
     if return_negative == True:
         values = -values
 
-    return query_idx, values[max_idx]
+    return query_idx, values[query_idx]
 
 
 def multi_argmax(values: np.ndarray, n_instances: int = 1, return_negative=False) -> np.ndarray:
