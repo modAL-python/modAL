@@ -39,6 +39,7 @@ def expected_error_reduction(learner: ActiveLearner, X: modALinput, loss: str = 
 
     Returns:
         The indices of the instances from X chosen to be labelled.
+        The expected error metric of the chosen instances; 
     """
 
     assert 0.0 <= p_subsample <= 1.0, 'p_subsample subsampling keep ratio must be between 0.0 and 1.0'
