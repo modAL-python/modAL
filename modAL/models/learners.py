@@ -24,7 +24,7 @@ Classes for active learning algorithms
 
 class ActiveLearner(BaseLearner):
     """
-    This class is an abstract model of a general classic active learning algorithm.
+    This class is an model of a general classic (machine learning) active learning algorithm.
 
     Args:
         estimator: The estimator to be used in the active learning loop.
@@ -173,13 +173,6 @@ class ActiveLearner(BaseLearner):
         Returns:
             The score of the predictor.
         """
-
-        """
-            sklearn does only accept tensors of different dim for X and Y, if we use
-            Multilabel classifiaction. If we do not want to do this but we still want
-            to go with tensors of different size (e.g. Transformers) we have to use this
-            workaround.
-        """
         return self.estimator.score(X, y, **score_kwargs)
 
     def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, only_new: bool = False, **fit_kwargs) -> None:
@@ -206,7 +199,11 @@ class ActiveLearner(BaseLearner):
 
 class DeepActiveLearner(BaseLearner):
     """
-    This class is an abstract model of a general active learning algorithm.
+    This class is an model of a general deep active learning algorithm.
+    Differences to the classical ActiveLearner are:
+        - Data is no member variable of the DeepActiveLearner class
+        - Misses the initial add/train data methods, therefore always trains on new data
+        - Uses different interfaces to sklearn in some functions
 
     Args:
         estimator: The estimator to be used in the active learning loop.
@@ -265,6 +262,11 @@ class DeepActiveLearner(BaseLearner):
             The score of the predictor.
         """
 
+        """
+            sklearn does only accept tensors of different dim for X and Y, if we use
+            Multilabel classifiaction. Using tensors of different sizes for more complex models (e.g. Transformers) 
+            requires to bypass the sklearn checks by directly calling the NeuralNets infer() function.
+        """
         prediction = self.estimator.infer(X)
         criterion = self.estimator.criterion()
         return criterion(prediction, y).item()
@@ -658,7 +660,7 @@ class Committee(BaseCommittee):
 
 class DeepCommittee(BaseCommittee):
     """
-    This class is an abstract model of a committee-based active learning algorithm.
+    This class is for committee-based deep active learner algorithms.
 
     Args:
         learner_list: A list of ActiveLearners forming the Committee.
