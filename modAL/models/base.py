@@ -33,8 +33,6 @@ class BaseLearner(ABC, BaseEstimator):
             for instance, modAL.uncertainty.uncertainty_sampling.
         force_all_finite: When True, forces all values of the data finite.
             When False, accepts np.nan and np.inf values.
-        bootstrap_init: If initial training data is available, bootstrapping can be done during the first training.
-            Useful when building Committee models with bagging.
         on_transformed: Whether to transform samples with the pipeline defined by the estimator
             when applying the query strategy.
         **fit_kwargs: keyword arguments.
@@ -46,7 +44,6 @@ class BaseLearner(ABC, BaseEstimator):
     def __init__(self,
                  estimator: BaseEstimator,
                  query_strategy: Callable,
-                 bootstrap_init: bool = False,
                  on_transformed: bool = False,
                  force_all_finite: bool = True,
                  **fit_kwargs

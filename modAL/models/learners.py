@@ -82,8 +82,7 @@ class ActiveLearner(BaseLearner):
                  on_transformed: bool = False,
                  **fit_kwargs
                  ) -> None:
-        super().__init__(estimator, query_strategy,
-                         bootstrap_init, on_transformed, **fit_kwargs)
+        super().__init__(estimator, query_strategy, on_transformed, **fit_kwargs)
         
         self.X_training = X_training
         self.y_training = y_training
@@ -209,8 +208,6 @@ class DeepActiveLearner(BaseLearner):
         estimator: The estimator to be used in the active learning loop.
         query_strategy: Function providing the query strategy for the active learning loop,
             for instance, modAL.uncertainty.uncertainty_sampling.
-        bootstrap_init: If initial training data is available, bootstrapping can be done during the first training.
-            Useful when building Committee models with bagging.
         on_transformed: Whether to transform samples with the pipeline defined by the estimator
             when applying the query strategy.
         **fit_kwargs: keyword arguments.
@@ -223,13 +220,11 @@ class DeepActiveLearner(BaseLearner):
     def __init__(self,
                  estimator: BaseEstimator,
                  query_strategy: Callable = uncertainty_sampling,
-                 bootstrap_init: bool = False,
                  on_transformed: bool = False,
                  **fit_kwargs
                  ) -> None:
         #TODO: Check if given query strategy works for Deep Learning
-        super().__init__(estimator, query_strategy,
-                         bootstrap_init, on_transformed, **fit_kwargs)
+        super().__init__(estimator, query_strategy, on_transformed, **fit_kwargs)
 
         self.estimator.initialize() # does maybe just work with pytorch
 
