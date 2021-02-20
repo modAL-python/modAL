@@ -9,7 +9,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.base import BaseEstimator
 
 from modAL.utils.data import modALinput
-from modAL.utils.selection import multi_argmax, shuffled_argmax
+from modAL.utils.selection import multi_argmax, multi_argmin, shuffled_argmax, shuffled_argmin
 
 
 def _proba_uncertainty(proba: np.ndarray) -> np.ndarray:
@@ -178,9 +178,9 @@ def margin_sampling(classifier: BaseEstimator, X: modALinput,
     margin = classifier_margin(classifier, X, **uncertainty_measure_kwargs)
 
     if not random_tie_break:
-        return multi_argmax(-margin, n_instances=n_instances, return_negative=True)
+        return multi_argmin(margin, n_instances=n_instances)
 
-    return shuffled_argmax(-margin, n_instances=n_instances, return_negative=True)
+    return shuffled_argmin(margin, n_instances=n_instances)
 
 
 def entropy_sampling(classifier: BaseEstimator, X: modALinput,

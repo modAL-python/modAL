@@ -5,7 +5,7 @@ from sklearn.multiclass import OneVsRestClassifier
 
 from modAL.models import ActiveLearner
 from modAL.utils.data import modALinput
-from modAL.utils.selection import multi_argmax, shuffled_argmax
+from modAL.utils.selection import multi_argmax, multi_argmin, shuffled_argmax, shuffled_argmin
 from typing import Tuple, Optional
 from itertools import combinations
 
@@ -166,9 +166,9 @@ def min_confidence(classifier: OneVsRestClassifier, X_pool: modALinput,
     classwise_min = np.min(classwise_confidence, axis=1)
 
     if not random_tie_break:
-        return multi_argmax(-classwise_min, n_instances, return_negative=True)
+        return multi_argmin(classwise_min, n_instances)
 
-    return shuffled_argmax(-classwise_min, n_instances, return_negative=True)
+    return shuffled_argmin(classwise_min, n_instances)
 
 
 def avg_confidence(classifier: OneVsRestClassifier, X_pool: modALinput,

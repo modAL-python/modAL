@@ -11,7 +11,7 @@ from sklearn.exceptions import NotFittedError
 
 from modAL.models import ActiveLearner
 from modAL.utils.data import modALinput, data_vstack, enumerate_data, drop_rows, data_shape, add_row
-from modAL.utils.selection import multi_argmax, shuffled_argmax
+from modAL.utils.selection import multi_argmax, multi_argmin, shuffled_argmax, shuffled_argmin
 from modAL.uncertainty import _proba_uncertainty, _proba_entropy
 
 
@@ -78,6 +78,6 @@ def expected_error_reduction(learner: ActiveLearner, X: modALinput, loss: str = 
             expected_error[x_idx] = np.inf
 
     if not random_tie_break:
-        return multi_argmax(-expected_error, n_instances, return_negative=True)
+        return multi_argmin(expected_error, n_instances)
 
-    return shuffled_argmax(-expected_error, n_instances, return_negative=True)
+    return shuffled_argmin(expected_error, n_instances)
