@@ -13,6 +13,7 @@ from modAL.utils.selection import multi_argmax, shuffled_argmax
 from skorch.utils import to_numpy
 
 
+
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 def KL_divergence(classifier: BaseEstimator, X: modALinput, n_instances: int = 1,
@@ -151,7 +152,8 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, num_predictions: i
         #In comparison to: predict(), predict_proba() the infer() 
         # does not change train/eval mode of other layers 
         prediction = classifier.estimator.infer(X)
-        predictions.append(to_numpy(prediction))
+        prediction_proba = to_numpy(prediction.softmax(1))
+        predictions.append(prediction_proba)
     return predictions
 
 
