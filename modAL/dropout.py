@@ -1,5 +1,4 @@
 import numpy as np
-import logging
 import sys
 
 from sklearn.base import BaseEstimator
@@ -11,9 +10,6 @@ from modAL.utils.data import modALinput
 from modAL.utils.selection import multi_argmax, shuffled_argmax
 
 from skorch.utils import to_numpy
-
-
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 def KL_divergence(classifier: BaseEstimator, X: modALinput, n_instances: int = 1,
                 random_tie_break: bool = False, dropout_layer_indexes: list = [], 
@@ -191,7 +187,6 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, num_predictions: i
 
     predictions = []
     for i in range(num_predictions):
-        logging.getLogger().info("Dropout: start prediction forward pass")
         #call Skorch infer function to perform model forward pass
         #In comparison to: predict(), predict_proba() the infer() 
         # does not change train/eval mode of other layers 
@@ -319,7 +314,5 @@ def set_dropout_mode(model, dropout_layer_indexes: list, train_mode: bool):
             if module.__class__.__name__.startswith('Dropout'):
                 if True == train_mode:
                     module.train()
-                    logging.getLogger().info("Dropout: set mode of " + str(module.__class__.__name__) + " to train")
                 elif False == train_mode:
                     module.eval()
-                    logging.getLogger().info("Dropout: set mode of " + str(module.__class__.__name__) + " to eval")
