@@ -131,6 +131,51 @@ def mc_dropout_mean_st(classifier: BaseEstimator, X: modALinput, n_instances: in
 
     return shuffled_argmax(mean_standard_deviations, n_instances=n_instances)
 
+def mc_dropout_max_entropy(classifier: BaseEstimator, X: modALinput, n_instances: int = 1,
+                random_tie_break: bool = False, dropout_layer_indexes: list = [], 
+                num_cycles : int = 50, **mc_dropout_kwargs) -> np.ndarray:
+    """
+    Mc-Dropout maximum entropy query strategy. Returns the indexes of the instances 
+    with the largest entropy of the per class calculated entropies over multiple dropout cycles
+    and the corresponding metric.
+
+    Based on the equations of: 
+        Deep Bayesian Active Learning with Image Data. 
+        (Yarin Gal, Riashat Islam, and Zoubin Ghahramani. 2017.)
+
+    Args:
+        classifier: The classifier for which the labels are to be queried.
+        X: The pool of samples to query from.
+        n_instances: Number of samples to be queried.
+        random_tie_break: If True, shuffles utility scores to randomize the order. This
+            can be used to break the tie when the highest utility score is not unique.
+        dropout_layer_indexes: Indexes of the dropout layers which should be activated
+            Choose indices from : list(torch_model.modules())
+        num_cycles: Number of forward passes with activated dropout
+        **uncertainty_measure_kwargs: Keyword arguments to be passed for the uncertainty
+            measure function.
+
+    Returns:
+        The indices of the instances from X chosen to be labelled;
+        The mc-dropout metric of the chosen instances; 
+    """
+
+    # set dropout layers to train mode
+    set_dropout_mode(classifier.estimator.module_, dropout_layer_indexes, train_mode=True)
+
+    predictions = get_predictions(classifier, X, num_cycles)
+
+    # set dropout layers to eval
+    set_dropout_mode(classifier.estimator.module_, dropout_layer_indexes, train_mode=False)
+
+    #get entropy values for predictions
+    entropy = _class_entropy(predictions)
+
+    if not random_tie_break:
+        return multi_argmax(entropy, n_instances=n_instances)
+
+    return shuffled_argmax(entropy, n_instances=n_instances)
+
 def get_predictions(classifier: BaseEstimator, X: modALinput, num_predictions: int = 50):
     """
         Runs num_predictions times the prediction of the classifier on the input X 
@@ -181,6 +226,24 @@ def _mean_standard_deviation(proba: list) -> np.ndarray:
 
     return mean_standard_deviation
 
+def _class_entropy(proba: list) -> np.ndarray: 
+    """
+        Calculates the entropy per class over dropout cycles
+
+        As it is explicitly formulated in: 
+            Deep Bayesian Active Learning with Image Data. 
+            (Yarin Gal, Riashat Islam, and Zoubin Ghahramani. 2017.)
+
+        Args: 
+            proba: list with the predictions over the dropout cycles
+        Return: 
+            Returns the entropy of the dropout cycles over all classes. 
+    """
+
+    proba_stacked = np.stack(proba, axis=len(proba[0].shape)) 
+    #calculate entropy and sum along dropout cycles
+    entropy = entropy_sum(proba_stacked, axis=-1)
+    return entropy
 
 def _bald_divergence(proba: list) -> np.ndarray:
     """
