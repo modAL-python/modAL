@@ -191,7 +191,8 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, num_predictions: i
         #In comparison to: predict(), predict_proba() the infer() 
         # does not change train/eval mode of other layers 
         prediction = classifier.estimator.infer(X)
-        predictions.append(to_numpy(prediction))
+        prediction_proba = to_numpy(prediction.softmax(1))
+        predictions.append(prediction_proba)
     return predictions
 
 
