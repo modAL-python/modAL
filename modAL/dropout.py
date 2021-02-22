@@ -65,14 +65,7 @@ def mc_dropout_bald(classifier: BaseEstimator, X: modALinput, n_instances: int =
         The indices of the instances from X chosen to be labelled;
         The mc-dropout metric of the chosen instances; 
     """
-
-    # set dropout layers to train mode
-    set_dropout_mode(classifier.estimator.module_, dropout_layer_indexes, train_mode=True)
-
-    predictions = get_predictions(classifier, X, num_cycles)
-
-    # set dropout layers to eval
-    set_dropout_mode(classifier.estimator.module_, dropout_layer_indexes, train_mode=False)
+    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles)
 
     #calculate BALD (Bayesian active learning divergence))
     bald_scores = _bald_divergence(predictions)
@@ -81,7 +74,6 @@ def mc_dropout_bald(classifier: BaseEstimator, X: modALinput, n_instances: int =
         return multi_argmax(bald_scores, n_instances=n_instances)
 
     return shuffled_argmax(bald_scores, n_instances=n_instances)
-
 
 def mc_dropout_mean_st(classifier: BaseEstimator, X: modALinput, n_instances: int = 1,
                 random_tie_break: bool = False, dropout_layer_indexes: list = [], 
@@ -113,12 +105,7 @@ def mc_dropout_mean_st(classifier: BaseEstimator, X: modALinput, n_instances: in
     """
 
     # set dropout layers to train mode
-    set_dropout_mode(classifier.estimator.module_, dropout_layer_indexes, train_mode=True)
-
-    predictions = get_predictions(classifier, X, num_cycles)
-
-    # set dropout layers to eval
-    set_dropout_mode(classifier.estimator.module_, dropout_layer_indexes, train_mode=False)
+    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles)
 
     mean_standard_deviations = _mean_standard_deviation(predictions)
 
@@ -155,14 +142,7 @@ def mc_dropout_max_entropy(classifier: BaseEstimator, X: modALinput, n_instances
         The indices of the instances from X chosen to be labelled;
         The mc-dropout metric of the chosen instances; 
     """
-
-    # set dropout layers to train mode
-    set_dropout_mode(classifier.estimator.module_, dropout_layer_indexes, train_mode=True)
-
-    predictions = get_predictions(classifier, X, num_cycles)
-
-    # set dropout layers to eval
-    set_dropout_mode(classifier.estimator.module_, dropout_layer_indexes, train_mode=False)
+    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles)
 
     #get entropy values for predictions
     entropy = _entropy(predictions)
@@ -172,7 +152,7 @@ def mc_dropout_max_entropy(classifier: BaseEstimator, X: modALinput, n_instances
 
     return shuffled_argmax(entropy, n_instances=n_instances)
 
-def get_predictions(classifier: BaseEstimator, X: modALinput, num_predictions: int = 50):
+def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_indexes: list, num_predictions: int = 50):
     """
         Runs num_predictions times the prediction of the classifier on the input X 
         and puts the predictions in a list.
@@ -186,6 +166,9 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, num_predictions: i
     """
 
     predictions = []
+    # set dropout layers to train mode
+    set_dropout_mode(classifier.estimator.module_, dropout_layer_indexes, train_mode=True)
+
     for i in range(num_predictions):
         #call Skorch infer function to perform model forward pass
         #In comparison to: predict(), predict_proba() the infer() 
@@ -193,6 +176,10 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, num_predictions: i
         prediction = classifier.estimator.infer(X)
         prediction_proba = to_numpy(prediction.softmax(1))
         predictions.append(prediction_proba)
+
+    # set dropout layers to eval
+    set_dropout_mode(classifier.estimator.module_, dropout_layer_indexes, train_mode=False)
+
     return predictions
 
 
