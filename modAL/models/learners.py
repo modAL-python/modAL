@@ -256,7 +256,6 @@ class DeepActiveLearner(BaseLearner):
         Returns:
             The score of the predictor.
         """
-
         """
             sklearn does only accept tensors of different dim for X and Y, if we use
             Multilabel classifiaction. Using tensors of different sizes for more complex models (e.g. Transformers) 
@@ -266,18 +265,28 @@ class DeepActiveLearner(BaseLearner):
         criterion = self.estimator.criterion()
         return criterion(prediction, y).item()
 
-    def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, **fit_kwargs) -> None:
+    def teach(self, X: modALinput, y: modALinput, warm_start: bool = True, bootstrap: bool = False, **fit_kwargs) -> None:
         """
         Adds X and y to the known training data and retrains the predictor with the augmented dataset.
 
         Args:
             X: The new samples for which the labels are supplied by the expert.
             y: Labels corresponding to the new instances in X.
+            warm_start: If False, the model parameters are resetted and the training starts from zero, 
+                otherwise the pre trained model is kept and further trained.
             bootstrap: If True, training is done on a bootstrapped dataset. Useful for building Committee models
                 with bagging.
             **fit_kwargs: Keyword arguments to be passed to the fit method of the predictor.
         """
-        self._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
+
+        if warm_start: 
+            if not bootstrap: 
+                self.estimator.partial_fit(X, y, **fit_kwargs)
+            else:
+                bootstrap_idx = np.random.choice(range(X.shape[0]), X.shape[0], replace=True)
+                self.estimator.partial_fit(X[bootstrap_idx], y[bootstrap_idx], **fit_kwargs)
+        else: 
+            self._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
 
 """
 Classes for Bayesian optimization
