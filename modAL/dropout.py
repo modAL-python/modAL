@@ -160,6 +160,8 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_inde
         Args:
             classifier: The classifier for which the labels are to be queried.
             X: The pool of samples to query from.
+            dropout_layer_indexes: Indexes of the dropout layers which should be activated
+                Choose indices from : list(torch_model.modules())
             num_predictions: Number of predictions which should be made
         Return: 
             prediction: list with all predictions
