@@ -120,6 +120,10 @@ class BaseLearner(ABC, BaseEstimator):
 
         return self
 
+    @abc.abstractmethod
+    def fit(self, *args, **kwargs) -> None:
+        pass
+
     def predict(self, X: modALinput, **predict_kwargs) -> Any:
         """
         Estimator predictions for X. Interface with the predict method of the estimator.
@@ -172,6 +176,9 @@ class BaseLearner(ABC, BaseEstimator):
 
         return query_result, retrieve_rows(X_pool, query_result), query_metrics
 
+    @abc.abstractmethod
+    def score(self, *args, **kwargs) -> None:
+        pass
 
     @abc.abstractmethod
     def teach(self, *args, **kwargs) -> None:
@@ -215,6 +222,26 @@ class BaseCommittee(ABC, BaseEstimator):
         """
         for learner in self.learner_list:
             learner._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
+
+    @abc.abstractmethod
+    def fit(self, X: modALinput, y: modALinput, **fit_kwargs) -> Any:
+        pass
+
+    @abc.abstractmethod
+    def predict(self, X: modALinput) -> Any:
+        pass
+
+    @abc.abstractmethod
+    def predict_proba(self, X: modALinput, **predict_proba_kwargs) -> Any:
+        pass
+
+    @abc.abstractmethod
+    def score(self, X: modALinput, y: modALinput, sample_weight: List[float] = None) -> Any:
+        pass
+
+    @abc.abstractmethod
+    def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, **fit_kwargs) -> Any:
+        pass
 
     def transform_without_estimating(self, X: modALinput) -> Union[np.ndarray, sp.csr_matrix]:
         """
@@ -274,10 +301,14 @@ class BaseCommittee(ABC, BaseEstimator):
         )
         self.n_classes_ = len(self.classes_)
 
-    @abc.abstractmethod
-    def predict(self, X: modALinput) -> Any:
+
         pass
 
     @abc.abstractmethod
     def vote(self, X: modALinput) -> Any:  # TODO: clarify typing
         pass
+
+    @abc.abstractmethod
+    def vote_proba(self, X: modALinput, **predict_proba_kwargs) -> Any:
+        pass
+
