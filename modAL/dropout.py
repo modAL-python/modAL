@@ -165,7 +165,7 @@ def mc_dropout_max_entropy(classifier: BaseEstimator, X: modALinput, n_instances
     set_dropout_mode(classifier.estimator.module_, dropout_layer_indexes, train_mode=False)
 
     #get entropy values for predictions
-    entropy = _class_entropy(predictions)
+    entropy = _entropy(predictions)
 
     if not random_tie_break:
         return multi_argmax(entropy, n_instances=n_instances)
@@ -222,7 +222,7 @@ def _mean_standard_deviation(proba: list) -> np.ndarray:
 
     return mean_standard_deviation
 
-def _class_entropy(proba: list) -> np.ndarray: 
+def _entropy(proba: list) -> np.ndarray: 
     """
         Calculates the entropy per class over dropout cycles
 
@@ -237,8 +237,9 @@ def _class_entropy(proba: list) -> np.ndarray:
     """
 
     proba_stacked = np.stack(proba, axis=len(proba[0].shape)) 
-    #calculate entropy and sum along dropout cycles
-    entropy = entropy_sum(proba_stacked, axis=-1)
+    #calculate entropy per class and sum along dropout cycles
+    entropy_classes = entropy_sum(proba_stacked, axis=-1)
+    entropy = np.mean(entropy_classes, axis=-1)
     return entropy
 
 def _bald_divergence(proba: list) -> np.ndarray:
