@@ -102,6 +102,10 @@ def retrieve_rows(X: modALinput,
         return X.iloc[I]
     elif isinstance(X, list):
         return np.array(X)[I].tolist()
+    elif isinstance(X, dict): 
+        for key, value in X.items():
+            X[key] = retrieve_rows(value, I)
+        return X
     elif isinstance(X, np.ndarray):
         return X[I]
     elif torch.is_tensor(X):
