@@ -32,6 +32,25 @@ def KL_divergence(classifier: BaseEstimator, X: modALinput, n_instances: int = 1
 
     return shuffled_argmax(KL_divergence, n_instances=n_instances)
 
+def mc_dropout_multi(classifier: BaseEstimator, X: modALinput, query_strategies: list = ["bald", "mean_st", "max_entropy"], 
+                n_instances: int = 1, random_tie_break: bool = False, dropout_layer_indexes: list = [], 
+                num_cycles : int = 50, **mc_dropout_kwargs) -> np.ndarray:
+    """
+    Mc-Dropout bald query strategy. Returns the indexes of the instances with the largest BALD 
+    (Bayesian Active Learning by Disagreement) score calculated through the dropout cycles
+    and the corresponding bald score. 
+    """
+    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles)
+
+    metrics_dict = {}
+    if "bald" in query_strategies:
+        metrics_dict["bald"] = _bald_divergence(predictions)
+    if "mean_st" in query_strategies:
+        metrics_dict["mean_st"] = _mean_standard_deviation(predictions)
+    if "max_entropy" in query_strategies:
+        metrics_dict["max_entropy"] = _entropy(predictions)
+
+    return None, metrics_dict
 
 def mc_dropout_bald(classifier: BaseEstimator, X: modALinput, n_instances: int = 1,
                 random_tie_break: bool = False, dropout_layer_indexes: list = [], 
@@ -183,7 +202,6 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_inde
     set_dropout_mode(classifier.estimator.module_, dropout_layer_indexes, train_mode=False)
 
     return predictions
-
 
 def entropy_sum(values, axis=-1):
     #sum Scipy basic entropy function: entr()
