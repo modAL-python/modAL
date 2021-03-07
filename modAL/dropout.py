@@ -152,6 +152,44 @@ def mc_dropout_max_entropy(classifier: BaseEstimator, X: modALinput, n_instances
 
     return shuffled_argmax(entropy, n_instances=n_instances)
 
+def mc_dropout_max_variationRatios(classifier: BaseEstimator, X: modALinput, n_instances: int = 1,
+                random_tie_break: bool = False, dropout_layer_indexes: list = [], 
+                num_cycles : int = 50, **mc_dropout_kwargs) -> np.ndarray:
+    """
+    Mc-Dropout maximum variation ratios query strategy. Returns the indexes of the instances 
+    with the largest variation ratios over multiple dropout cycles
+    and the corresponding metric.
+
+    Based on the equations of: 
+        Deep Bayesian Active Learning with Image Data. 
+        (Yarin Gal, Riashat Islam, and Zoubin Ghahramani. 2017.)
+
+    Args:
+        classifier: The classifier for which the labels are to be queried.
+        X: The pool of samples to query from.
+        n_instances: Number of samples to be queried.
+        random_tie_break: If True, shuffles utility scores to randomize the order. This
+            can be used to break the tie when the highest utility score is not unique.
+        dropout_layer_indexes: Indexes of the dropout layers which should be activated
+            Choose indices from : list(torch_model.modules())
+        num_cycles: Number of forward passes with activated dropout
+        **uncertainty_measure_kwargs: Keyword arguments to be passed for the uncertainty
+            measure function.
+
+    Returns:
+        The indices of the instances from X chosen to be labelled;
+        The mc-dropout metric of the chosen instances; 
+    """
+    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles)
+
+    #get variation ratios values for predictions
+    variationRatios = _variation_ratios(predictions)
+
+    if not random_tie_break:
+        return multi_argmax(variationRatios, n_instances=n_instances)
+
+    return shuffled_argmax(variationRatios, n_instances=n_instances)
+
 def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_indexes: list, num_predictions: int = 50):
     """
         Runs num_predictions times the prediction of the classifier on the input X 
@@ -188,6 +226,11 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_inde
 def entropy_sum(values, axis=-1):
     #sum Scipy basic entropy function: entr()
     return np.sum(entr(values), axis=axis)
+
+def variationRatios(values, axis=-1):
+    #Mean over Dropout Cycles
+    valuesDCMean = np.mean(values, axis=axis)
+    return 1 - np.amax(valuesDCMean, axis=axis)
 
 def _mean_standard_deviation(proba: list) -> np.ndarray: 
     """
@@ -230,6 +273,24 @@ def _entropy(proba: list) -> np.ndarray:
     entropy_classes = entropy_sum(proba_stacked, axis=-1)
     entropy = np.mean(entropy_classes, axis=-1)
     return entropy
+
+def _variation_ratios(proba: list) -> np.ndarray: 
+    """
+        Calculates the variation ratios over dropout cycles
+
+        As it is explicitly formulated in: 
+            Deep Bayesian Active Learning with Image Data. 
+            (Yarin Gal, Riashat Islam, and Zoubin Ghahramani. 2017.)
+
+        Args: 
+            proba: list with the predictions over the dropout cycles
+        Return: 
+            Returns the variation ratios of the dropout cycles. 
+    """
+    proba_stacked = np.stack(proba, axis=len(proba[0].shape)) 
+    #Calculate the variation ratios over the mean of dropout cycles
+    variation_ratios = variationRatios(proba_stacked, axis=-1)
+    return variation_ratios
 
 def _bald_divergence(proba: list) -> np.ndarray:
     """
