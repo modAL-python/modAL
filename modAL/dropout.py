@@ -274,9 +274,7 @@ def _mean_standard_deviation(proba: list) -> np.ndarray:
     """
 
     proba_stacked = np.stack(proba, axis=len(proba[0].shape)) 
-    mean_squared = np.mean(proba_stacked, axis=-1)**2
-    squared_mean = np.mean(proba_stacked**2, axis=-1)
-    standard_deviation_class_vise = np.sqrt(squared_mean - mean_squared)
+    standard_deviation_class_vise = np.std(proba_stacked, axis=-1)
     mean_standard_deviation = np.mean(standard_deviation_class_vise, axis=-1)
 
     return mean_standard_deviation
