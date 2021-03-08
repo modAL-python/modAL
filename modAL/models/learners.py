@@ -287,6 +287,28 @@ class DeepActiveLearner(BaseLearner):
                 self.estimator.partial_fit(X[bootstrap_idx], y[bootstrap_idx], **fit_kwargs)
         else: 
             self._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
+    
+    @property
+    def num_epochs(self):
+        """
+        Returns the number of epochs of a single fit cycle.
+        """
+        return self.estimator.max_epochs
+
+    @num_epochs.setter
+    def num_epochs(self, value):
+        """
+        Sets the number of epochs of a single fit cycle. The number of epochs 
+        can be changed at any time, even after the model was pretrained.
+        """
+        if isinstance(value, int):
+            if 0 <= value <= 100: 
+                self.estimator.max_epochs = value
+            else: 
+                raise ValueError("num_epochs must be in range 0 <= x <= 100")
+        else: 
+            raise TypeError("num_epochs must be of type integer!")
+
 
 """
 Classes for Bayesian optimization
