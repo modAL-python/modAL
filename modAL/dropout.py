@@ -254,11 +254,6 @@ def entropy_sum(values, axis=-1):
     #sum Scipy basic entropy function: entr()
     return np.sum(entr(values), axis=axis)
 
-def variationRatios(values, axis=-1):
-    #Mean over Dropout Cycles
-    valuesDCMean = np.mean(values, axis=axis)
-    return 1 - np.amax(valuesDCMean, axis=axis)
-
 def _mean_standard_deviation(proba: list) -> np.ndarray: 
     """
         Calculates the mean of the per class calculated standard deviations.
@@ -314,8 +309,8 @@ def _variation_ratios(proba: list) -> np.ndarray:
     """
     proba_stacked = np.stack(proba, axis=len(proba[0].shape)) 
     #Calculate the variation ratios over the mean of dropout cycles
-    variation_ratios = variationRatios(proba_stacked, axis=-1)
-    return variation_ratios
+    valuesDCMean = np.mean(proba_stacked, axis=-1)
+    return 1 - np.amax(valuesDCMean, axis=-1)
 
 def _bald_divergence(proba: list) -> np.ndarray:
     """
