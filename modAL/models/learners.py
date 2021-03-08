@@ -299,15 +299,36 @@ class DeepActiveLearner(BaseLearner):
     def num_epochs(self, value):
         """
         Sets the number of epochs of a single fit cycle. The number of epochs 
-        can be changed at any time, even after the model was pretrained.
+        can be changed at any time, even after the model was trained.
         """
         if isinstance(value, int):
-            if 0 <= value <= 100: 
+            if 0 < value <= 100: 
                 self.estimator.max_epochs = value
             else: 
-                raise ValueError("num_epochs must be in range 0 <= x <= 100")
+                raise ValueError("num_epochs must be in range 0 < x <= 100")
         else: 
             raise TypeError("num_epochs must be of type integer!")
+
+    @property
+    def batch_size(self):
+        """
+        Returns the batch size of a single forward pass.
+        """
+        return self.estimator.batch_size
+
+    @batch_size.setter
+    def batch_size(self, value):
+        """
+        Sets the batch size of a single forward pass. The batch size 
+        can be changed at any time, even after the model was trained.
+        """
+        if isinstance(value, int):
+            if 0 < value: 
+                self.estimator.batch_size = value
+            else: 
+                raise ValueError("batch size must be larger than 0")
+        else: 
+            raise TypeError("batch size must be of type integer!")
 
 
 """
