@@ -1,5 +1,6 @@
 import numpy as np
 import sys
+import torch 
 
 from sklearn.base import BaseEstimator
 from sklearn.preprocessing import normalize
@@ -241,9 +242,20 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_inde
         #call Skorch infer function to perform model forward pass
         #In comparison to: predict(), predict_proba() the infer() 
         # does not change train/eval mode of other layers 
-        prediction = classifier.estimator.infer(X)
-        prediction_proba = to_numpy(prediction.softmax(1))
-        predictions.append(prediction_proba)
+        X.detach()
+        
+        probas = []
+        for X_split in torch.split(X, 5000):
+            prediction = classifier.estimator.infer(X_split)
+            prediction_proba = to_numpy(prediction.softmax(1))
+
+            if type(probas) != list:
+                probas = np.vstack((probas, prediction_proba))
+            else: 
+                probas = prediction_proba
+        
+
+        predictions.append(probas)
 
     # set dropout layers to eval
     set_dropout_mode(classifier.estimator.module_, dropout_layer_indexes, train_mode=False)
