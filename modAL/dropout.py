@@ -35,7 +35,7 @@ def KL_divergence(classifier: BaseEstimator, X: modALinput, n_instances: int = 1
 
 def mc_dropout_multi(classifier: BaseEstimator, X: modALinput, query_strategies: list = ["bald", "mean_st", "max_entropy", "max_var"], 
                 n_instances: int = 1, random_tie_break: bool = False, dropout_layer_indexes: list = [], 
-                num_cycles : int = 50, **mc_dropout_kwargs) -> np.ndarray:
+                num_cycles : int = 50, sample_per_forward_pass: int = 1000, **mc_dropout_kwargs) -> np.ndarray:
     """
     Multi metric dropout query strategy. Returns the specified metrics for given input data.
     Selection of query strategies are:
@@ -48,7 +48,7 @@ def mc_dropout_multi(classifier: BaseEstimator, X: modALinput, query_strategies:
     Function returns dictionary of metrics with their name as key.
     The indices of the n-best samples (n_instances) is not used in this function.
     """
-    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles)
+    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles, sample_per_forward_pass)
 
     metrics_dict = {}
     if "bald" in query_strategies:
@@ -64,37 +64,40 @@ def mc_dropout_multi(classifier: BaseEstimator, X: modALinput, query_strategies:
 
 def mc_dropout_bald(classifier: BaseEstimator, X: modALinput, n_instances: int = 1,
                 random_tie_break: bool = False, dropout_layer_indexes: list = [], 
-                num_cycles : int = 50, **mc_dropout_kwargs) -> np.ndarray:
+                num_cycles : int = 50, sample_per_forward_pass: int = 1000, **mc_dropout_kwargs) -> np.ndarray:
     """
-    Mc-Dropout bald query strategy. Returns the indexes of the instances with the largest BALD 
-    (Bayesian Active Learning by Disagreement) score calculated through the dropout cycles
-    and the corresponding bald score. 
+        Mc-Dropout bald query strategy. Returns the indexes of the instances with the largest BALD 
+        (Bayesian Active Learning by Disagreement) score calculated through the dropout cycles
+        and the corresponding bald score. 
 
-    Based on the work of: 
-        Deep Bayesian Active Learning with Image Data.
-        (Yarin Gal, Riashat Islam, and Zoubin Ghahramani. 2017.)
-        Dropout as a Bayesian Approximation: Representing Model Uncer- tainty in Deep Learning.
-        (Yarin Gal and Zoubin Ghahramani. 2016.)
-        Bayesian Active Learning for Classification and Preference Learning.
-        (NeilHoulsby,FerencHusza ́r,ZoubinGhahramani,andMa ́te ́Lengyel. 2011.) 
+        Based on the work of: 
+            Deep Bayesian Active Learning with Image Data.
+            (Yarin Gal, Riashat Islam, and Zoubin Ghahramani. 2017.)
+            Dropout as a Bayesian Approximation: Representing Model Uncer- tainty in Deep Learning.
+            (Yarin Gal and Zoubin Ghahramani. 2016.)
+            Bayesian Active Learning for Classification and Preference Learning.
+            (NeilHoulsby,FerencHusza ́r,ZoubinGhahramani,andMa ́te ́Lengyel. 2011.) 
 
-    Args:
-        classifier: The classifier for which the labels are to be queried.
-        X: The pool of samples to query from.
-        n_instances: Number of samples to be queried.
-        random_tie_break: If True, shuffles utility scores to randomize the order. This
-            can be used to break the tie when the highest utility score is not unique.
-        dropout_layer_indexes: Indexes of the dropout layers which should be activated
-            Choose indices from : list(torch_model.modules())
-        num_cycles: Number of forward passes with activated dropout
-        **uncertainty_measure_kwargs: Keyword arguments to be passed for the uncertainty
-            measure function.
+        Args:
+            classifier: The classifier for which the labels are to be queried.
+            X: The pool of samples to query from.
+            n_instances: Number of samples to be queried.
+            random_tie_break: If True, shuffles utility scores to randomize the order. This
+                can be used to break the tie when the highest utility score is not unique.
+            dropout_layer_indexes: Indexes of the dropout layers which should be activated
+                Choose indices from : list(torch_model.modules())
+            num_cycles: Number of forward passes with activated dropout
+            sample_per_forward_pass: max. sample number for each forward pass. 
+                The allocated RAM does mainly depend on this.
+                Small number --> small RAM allocation
+            **uncertainty_measure_kwargs: Keyword arguments to be passed for the uncertainty
+                measure function.
 
-    Returns:
-        The indices of the instances from X chosen to be labelled;
-        The mc-dropout metric of the chosen instances; 
+        Returns:
+            The indices of the instances from X chosen to be labelled;
+            The mc-dropout metric of the chosen instances; 
     """
-    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles)
+    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles, sample_per_forward_pass)
 
     #calculate BALD (Bayesian active learning divergence))
     bald_scores = _bald_divergence(predictions)
@@ -106,35 +109,38 @@ def mc_dropout_bald(classifier: BaseEstimator, X: modALinput, n_instances: int =
 
 def mc_dropout_mean_st(classifier: BaseEstimator, X: modALinput, n_instances: int = 1,
                 random_tie_break: bool = False, dropout_layer_indexes: list = [], 
-                num_cycles : int = 50, **mc_dropout_kwargs) -> np.ndarray:
+                num_cycles : int = 50, sample_per_forward_pass: int = 1000, **mc_dropout_kwargs) -> np.ndarray:
     """
-    Mc-Dropout mean standard deviation query strategy. Returns the indexes of the instances 
-    with the largest mean of the per class calculated standard deviations over multiple dropout cycles
-    and the corresponding metric.
+        Mc-Dropout mean standard deviation query strategy. Returns the indexes of the instances 
+        with the largest mean of the per class calculated standard deviations over multiple dropout cycles
+        and the corresponding metric.
 
-    Based on the equations of: 
-        Deep Bayesian Active Learning with Image Data. 
-        (Yarin Gal, Riashat Islam, and Zoubin Ghahramani. 2017.)
+        Based on the equations of: 
+            Deep Bayesian Active Learning with Image Data. 
+            (Yarin Gal, Riashat Islam, and Zoubin Ghahramani. 2017.)
 
-    Args:
-        classifier: The classifier for which the labels are to be queried.
-        X: The pool of samples to query from.
-        n_instances: Number of samples to be queried.
-        random_tie_break: If True, shuffles utility scores to randomize the order. This
-            can be used to break the tie when the highest utility score is not unique.
-        dropout_layer_indexes: Indexes of the dropout layers which should be activated
-            Choose indices from : list(torch_model.modules())
-        num_cycles: Number of forward passes with activated dropout
-        **uncertainty_measure_kwargs: Keyword arguments to be passed for the uncertainty
-            measure function.
+        Args:
+            classifier: The classifier for which the labels are to be queried.
+            X: The pool of samples to query from.
+            n_instances: Number of samples to be queried.
+            random_tie_break: If True, shuffles utility scores to randomize the order. This
+                can be used to break the tie when the highest utility score is not unique.
+            dropout_layer_indexes: Indexes of the dropout layers which should be activated
+                Choose indices from : list(torch_model.modules())
+            num_cycles: Number of forward passes with activated dropout
+            sample_per_forward_pass: max. sample number for each forward pass. 
+                The allocated RAM does mainly depend on this.
+                Small number --> small RAM allocation
+            **uncertainty_measure_kwargs: Keyword arguments to be passed for the uncertainty
+                measure function.
 
-    Returns:
-        The indices of the instances from X chosen to be labelled;
-        The mc-dropout metric of the chosen instances; 
+        Returns:
+            The indices of the instances from X chosen to be labelled;
+            The mc-dropout metric of the chosen instances; 
     """
 
     # set dropout layers to train mode
-    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles)
+    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles, sample_per_forward_pass)
 
     mean_standard_deviations = _mean_standard_deviation(predictions)
 
@@ -145,33 +151,36 @@ def mc_dropout_mean_st(classifier: BaseEstimator, X: modALinput, n_instances: in
 
 def mc_dropout_max_entropy(classifier: BaseEstimator, X: modALinput, n_instances: int = 1,
                 random_tie_break: bool = False, dropout_layer_indexes: list = [], 
-                num_cycles : int = 50, **mc_dropout_kwargs) -> np.ndarray:
+                num_cycles : int = 50, sample_per_forward_pass: int = 1000, **mc_dropout_kwargs) -> np.ndarray:
     """
-    Mc-Dropout maximum entropy query strategy. Returns the indexes of the instances 
-    with the largest entropy of the per class calculated entropies over multiple dropout cycles
-    and the corresponding metric.
+        Mc-Dropout maximum entropy query strategy. Returns the indexes of the instances 
+        with the largest entropy of the per class calculated entropies over multiple dropout cycles
+        and the corresponding metric.
 
-    Based on the equations of: 
-        Deep Bayesian Active Learning with Image Data. 
-        (Yarin Gal, Riashat Islam, and Zoubin Ghahramani. 2017.)
+        Based on the equations of: 
+            Deep Bayesian Active Learning with Image Data. 
+            (Yarin Gal, Riashat Islam, and Zoubin Ghahramani. 2017.)
 
-    Args:
-        classifier: The classifier for which the labels are to be queried.
-        X: The pool of samples to query from.
-        n_instances: Number of samples to be queried.
-        random_tie_break: If True, shuffles utility scores to randomize the order. This
-            can be used to break the tie when the highest utility score is not unique.
-        dropout_layer_indexes: Indexes of the dropout layers which should be activated
-            Choose indices from : list(torch_model.modules())
-        num_cycles: Number of forward passes with activated dropout
-        **uncertainty_measure_kwargs: Keyword arguments to be passed for the uncertainty
-            measure function.
+        Args:
+            classifier: The classifier for which the labels are to be queried.
+            X: The pool of samples to query from.
+            n_instances: Number of samples to be queried.
+            random_tie_break: If True, shuffles utility scores to randomize the order. This
+                can be used to break the tie when the highest utility score is not unique.
+            dropout_layer_indexes: Indexes of the dropout layers which should be activated
+                Choose indices from : list(torch_model.modules())
+            num_cycles: Number of forward passes with activated dropout
+            sample_per_forward_pass: max. sample number for each forward pass. 
+                The allocated RAM does mainly depend on this.
+                Small number --> small RAM allocation
+            **uncertainty_measure_kwargs: Keyword arguments to be passed for the uncertainty
+                measure function.
 
-    Returns:
-        The indices of the instances from X chosen to be labelled;
-        The mc-dropout metric of the chosen instances; 
+        Returns:
+            The indices of the instances from X chosen to be labelled;
+            The mc-dropout metric of the chosen instances; 
     """
-    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles)
+    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles, sample_per_forward_pass)
 
     #get entropy values for predictions
     entropy = _entropy(predictions)
@@ -183,33 +192,36 @@ def mc_dropout_max_entropy(classifier: BaseEstimator, X: modALinput, n_instances
 
 def mc_dropout_max_variationRatios(classifier: BaseEstimator, X: modALinput, n_instances: int = 1,
                 random_tie_break: bool = False, dropout_layer_indexes: list = [], 
-                num_cycles : int = 50, **mc_dropout_kwargs) -> np.ndarray:
+                num_cycles : int = 50, sample_per_forward_pass: int = 1000, **mc_dropout_kwargs) -> np.ndarray:
     """
-    Mc-Dropout maximum variation ratios query strategy. Returns the indexes of the instances 
-    with the largest variation ratios over multiple dropout cycles
-    and the corresponding metric.
+        Mc-Dropout maximum variation ratios query strategy. Returns the indexes of the instances 
+        with the largest variation ratios over multiple dropout cycles
+        and the corresponding metric.
 
-    Based on the equations of: 
-        Deep Bayesian Active Learning with Image Data. 
-        (Yarin Gal, Riashat Islam, and Zoubin Ghahramani. 2017.)
+        Based on the equations of: 
+            Deep Bayesian Active Learning with Image Data. 
+            (Yarin Gal, Riashat Islam, and Zoubin Ghahramani. 2017.)
 
-    Args:
-        classifier: The classifier for which the labels are to be queried.
-        X: The pool of samples to query from.
-        n_instances: Number of samples to be queried.
-        random_tie_break: If True, shuffles utility scores to randomize the order. This
-            can be used to break the tie when the highest utility score is not unique.
-        dropout_layer_indexes: Indexes of the dropout layers which should be activated
-            Choose indices from : list(torch_model.modules())
-        num_cycles: Number of forward passes with activated dropout
-        **uncertainty_measure_kwargs: Keyword arguments to be passed for the uncertainty
-            measure function.
+        Args:
+            classifier: The classifier for which the labels are to be queried.
+            X: The pool of samples to query from.
+            n_instances: Number of samples to be queried.
+            random_tie_break: If True, shuffles utility scores to randomize the order. This
+                can be used to break the tie when the highest utility score is not unique.
+            dropout_layer_indexes: Indexes of the dropout layers which should be activated
+                Choose indices from : list(torch_model.modules())
+            num_cycles: Number of forward passes with activated dropout
+            sample_per_forward_pass: max. sample number for each forward pass. 
+                The allocated RAM does mainly depend on this.
+                Small number --> small RAM allocation
+            **uncertainty_measure_kwargs: Keyword arguments to be passed for the uncertainty
+                measure function.
 
-    Returns:
-        The indices of the instances from X chosen to be labelled;
-        The mc-dropout metric of the chosen instances; 
+        Returns:
+            The indices of the instances from X chosen to be labelled;
+            The mc-dropout metric of the chosen instances; 
     """
-    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles)
+    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles, sample_per_forward_pass)
 
     #get variation ratios values for predictions
     variationRatios = _variation_ratios(predictions)
@@ -219,7 +231,8 @@ def mc_dropout_max_variationRatios(classifier: BaseEstimator, X: modALinput, n_i
 
     return shuffled_argmax(variationRatios, n_instances=n_instances)
 
-def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_indexes: list, num_predictions: int = 50):
+def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_indexes: list,
+                num_predictions: int = 50, sample_per_forward_pass: int = 1000):
     """
         Runs num_predictions times the prediction of the classifier on the input X 
         and puts the predictions in a list.
@@ -230,6 +243,9 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_inde
             dropout_layer_indexes: Indexes of the dropout layers which should be activated
                 Choose indices from : list(torch_model.modules())
             num_predictions: Number of predictions which should be made
+            sample_per_forward_pass: max. sample number for each forward pass. 
+                The allocated RAM does mainly depend on this.
+                Small number --> small RAM allocation
         Return: 
             prediction: list with all predictions
     """
@@ -245,7 +261,7 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_inde
         X.detach()
         
         probas = []
-        for X_split in torch.split(X, 5000):
+        for X_split in torch.split(X, sample_per_forward_pass):
             prediction = classifier.estimator.infer(X_split)
             prediction_proba = to_numpy(prediction.softmax(1))
 
