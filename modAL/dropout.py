@@ -1,6 +1,7 @@
 import numpy as np
 import sys
 import torch 
+from collections.abc import Mapping
 
 from sklearn.base import BaseEstimator
 from sklearn.preprocessing import normalize
@@ -250,26 +251,49 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_inde
             prediction: list with all predictions
     """
 
+    #dbg
+    sample_per_forward_pass = 2
+
     predictions = []
     # set dropout layers to train mode
     set_dropout_mode(classifier.estimator.module_, dropout_layer_indexes, train_mode=True)
 
-    for i in range(num_predictions):
-        #call Skorch infer function to perform model forward pass
-        #In comparison to: predict(), predict_proba() the infer() 
-        # does not change train/eval mode of other layers 
+    if isinstance(X, Mapping): #check for dict
+            for k, v in X.items():
+                v.detach()
+    elif torch.is_tensor(X): #check for tensor
         X.detach()
-        
-        probas = []
-        for X_split in torch.split(X, sample_per_forward_pass):
-            prediction = classifier.estimator.infer(X_split)
-            prediction_proba = to_numpy(prediction.softmax(1))
+    else:
+        raise RuntimeError("Error in model data type, only dict or tensors supported")
 
-            if type(probas) != list:
-                probas = np.vstack((probas, prediction_proba))
-            else: 
-                probas = prediction_proba
+    for i in range(num_predictions):
+        split_args = []
+
+        if isinstance(X, Mapping): #check for dict
+            for k, v in X.items():
+                v.detach()
+                split_v = torch.split(v, sample_per_forward_pass)
+                #create sub-dictionary split for each forward pass with same keys&values
+                for split_idx, split in enumerate(split_v):
+                    if len(split_args)<=split_idx:
+                        split_args.append({})
+                    split_args[split_idx][k] = split
+            
+        elif torch.is_tensor(X): #check for tensor
+            X.detach()
+            split_args = torch.split(X, sample_per_forward_pass)
+        else:
+            raise RuntimeError("Error in model data type, only dict or tensors supported")
         
+        
+        probas = None
+        for samples in split_args:
+            #call Skorch infer function to perform model forward pass
+            #In comparison to: predict(), predict_proba() the infer() 
+            # does not change train/eval mode of other layers 
+            prediction = classifier.estimator.infer(samples)
+            prediction_proba = to_numpy(prediction.softmax(1))
+            probas = prediction_proba if probas is None else np.vstack((probas, prediction_proba))
 
         predictions.append(probas)
 
@@ -368,8 +392,6 @@ def _bald_divergence(proba: list, mask: np.ndarray = None) -> np.ndarray:
             Returns the mean standard deviation of the dropout cycles over all classes. 
     """
     proba_stacked = np.stack(proba, axis=len(proba[0].shape))
-    if mask is None: 
-        mask = np.ones(proba[0].shape, dtype=bool)
 
     #entropy along dropout cycles
     accumulated_entropy = entropy_sum(proba_stacked, axis=-1)
@@ -389,8 +411,11 @@ def _bald_divergence(proba: list, mask: np.ndarray = None) -> np.ndarray:
 
     #sum all dimensions of diff besides first dim (instances) 
     shaped = np.reshape(diff, (diff.shape[0], -1))
-    bald = np.sum(shaped, where=mask, axis=-1)
 
+    if mask is None: 
+        mask = np.ones(shaped.shape, dtype=bool)
+
+    bald = np.sum(shaped, where=mask, axis=-1)
     return bald
 
 def _KL_divergence(proba) -> np.ndarray:
