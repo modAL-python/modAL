@@ -292,8 +292,10 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_inde
             #In comparison to: predict(), predict_proba() the infer() 
             # does not change train/eval mode of other layers 
             prediction = classifier.estimator.infer(samples)
-            prediction_proba = to_numpy(prediction.softmax(1))
-            probas = prediction_proba if probas is None else np.vstack((probas, prediction_proba))
+            mask = ~prediction.isnan()
+            prediction[mask] = prediction[mask].unsqueeze(0).softmax(1)
+            prediction = to_numpy(prediction)
+            probas = prediction if probas is None else np.vstack((probas, prediction))
 
         predictions.append(probas)
 
