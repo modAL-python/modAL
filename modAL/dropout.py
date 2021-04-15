@@ -302,13 +302,12 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_inde
 
     return predictions
 
-def entropy_sum(values: np.array, mask: np.ndarray = None, axis: int =-1):
-    if mask is None: 
-        mask = np.ones(values.shape, dtype=bool)
+def entropy_sum(values: np.array, axis: int =-1):
     #sum Scipy basic entropy function: entr()
-    return np.sum(entr(values), where=mask, axis=axis)
+    entropy = entr(values)
+    return np.sum(entropy, where=~np.isnan(entropy), axis=axis)
 
-def _mean_standard_deviation(proba: list, mask: np.ndarray = None) -> np.ndarray: 
+def _mean_standard_deviation(proba: list) -> np.ndarray: 
     """
         Calculates the mean of the per class calculated standard deviations.
 
@@ -324,15 +323,13 @@ def _mean_standard_deviation(proba: list, mask: np.ndarray = None) -> np.ndarray
     """
 
     proba_stacked = np.stack(proba, axis=len(proba[0].shape)) 
-    if mask is None: 
-        mask = np.ones(proba[0].shape, dtype=bool)
 
     standard_deviation_class_vise = np.std(proba_stacked, axis=-1)
-    mean_standard_deviation = np.mean(standard_deviation_class_vise, where=mask, axis=-1)
+    mean_standard_deviation = np.mean(standard_deviation_class_vise, where=~np.isnan(standard_deviation_class_vise), axis=-1)
 
     return mean_standard_deviation
 
-def _entropy(proba: list, mask: np.ndarray = None) -> np.ndarray: 
+def _entropy(proba: list) -> np.ndarray: 
     """
         Calculates the entropy per class over dropout cycles
 
@@ -348,15 +345,13 @@ def _entropy(proba: list, mask: np.ndarray = None) -> np.ndarray:
     """
 
     proba_stacked = np.stack(proba, axis=len(proba[0].shape)) 
-    if mask is None: 
-        mask = np.ones(proba[0].shape, dtype=bool)
 
     #calculate entropy per class and sum along dropout cycles
     entropy_classes = entropy_sum(proba_stacked, axis=-1)
-    entropy = np.mean(entropy_classes, where=mask, axis=-1)
+    entropy = np.mean(entropy_classes, where=~np.isnan(entropy_classes), axis=-1)
     return entropy
 
-def _variation_ratios(proba: list, mask: np.ndarray = None) -> np.ndarray: 
+def _variation_ratios(proba: list) -> np.ndarray: 
     """
         Calculates the variation ratios over dropout cycles
 
@@ -371,13 +366,12 @@ def _variation_ratios(proba: list, mask: np.ndarray = None) -> np.ndarray:
             Returns the variation ratios of the dropout cycles. 
     """
     proba_stacked = np.stack(proba, axis=len(proba[0].shape)) 
-    if mask is None: 
-        mask = np.ones(proba[0].shape, dtype=bool)
+
     #Calculate the variation ratios over the mean of dropout cycles
     valuesDCMean = np.mean(proba_stacked, axis=-1)
-    return 1 - np.amax(valuesDCMean, initial=0, where=mask, axis=-1)
+    return 1 - np.amax(valuesDCMean, initial=0, where=~np.isnan(valuesDCMean), axis=-1)
 
-def _bald_divergence(proba: list, mask: np.ndarray = None) -> np.ndarray:
+def _bald_divergence(proba: list) -> np.ndarray:
     """
         Calculates the bald divergence for each instance
 
@@ -412,10 +406,7 @@ def _bald_divergence(proba: list, mask: np.ndarray = None) -> np.ndarray:
     #sum all dimensions of diff besides first dim (instances) 
     shaped = np.reshape(diff, (diff.shape[0], -1))
 
-    if mask is None: 
-        mask = np.ones(shaped.shape, dtype=bool)
-
-    bald = np.sum(shaped, where=mask, axis=-1)
+    bald = np.sum(shaped, where=~np.isnan(shaped), axis=-1)
     return bald
 
 def _KL_divergence(proba) -> np.ndarray:
