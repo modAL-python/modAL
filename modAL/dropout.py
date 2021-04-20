@@ -2,6 +2,7 @@ import numpy as np
 import sys
 import torch 
 from collections.abc import Mapping
+from typing import Callable
 
 from sklearn.base import BaseEstimator
 from sklearn.preprocessing import normalize
@@ -12,6 +13,10 @@ from modAL.utils.data import modALinput
 from modAL.utils.selection import multi_argmax, shuffled_argmax
 
 from skorch.utils import to_numpy
+
+def default_logits_adaptor(input_tensor: torch.tensor, samples: modALinput): 
+    # default Callable parameter for get_predictions
+    return input_tensor
 
 def KL_divergence(classifier: BaseEstimator, X: modALinput, n_instances: int = 1,
                 random_tie_break: bool = False, dropout_layer_indexes: list = [], 
@@ -36,7 +41,9 @@ def KL_divergence(classifier: BaseEstimator, X: modALinput, n_instances: int = 1
 
 def mc_dropout_multi(classifier: BaseEstimator, X: modALinput, query_strategies: list = ["bald", "mean_st", "max_entropy", "max_var"], 
                 n_instances: int = 1, random_tie_break: bool = False, dropout_layer_indexes: list = [], 
-                num_cycles : int = 50, sample_per_forward_pass: int = 1000, **mc_dropout_kwargs) -> np.ndarray:
+                num_cycles : int = 50, sample_per_forward_pass: int = 1000,
+                logits_adaptor: Callable[[torch.tensor, modALinput], torch.tensor] = default_logits_adaptor,
+                **mc_dropout_kwargs) -> np.ndarray:
     """
     Multi metric dropout query strategy. Returns the specified metrics for given input data.
     Selection of query strategies are:
@@ -49,7 +56,7 @@ def mc_dropout_multi(classifier: BaseEstimator, X: modALinput, query_strategies:
     Function returns dictionary of metrics with their name as key.
     The indices of the n-best samples (n_instances) is not used in this function.
     """
-    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles, sample_per_forward_pass)
+    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles, sample_per_forward_pass, logits_adaptor)
 
     metrics_dict = {}
     if "bald" in query_strategies:
@@ -65,7 +72,9 @@ def mc_dropout_multi(classifier: BaseEstimator, X: modALinput, query_strategies:
 
 def mc_dropout_bald(classifier: BaseEstimator, X: modALinput, n_instances: int = 1,
                 random_tie_break: bool = False, dropout_layer_indexes: list = [], 
-                num_cycles : int = 50, sample_per_forward_pass: int = 1000, **mc_dropout_kwargs) -> np.ndarray:
+                num_cycles : int = 50, sample_per_forward_pass: int = 1000, 
+                logits_adaptor: Callable[[torch.tensor, modALinput], torch.tensor] = default_logits_adaptor,
+                **mc_dropout_kwargs,) -> np.ndarray:
     """
         Mc-Dropout bald query strategy. Returns the indexes of the instances with the largest BALD 
         (Bayesian Active Learning by Disagreement) score calculated through the dropout cycles
@@ -91,6 +100,8 @@ def mc_dropout_bald(classifier: BaseEstimator, X: modALinput, n_instances: int =
             sample_per_forward_pass: max. sample number for each forward pass. 
                 The allocated RAM does mainly depend on this.
                 Small number --> small RAM allocation
+            logits_adaptor: Callable which can be used to adapt the output of a forward pass 
+                to the required vector format for the vectorised metric functions 
             **uncertainty_measure_kwargs: Keyword arguments to be passed for the uncertainty
                 measure function.
 
@@ -98,7 +109,7 @@ def mc_dropout_bald(classifier: BaseEstimator, X: modALinput, n_instances: int =
             The indices of the instances from X chosen to be labelled;
             The mc-dropout metric of the chosen instances; 
     """
-    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles, sample_per_forward_pass)
+    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles, sample_per_forward_pass, logits_adaptor)
 
     #calculate BALD (Bayesian active learning divergence))
     bald_scores = _bald_divergence(predictions)
@@ -110,7 +121,9 @@ def mc_dropout_bald(classifier: BaseEstimator, X: modALinput, n_instances: int =
 
 def mc_dropout_mean_st(classifier: BaseEstimator, X: modALinput, n_instances: int = 1,
                 random_tie_break: bool = False, dropout_layer_indexes: list = [], 
-                num_cycles : int = 50, sample_per_forward_pass: int = 1000, **mc_dropout_kwargs) -> np.ndarray:
+                num_cycles : int = 50, sample_per_forward_pass: int = 1000,
+                logits_adaptor: Callable[[torch.tensor, modALinput], torch.tensor] = default_logits_adaptor,
+                **mc_dropout_kwargs) -> np.ndarray:
     """
         Mc-Dropout mean standard deviation query strategy. Returns the indexes of the instances 
         with the largest mean of the per class calculated standard deviations over multiple dropout cycles
@@ -132,6 +145,8 @@ def mc_dropout_mean_st(classifier: BaseEstimator, X: modALinput, n_instances: in
             sample_per_forward_pass: max. sample number for each forward pass. 
                 The allocated RAM does mainly depend on this.
                 Small number --> small RAM allocation
+            logits_adaptor: Callable which can be used to adapt the output of a forward pass 
+                to the required vector format for the vectorised metric functions 
             **uncertainty_measure_kwargs: Keyword arguments to be passed for the uncertainty
                 measure function.
 
@@ -141,7 +156,7 @@ def mc_dropout_mean_st(classifier: BaseEstimator, X: modALinput, n_instances: in
     """
 
     # set dropout layers to train mode
-    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles, sample_per_forward_pass)
+    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles, sample_per_forward_pass, logits_adaptor)
 
     mean_standard_deviations = _mean_standard_deviation(predictions)
 
@@ -152,7 +167,9 @@ def mc_dropout_mean_st(classifier: BaseEstimator, X: modALinput, n_instances: in
 
 def mc_dropout_max_entropy(classifier: BaseEstimator, X: modALinput, n_instances: int = 1,
                 random_tie_break: bool = False, dropout_layer_indexes: list = [], 
-                num_cycles : int = 50, sample_per_forward_pass: int = 1000, **mc_dropout_kwargs) -> np.ndarray:
+                num_cycles : int = 50, sample_per_forward_pass: int = 1000,
+                logits_adaptor: Callable[[torch.tensor, modALinput], torch.tensor] = default_logits_adaptor,
+                **mc_dropout_kwargs) -> np.ndarray:
     """
         Mc-Dropout maximum entropy query strategy. Returns the indexes of the instances 
         with the largest entropy of the per class calculated entropies over multiple dropout cycles
@@ -174,6 +191,8 @@ def mc_dropout_max_entropy(classifier: BaseEstimator, X: modALinput, n_instances
             sample_per_forward_pass: max. sample number for each forward pass. 
                 The allocated RAM does mainly depend on this.
                 Small number --> small RAM allocation
+            logits_adaptor: Callable which can be used to adapt the output of a forward pass 
+                to the required vector format for the vectorised metric functions 
             **uncertainty_measure_kwargs: Keyword arguments to be passed for the uncertainty
                 measure function.
 
@@ -181,7 +200,7 @@ def mc_dropout_max_entropy(classifier: BaseEstimator, X: modALinput, n_instances
             The indices of the instances from X chosen to be labelled;
             The mc-dropout metric of the chosen instances; 
     """
-    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles, sample_per_forward_pass)
+    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles, sample_per_forward_pass, logits_adaptor)
 
     #get entropy values for predictions
     entropy = _entropy(predictions)
@@ -193,7 +212,9 @@ def mc_dropout_max_entropy(classifier: BaseEstimator, X: modALinput, n_instances
 
 def mc_dropout_max_variationRatios(classifier: BaseEstimator, X: modALinput, n_instances: int = 1,
                 random_tie_break: bool = False, dropout_layer_indexes: list = [], 
-                num_cycles : int = 50, sample_per_forward_pass: int = 1000, **mc_dropout_kwargs) -> np.ndarray:
+                num_cycles : int = 50, sample_per_forward_pass: int = 1000,
+                logits_adaptor: Callable[[torch.tensor, modALinput], torch.tensor] = default_logits_adaptor,
+                **mc_dropout_kwargs) -> np.ndarray:
     """
         Mc-Dropout maximum variation ratios query strategy. Returns the indexes of the instances 
         with the largest variation ratios over multiple dropout cycles
@@ -215,6 +236,8 @@ def mc_dropout_max_variationRatios(classifier: BaseEstimator, X: modALinput, n_i
             sample_per_forward_pass: max. sample number for each forward pass. 
                 The allocated RAM does mainly depend on this.
                 Small number --> small RAM allocation
+            logits_adaptor: Callable which can be used to adapt the output of a forward pass 
+                to the required vector format for the vectorised metric functions 
             **uncertainty_measure_kwargs: Keyword arguments to be passed for the uncertainty
                 measure function.
 
@@ -222,7 +245,7 @@ def mc_dropout_max_variationRatios(classifier: BaseEstimator, X: modALinput, n_i
             The indices of the instances from X chosen to be labelled;
             The mc-dropout metric of the chosen instances; 
     """
-    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles, sample_per_forward_pass)
+    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles, sample_per_forward_pass, logits_adaptor)
 
     #get variation ratios values for predictions
     variationRatios = _variation_ratios(predictions)
@@ -233,7 +256,8 @@ def mc_dropout_max_variationRatios(classifier: BaseEstimator, X: modALinput, n_i
     return shuffled_argmax(variationRatios, n_instances=n_instances)
 
 def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_indexes: list,
-                num_predictions: int = 50, sample_per_forward_pass: int = 1000):
+                num_predictions: int = 50, sample_per_forward_pass: int = 1000,
+                logits_adaptor: Callable[[torch.tensor, modALinput], torch.tensor] = default_logits_adaptor):
     """
         Runs num_predictions times the prediction of the classifier on the input X 
         and puts the predictions in a list.
@@ -247,6 +271,8 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_inde
             sample_per_forward_pass: max. sample number for each forward pass. 
                 The allocated RAM does mainly depend on this.
                 Small number --> small RAM allocation
+            logits_adaptor: Callable which can be used to adapt the output of a forward pass 
+                to the required vector format for the vectorised metric functions 
         Return: 
             prediction: list with all predictions
     """
@@ -257,14 +283,6 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_inde
     predictions = []
     # set dropout layers to train mode
     set_dropout_mode(classifier.estimator.module_, dropout_layer_indexes, train_mode=True)
-
-    if isinstance(X, Mapping): #check for dict
-            for k, v in X.items():
-                v.detach()
-    elif torch.is_tensor(X): #check for tensor
-        X.detach()
-    else:
-        raise RuntimeError("Error in model data type, only dict or tensors supported")
 
     for i in range(num_predictions):
         split_args = []
@@ -287,15 +305,18 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_inde
         
         
         probas = None
+
         for samples in split_args:
             #call Skorch infer function to perform model forward pass
             #In comparison to: predict(), predict_proba() the infer() 
             # does not change train/eval mode of other layers 
-            prediction = classifier.estimator.infer(samples)
+            logits = classifier.estimator.infer(samples)
+            prediction = logits_adaptor(logits, samples)
             mask = ~prediction.isnan()
             prediction[mask] = prediction[mask].unsqueeze(0).softmax(1)
             prediction = to_numpy(prediction)
             probas = prediction if probas is None else np.vstack((probas, prediction))
+
 
         predictions.append(probas)
 
