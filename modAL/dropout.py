@@ -276,10 +276,7 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_inde
         Return: 
             prediction: list with all predictions
     """
-
-    #dbg
-    sample_per_forward_pass = 2
-
+    
     predictions = []
     # set dropout layers to train mode
     set_dropout_mode(classifier.estimator.module_, dropout_layer_indexes, train_mode=True)
