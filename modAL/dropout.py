@@ -4,6 +4,7 @@ import torch
 from collections.abc import Mapping
 from typing import Callable
 
+
 from sklearn.base import BaseEstimator
 from sklearn.preprocessing import normalize
 
@@ -110,8 +111,8 @@ def mc_dropout_bald(classifier: BaseEstimator, X: modALinput, n_instances: int =
             The mc-dropout metric of the chosen instances; 
     """
     predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles, sample_per_forward_pass, logits_adaptor)
-
     #calculate BALD (Bayesian active learning divergence))
+
     bald_scores = _bald_divergence(predictions)
 
     if not random_tie_break:
@@ -276,7 +277,7 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_inde
         Return: 
             prediction: list with all predictions
     """
-    
+
     predictions = []
     # set dropout layers to train mode
     set_dropout_mode(classifier.estimator.module_, dropout_layer_indexes, train_mode=True)
@@ -308,6 +309,7 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_inde
             #In comparison to: predict(), predict_proba() the infer() 
             # does not change train/eval mode of other layers 
             logits = classifier.estimator.infer(samples)
+
             prediction = logits_adaptor(logits, samples)
             mask = ~prediction.isnan()
             prediction[mask] = prediction[mask].unsqueeze(0).softmax(1)
