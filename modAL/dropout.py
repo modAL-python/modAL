@@ -282,26 +282,26 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_inde
     # set dropout layers to train mode
     set_dropout_mode(classifier.estimator.module_, dropout_layer_indexes, train_mode=True)
 
-    for i in range(num_predictions):
-        split_args = []
+    split_args = []
 
-        if isinstance(X, Mapping): #check for dict
-            for k, v in X.items():
-                v.detach()
-                split_v = torch.split(v, sample_per_forward_pass)
-                #create sub-dictionary split for each forward pass with same keys&values
-                for split_idx, split in enumerate(split_v):
-                    if len(split_args)<=split_idx:
-                        split_args.append({})
-                    split_args[split_idx][k] = split
-            
-        elif torch.is_tensor(X): #check for tensor
-            X.detach()
-            split_args = torch.split(X, sample_per_forward_pass)
-        else:
-            raise RuntimeError("Error in model data type, only dict or tensors supported")
+    if isinstance(X, Mapping): #check for dict
+        for k, v in X.items():
+            v.detach()
+            split_v = torch.split(v, sample_per_forward_pass)
+            #create sub-dictionary split for each forward pass with same keys&values
+            for split_idx, split in enumerate(split_v):
+                if len(split_args)<=split_idx:
+                    split_args.append({})
+                split_args[split_idx][k] = split
         
-        
+    elif torch.is_tensor(X): #check for tensor
+        X.detach()
+        split_args = torch.split(X, sample_per_forward_pass)
+    else:
+        raise RuntimeError("Error in model data type, only dict or tensors supported")
+
+    for i in range(num_predictions):
+
         probas = None
 
         for samples in split_args:
