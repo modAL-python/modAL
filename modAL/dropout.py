@@ -308,7 +308,7 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_inde
 
     for i in range(num_predictions):
 
-        probas = None
+        probas = []
 
         for index, samples in enumerate(split_args):
             #call Skorch infer function to perform model forward pass
@@ -317,14 +317,12 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_inde
             with torch.no_grad(): 
                 logits = classifier.estimator.infer(samples)
                 prediction = logits_adaptor(logits, samples)
-
                 mask = ~prediction.isnan()
                 prediction[mask] = prediction[mask].unsqueeze(0).softmax(1)
-                if probas is None: probas = torch.empty((number_of_samples, prediction.shape[-1]), device='cpu')
-                probas[range(sample_per_forward_pass*index, sample_per_forward_pass*(index+1)), :] = prediction.cpu()
-
-        probas = to_numpy(probas)
-        predictions.append(probas)
+                probas.append(prediction)
+        
+        probas = torch.cat(probas)
+        predictions.append(to_numpy(probas))
 
     # set dropout layers to eval
     set_dropout_mode(classifier.estimator.module_, dropout_layer_indexes, train_mode=False)
