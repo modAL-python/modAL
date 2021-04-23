@@ -317,7 +317,7 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_inde
             logits = classifier.estimator.infer(samples)
             prediction = logits_adaptor(logits, samples)
 
-            if probas is None: probas = torch.empty((number_of_samples, prediction.shape[-1]))
+            if probas is None: probas = torch.empty((number_of_samples, prediction.shape[-1]), device=prediction.device)
             probas[range(sample_per_forward_pass*index, sample_per_forward_pass*(index+1)), :] = prediction
 
 
