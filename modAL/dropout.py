@@ -284,8 +284,12 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_inde
 
     split_args = []
 
+    number_of_samples = 0
+
     if isinstance(X, Mapping): #check for dict
         for k, v in X.items():
+            number_of_samples = v.size(0)
+
             v.detach()
             split_v = torch.split(v, sample_per_forward_pass)
             #create sub-dictionary split for each forward pass with same keys&values
@@ -295,16 +299,18 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_inde
                 split_args[split_idx][k] = split
         
     elif torch.is_tensor(X): #check for tensor
+        number_of_samples = X.size(0)
         X.detach()
         split_args = torch.split(X, sample_per_forward_pass)
     else:
         raise RuntimeError("Error in model data type, only dict or tensors supported")
 
+
     for i in range(num_predictions):
 
         probas = None
 
-        for samples in split_args:
+        for index, samples in enumerate(split_args):
             #call Skorch infer function to perform model forward pass
             #In comparison to: predict(), predict_proba() the infer() 
             # does not change train/eval mode of other layers 
@@ -313,10 +319,12 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_inde
             prediction = logits_adaptor(logits, samples)
             mask = ~prediction.isnan()
             prediction[mask] = prediction[mask].unsqueeze(0).softmax(1)
-            prediction = to_numpy(prediction)
-            probas = prediction if probas is None else np.vstack((probas, prediction))
 
+            if probas is None: probas = torch.empty((number_of_samples, prediction.shape[-1]))
 
+            probas[range(sample_per_forward_pass*index, sample_per_forward_pass*(index+1)), :] = prediction
+
+        probas = to_numpy(prediction)
         predictions.append(probas)
 
     # set dropout layers to eval
