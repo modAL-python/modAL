@@ -314,13 +314,14 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_inde
             #call Skorch infer function to perform model forward pass
             #In comparison to: predict(), predict_proba() the infer() 
             # does not change train/eval mode of other layers 
-            logits = classifier.estimator.infer(samples)
-            prediction = logits_adaptor(logits, samples)
+            with torch.no_grad: 
+                logits = classifier.estimator.infer(samples)
+                prediction = logits_adaptor(logits, samples)
 
-            mask = ~prediction.isnan()
-            prediction[mask] = prediction[mask].unsqueeze(0).softmax(1)
-            if probas is None: probas = torch.empty((number_of_samples, prediction.shape[-1]), device='cpu')
-            probas[range(sample_per_forward_pass*index, sample_per_forward_pass*(index+1)), :] = prediction.cpu()
+                mask = ~prediction.isnan()
+                prediction[mask] = prediction[mask].unsqueeze(0).softmax(1)
+                if probas is None: probas = torch.empty((number_of_samples, prediction.shape[-1]), device='cpu')
+                probas[range(sample_per_forward_pass*index, sample_per_forward_pass*(index+1)), :] = prediction.cpu()
 
         probas = to_numpy(probas)
         predictions.append(probas)
