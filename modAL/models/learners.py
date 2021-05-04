@@ -160,20 +160,6 @@ class ActiveLearner(BaseLearner):
         self.X_training, self.y_training = X, y
         return self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
-    def score(self, X: modALinput, y: modALinput, **score_kwargs) -> Any:
-        """
-        Interface for the score method of the predictor.
-
-        Args:
-            X: The samples for which prediction accuracy is to be calculated.
-            y: Ground truth labels for X.
-            **score_kwargs: Keyword arguments to be passed to the .score() method of the predictor.
-
-        Returns:
-            The score of the predictor.
-        """
-        return self.estimator.score(X, y, **score_kwargs)
-
     def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, only_new: bool = False, **fit_kwargs) -> None:
         """
         Adds X and y to the known training data and retrains the predictor with the augmented dataset.
@@ -244,26 +230,6 @@ class DeepActiveLearner(BaseLearner):
             self
         """            
         return self._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
-
-    def score(self, X: modALinput, y: modALinput) -> Any:
-        """
-        Interface for the score method of the predictor.
-
-        Args:
-            X: The samples for which prediction accuracy is to be calculated.
-            y: Ground truth labels for X.
-
-        Returns:
-            The score of the predictor.
-        """
-        """
-            sklearn does only accept tensors of different dim for X and Y, if we use
-            Multilabel classifiaction. Using tensors of different sizes for more complex models (e.g. Transformers) 
-            requires to bypass the sklearn checks by directly calling the NeuralNets infer() function.
-        """
-        prediction = self.estimator.infer(X)
-        criterion = self.estimator.criterion()
-        return criterion(prediction, y).item()
 
     def teach(self, X: modALinput, y: modALinput, warm_start: bool = True, bootstrap: bool = False, **fit_kwargs) -> None:
         """

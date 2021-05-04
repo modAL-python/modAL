@@ -176,9 +176,19 @@ class BaseLearner(ABC, BaseEstimator):
 
         return query_result, retrieve_rows(X_pool, query_result), query_metrics
 
-    @abc.abstractmethod
-    def score(self, *args, **kwargs) -> None:
-        pass
+    def score(self, X: modALinput, y: modALinput, **score_kwargs) -> Any:
+        """
+        Interface for the score method of the predictor.
+
+        Args:
+            X: The samples for which prediction accuracy is to be calculated.
+            y: Ground truth labels for X.
+            **score_kwargs: Keyword arguments to be passed to the .score() method of the predictor.
+
+        Returns:
+            The score of the predictor.
+        """
+        return self.estimator.score(X, y, **score_kwargs)
 
     @abc.abstractmethod
     def teach(self, *args, **kwargs) -> None:
