@@ -318,7 +318,7 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_inde
                 logits = classifier.estimator.infer(samples)
                 prediction = logits_adaptor(logits, samples)
                 mask = ~prediction.isnan()
-                prediction[mask] = prediction[mask].softmax(1)
+                prediction[mask] = prediction[mask].softmax(-1)
                 probas.append(prediction)
         
         probas = torch.cat(probas)
