@@ -1,5 +1,4 @@
 import numpy as np
-import sys
 import torch 
 from collections.abc import Mapping
 from typing import Callable
@@ -18,27 +17,6 @@ from skorch.utils import to_numpy
 def default_logits_adaptor(input_tensor: torch.tensor, samples: modALinput): 
     # default Callable parameter for get_predictions
     return input_tensor
-
-def KL_divergence(classifier: BaseEstimator, X: modALinput, n_instances: int = 1,
-                random_tie_break: bool = False, dropout_layer_indexes: list = [], 
-                num_cycles : int = 50, **mc_dropout_kwargs) -> np.ndarray:
-    """
-    TODO: Work in progress 
-    """
-    # set dropout layers to train mode
-    set_dropout_mode(classifier.estimator.module_, dropout_layer_indexes, train_mode=True)
-
-    predictions = get_predictions(classifier, X, num_cycles)
-
-    # set dropout layers to eval
-    set_dropout_mode(classifier.estimator.module_, dropout_layer_indexes, train_mode=False)
-
-    #KL_divergence = _KL_divergence(predictions)
-    
-    if not random_tie_break:
-        return multi_argmax(KL_divergence, n_instances=n_instances)
-
-    return shuffled_argmax(KL_divergence, n_instances=n_instances)
 
 def mc_dropout_multi(classifier: BaseEstimator, X: modALinput, query_strategies: list = ["bald", "mean_st", "max_entropy", "max_var"], 
                 n_instances: int = 1, random_tie_break: bool = False, dropout_layer_indexes: list = [], 
@@ -436,23 +414,10 @@ def _bald_divergence(proba: list) -> np.ndarray:
     bald = np.sum(shaped, where=~np.isnan(shaped), axis=-1)
     return bald
 
-def _KL_divergence(proba) -> np.ndarray:
-
-    #create 3D or 4D array from prediction dim: (drop_cycles, proba.shape[0], proba.shape[1], opt:proba.shape[2])
-    proba_stacked = np.stack(proba, axis=len(proba[0].shape))
-    # TODO work in progress
-    # TODO add dimensionality adaption
-    #number_of_dimensions = proba_stacked.ndim
-    #if proba_stacked.ndim > 2: 
-
-    normalized_proba = normalize(proba_stacked, axis=0)
-
 
 def set_dropout_mode(model, dropout_layer_indexes: list, train_mode: bool):
     """ 
         Function to enable the dropout layers by setting them to user specified mode (bool: train_mode)
-        TODO: Reduce maybe complexity
-        TODO: Keras support
     """
 
     modules = list(model.modules()) # list of all modules in the network.
