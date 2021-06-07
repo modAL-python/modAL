@@ -5,3 +5,4 @@ ipykernel
 nbsphinx
 pandas
 skorch
+torch
