@@ -10,5 +10,5 @@ setup(
     url='https://modAL-python.github.io/',
     packages=['modAL', 'modAL.models', 'modAL.utils'],
     classifiers=['Development Status :: 4 - Beta'],
-    install_requires=['numpy==1.20.0', 'scikit-learn>=0.18', 'scipy>=0.18', 'pandas>=1.1.0', 'skorch==0.9.0'],
+    install_requires=['numpy==1.20.0', 'scikit-learn>=0.18', 'scipy>=0.18', 'pandas>=1.1.0', 'skorch==0.9.0', 'torch>=1.8.1'],
 )
