@@ -242,6 +242,12 @@ def kmeans_batch(
     Returns:
         The indices of the top n_instances unlabelled samples.
     """
+    # Limit data set based on n_instances and filter_param
+    record_limit = filter_param * n_instances
+    keep_args = np.argsort(uncertainty_scores)[-record_limit:]
+    uncertainty_scores = uncertainty_scores[keep_args]
+    unlabeled = unlabeled[keep_args]
+
     # transform unlabeled data if needed
     if classifier.on_transformed:
         unlabeled = classifier.transform_without_estimating(unlabeled)
