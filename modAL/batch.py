@@ -6,11 +6,12 @@ from typing import Callable, Optional, Tuple, Union
 
 import numpy as np
 import scipy.sparse as sp
+from sklearn.cluster import KMeans
 from sklearn.metrics.pairwise import pairwise_distances, pairwise_distances_argmin_min
 
 from modAL.utils.data import data_vstack, modALinput, data_shape
 from modAL.models.base import BaseCommittee, BaseLearner
-from modAL.uncertainty import classifier_uncertainty
+from modAL.uncertainty import classifier_margin, classifier_uncertainty
 
 
 def select_cold_start_instance(X: modALinput,
@@ -216,3 +217,84 @@ def uncertainty_batch_sampling(classifier: Union[BaseLearner, BaseCommittee],
     return ranked_batch(classifier, unlabeled=X, uncertainty_scores=uncertainty,
                                  n_instances=n_instances, metric=metric, n_jobs=n_jobs)
 
+
+def kmeans_batch(classifier: Union[BaseLearner, BaseCommittee],
+                 unlabeled: modALinput,
+                 uncertainty_scores: np.ndarray,
+                 n_instances: int,
+                 n_jobs: Union[int, None]) -> np.ndarray:
+    """
+    Query our top :n_instances: to request for labeling.
+
+    Refer to Cardoso et al.'s "Ranked batch-mode active learning":
+        https://www.sciencedirect.com/science/article/pii/S0020025516313949
+
+    Args:
+        classifier: One of modAL's supported active learning models.
+        unlabeled: Set of records to be considered for our active learning model.
+        uncertainty_scores: Our classifier's predictions over the response variable.
+        n_instances: Limit on the number of records to query from our unlabeled set.
+        metric: This parameter is passed to :func:`~sklearn.metrics.pairwise.pairwise_distances`.
+        n_jobs: This parameter is passed to :func:`~sklearn.metrics.pairwise.pairwise_distances`.
+
+    Returns:
+        The indices of the top n_instances ranked unlabelled samples.
+    """
+    # Make a local copy of our classifier's training data.
+    # Define our record container and record the best cold start instance in the case of cold start.
+
+    # transform unlabeled data if needed
+    if classifier.on_transformed:
+        unlabeled = classifier.transform_without_estimating(unlabeled)
+
+    if classifier.X_training is None:
+        # TODO: Random or diversity-based?
+        return
+
+    kmeans = KMeans(n_clusters=n_instances)
+    kmeans.fit(unlabeled, sample_weight=uncertainty_scores)
+    min_distances = np.min(kmeans.transform(unlabeled), axis=1)
+
+    return np.argsort(min_distances)[:n_instances]
+
+
+def diverse_batch_kmeans(classifier: Union[BaseLearner, BaseCommittee],
+                               X: Union[np.ndarray, sp.csr_matrix],
+                               n_instances: int = 20,
+                               n_jobs: Optional[int] = None,
+                               filter_param: int = 10,
+                               **uncertainty_measure_kwargs
+                               ) -> np.ndarray:
+    """
+    Batch sampling query strategy. Selects the least sure instances for labelling.
+
+    This strategy differs from :func:`~modAL.uncertainty.uncertainty_sampling` because, although it is supported,
+    traditional active learning query strategies suffer from sub-optimal record selection when passing
+    `n_instances` > 1. This sampling strategy extends the interactive uncertainty query sampling by allowing for
+    batch-mode uncertainty query sampling. Furthermore, it also enforces a ranking -- that is, which records among the
+    batch are most important for labeling?
+
+    Refer to Cardoso et al.'s "Ranked batch-mode active learning":
+        https://www.sciencedirect.com/science/article/pii/S0020025516313949
+
+    Args:
+        classifier: One of modAL's supported active learning models.
+        X: Set of records to be considered for our active learning model.
+        n_instances: Number of records to return for labeling from `X`.
+        n_jobs: If not set, :func:`~sklearn.metrics.pairwise.pairwise_distances_argmin_min` is used for calculation of
+            distances between samples. Otherwise it is passed to :func:`~sklearn.metrics.pairwise.pairwise_distances`.
+        **uncertainty_measure_kwargs: Keyword arguments to be passed for the :meth:`predict_proba` of the classifier.
+
+    Returns:
+        Indices of the instances from `X` chosen to be labelled; records from `X` chosen to be labelled.
+    """
+    uncertainty = classifier_margin(classifier, X, **uncertainty_measure_kwargs)
+    unlabeled_batch = kmeans_batch(
+        classifier,
+        unlabeled=X,
+        uncertainty_scores=uncertainty,
+        n_instances=n_instances,
+        filter_param=filter_param,
+        n_jobs=n_jobs
+    )
+    return unlabeled_batch
