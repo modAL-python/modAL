@@ -218,31 +218,30 @@ def uncertainty_batch_sampling(classifier: Union[BaseLearner, BaseCommittee],
                                  n_instances=n_instances, metric=metric, n_jobs=n_jobs)
 
 
-def kmeans_batch(classifier: Union[BaseLearner, BaseCommittee],
-                 unlabeled: modALinput,
-                 uncertainty_scores: np.ndarray,
-                 n_instances: int,
-                 n_jobs: Union[int, None]) -> np.ndarray:
+def kmeans_batch(
+    classifier: Union[BaseLearner, BaseCommittee],
+    unlabeled: modALinput,
+    uncertainty_scores: np.ndarray,
+    n_instances: int,
+    filter_param: int,
+) -> np.ndarray:
     """
     Query our top :n_instances: to request for labeling.
 
-    Refer to Cardoso et al.'s "Ranked batch-mode active learning":
-        https://www.sciencedirect.com/science/article/pii/S0020025516313949
+    Refer to Zhadanov's "Diverse mini-batch Active Learning":
+        https://arxiv.org/pdf/1901.05954.pdf
 
     Args:
         classifier: One of modAL's supported active learning models.
         unlabeled: Set of records to be considered for our active learning model.
         uncertainty_scores: Our classifier's predictions over the response variable.
         n_instances: Limit on the number of records to query from our unlabeled set.
-        metric: This parameter is passed to :func:`~sklearn.metrics.pairwise.pairwise_distances`.
-        n_jobs: This parameter is passed to :func:`~sklearn.metrics.pairwise.pairwise_distances`.
+        filter_param: Controls number of examples to use for sampling. Limits K-Means dataset to top
+            `n_instances * filter_param` most informative examples
 
     Returns:
-        The indices of the top n_instances ranked unlabelled samples.
+        The indices of the top n_instances unlabelled samples.
     """
-    # Make a local copy of our classifier's training data.
-    # Define our record container and record the best cold start instance in the case of cold start.
-
     # transform unlabeled data if needed
     if classifier.on_transformed:
         unlabeled = classifier.transform_without_estimating(unlabeled)
@@ -261,32 +260,29 @@ def kmeans_batch(classifier: Union[BaseLearner, BaseCommittee],
 def diverse_batch_kmeans(classifier: Union[BaseLearner, BaseCommittee],
                                X: Union[np.ndarray, sp.csr_matrix],
                                n_instances: int = 20,
-                               n_jobs: Optional[int] = None,
                                filter_param: int = 10,
                                **uncertainty_measure_kwargs
                                ) -> np.ndarray:
     """
-    Batch sampling query strategy. Selects the least sure instances for labelling.
+    Batch sampling query strategy that tries to consider both diversity and informativeness.
 
-    This strategy differs from :func:`~modAL.uncertainty.uncertainty_sampling` because, although it is supported,
-    traditional active learning query strategies suffer from sub-optimal record selection when passing
-    `n_instances` > 1. This sampling strategy extends the interactive uncertainty query sampling by allowing for
-    batch-mode uncertainty query sampling. Furthermore, it also enforces a ranking -- that is, which records among the
-    batch are most important for labeling?
+    This strategy uses weighted K-Means (the weights being some uncertainty measure) to determine
+    a batch of samples to label that are both informative and diverse. Margin-based uncertainty
+    has been found to perform best, so that is what we use here.
 
-    Refer to Cardoso et al.'s "Ranked batch-mode active learning":
-        https://www.sciencedirect.com/science/article/pii/S0020025516313949
+    Refer to Zhadanov's "Diverse mini-batch Active Learning":
+        https://arxiv.org/pdf/1901.05954.pdf
 
     Args:
         classifier: One of modAL's supported active learning models.
         X: Set of records to be considered for our active learning model.
         n_instances: Number of records to return for labeling from `X`.
-        n_jobs: If not set, :func:`~sklearn.metrics.pairwise.pairwise_distances_argmin_min` is used for calculation of
-            distances between samples. Otherwise it is passed to :func:`~sklearn.metrics.pairwise.pairwise_distances`.
+        filter_param: Controls number of examples to use for sampling. Limits K-Means dataset to top
+            `n_instances * filter_param` most informative examples
         **uncertainty_measure_kwargs: Keyword arguments to be passed for the :meth:`predict_proba` of the classifier.
 
     Returns:
-        Indices of the instances from `X` chosen to be labelled; records from `X` chosen to be labelled.
+        Indices of the instances from `X` chosen to be labelled
     """
     uncertainty = classifier_margin(classifier, X, **uncertainty_measure_kwargs)
     unlabeled_batch = kmeans_batch(
@@ -294,7 +290,6 @@ def diverse_batch_kmeans(classifier: Union[BaseLearner, BaseCommittee],
         unlabeled=X,
         uncertainty_scores=uncertainty,
         n_instances=n_instances,
-        filter_param=filter_param,
-        n_jobs=n_jobs
+        filter_param=filter_param
     )
     return unlabeled_batch
