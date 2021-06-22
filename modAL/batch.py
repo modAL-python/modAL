@@ -6,11 +6,12 @@ from typing import Callable, Optional, Tuple, Union
 
 import numpy as np
 import scipy.sparse as sp
+from sklearn.cluster import KMeans
 from sklearn.metrics.pairwise import pairwise_distances, pairwise_distances_argmin_min
 
 from modAL.utils.data import data_vstack, modALinput, data_shape
 from modAL.models.base import BaseCommittee, BaseLearner
-from modAL.uncertainty import classifier_uncertainty
+from modAL.uncertainty import classifier_margin, classifier_uncertainty
 
 
 def select_cold_start_instance(X: modALinput,
@@ -216,3 +217,86 @@ def uncertainty_batch_sampling(classifier: Union[BaseLearner, BaseCommittee],
     return ranked_batch(classifier, unlabeled=X, uncertainty_scores=uncertainty,
                                  n_instances=n_instances, metric=metric, n_jobs=n_jobs)
 
+
+def kmeans_batch(
+    classifier: Union[BaseLearner, BaseCommittee],
+    unlabeled: modALinput,
+    uncertainty_scores: np.ndarray,
+    n_instances: int,
+    filter_param: int,
+) -> np.ndarray:
+    """
+    Query our top :n_instances: to request for labeling.
+
+    Refer to Zhadanov's "Diverse mini-batch Active Learning":
+        https://arxiv.org/pdf/1901.05954.pdf
+
+    Args:
+        classifier: One of modAL's supported active learning models.
+        unlabeled: Set of records to be considered for our active learning model.
+        uncertainty_scores: Our classifier's predictions over the response variable.
+        n_instances: Limit on the number of records to query from our unlabeled set.
+        filter_param: Controls number of examples to use for sampling. Limits K-Means dataset to top
+            `n_instances * filter_param` most informative examples
+
+    Returns:
+        The indices of the top n_instances unlabelled samples.
+    """
+
+    # transform unlabeled data if needed
+    if classifier.on_transformed:
+        unlabeled = classifier.transform_without_estimating(unlabeled)
+
+    # Limit data set based on n_instances and filter_param
+    record_limit = filter_param * n_instances
+    keep_args = np.argsort(uncertainty_scores)[-record_limit:]
+    uncertainty_scores = uncertainty_scores[keep_args]
+    unlabeled = unlabeled[keep_args]
+
+    # Avoids ValueErrors when we try to sample more instances than we have data points
+    n_clusters = min(n_instances, unlabeled.shape[0])
+
+    # Fit kmeans to data
+    kmeans = KMeans(n_clusters=n_clusters)
+    kmeans.fit(unlabeled, sample_weight=uncertainty_scores)
+
+    # Return closest point to each cluster center
+    return np.argmin(kmeans.transform(unlabeled), axis=0)
+
+
+def diverse_batch_kmeans(classifier: Union[BaseLearner, BaseCommittee],
+                               X: Union[np.ndarray, sp.csr_matrix],
+                               n_instances: int = 20,
+                               filter_param: int = 10,
+                               **uncertainty_measure_kwargs
+                               ) -> np.ndarray:
+    """
+    Batch sampling query strategy that tries to consider both diversity and informativeness.
+
+    This strategy uses weighted K-Means (the weights being some uncertainty measure) to determine
+    a batch of samples to label that are both informative and diverse. Margin-based uncertainty
+    has been found to perform best, so that is what we use here.
+
+    Refer to Zhadanov's "Diverse mini-batch Active Learning":
+        https://arxiv.org/pdf/1901.05954.pdf
+
+    Args:
+        classifier: One of modAL's supported active learning models.
+        X: Set of records to be considered for our active learning model.
+        n_instances: Number of records to return for labeling from `X`.
+        filter_param: Controls number of examples to use for sampling. Limits K-Means dataset to top
+            `n_instances * filter_param` most informative examples
+        **uncertainty_measure_kwargs: Keyword arguments to be passed for the :meth:`predict_proba` of the classifier.
+
+    Returns:
+        Indices of the instances from `X` chosen to be labelled
+    """
+    uncertainty = classifier_margin(classifier, X, **uncertainty_measure_kwargs)
+    unlabeled_batch = kmeans_batch(
+        classifier,
+        unlabeled=X,
+        uncertainty_scores=uncertainty,
+        n_instances=n_instances,
+        filter_param=filter_param
+    )
+    return unlabeled_batch
