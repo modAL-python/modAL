@@ -799,7 +799,8 @@ class TestActiveLearner(unittest.TestCase):
         n_samples = 10
         n_features = 5
         query_strategies = [
-            modAL.batch.uncertainty_batch_sampling
+            modAL.batch.uncertainty_batch_sampling,
+            modAL.batch.diverse_batch_kmeans,
             # add further strategies which work with instance representations
             # no further ones as of 25.09.2020
         ]
@@ -831,7 +832,8 @@ class TestActiveLearner(unittest.TestCase):
         properly for on_transformed=True query strategies.
         """
         query_strategies = [
-            modAL.batch.uncertainty_batch_sampling
+            modAL.batch.uncertainty_batch_sampling,
+            modAL.batch.diverse_batch_kmeans,
             # add further strategies which work with instance representations
             # no further ones as of 09.12.2020
         ]
@@ -1152,7 +1154,8 @@ class TestCommittee(unittest.TestCase):
         n_samples = 10
         n_features = 5
         query_strategies = [
-            modAL.batch.uncertainty_batch_sampling
+            modAL.batch.uncertainty_batch_sampling,
+            modAL.batch.diverse_batch_kmeans,
             # add further strategies which work with instance representations
             # no further ones as of 25.09.2020
         ]
@@ -1318,6 +1321,7 @@ class TestExamples(unittest.TestCase):
         import example_tests.information_density
         import example_tests.bayesian_optimization
         import example_tests.ranked_batch_mode
+        import example_tests.diverse_batch_kmeans
 
 
 if __name__ == '__main__':
