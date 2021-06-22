@@ -255,12 +255,13 @@ def kmeans_batch(
 
     # Avoids ValueErrors when we try to sample more instances than we have data points
     n_clusters = min(n_instances, unlabeled.shape[0])
-    
+
+    # Fit kmeans to data
     kmeans = KMeans(n_clusters=n_clusters)
     kmeans.fit(unlabeled, sample_weight=uncertainty_scores)
-    min_distances = np.min(kmeans.transform(unlabeled), axis=1)
 
-    return np.argsort(min_distances)[:n_instances]
+    # Return closest point to each cluster center
+    return np.argmin(kmeans.transform(unlabeled), axis=0)
 
 
 def diverse_batch_kmeans(classifier: Union[BaseLearner, BaseCommittee],
