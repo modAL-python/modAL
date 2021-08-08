@@ -1,5 +1,5 @@
 import numpy as np
-import torch 
+import torch
 from collections.abc import Mapping
 from typing import Callable
 
@@ -14,15 +14,18 @@ from modAL.utils.selection import multi_argmax, shuffled_argmax
 
 from skorch.utils import to_numpy
 
-def default_logits_adaptor(input_tensor: torch.tensor, samples: modALinput): 
+
+def default_logits_adaptor(input_tensor: torch.tensor, samples: modALinput):
     # default Callable parameter for get_predictions
     return input_tensor
 
-def mc_dropout_multi(classifier: BaseEstimator, X: modALinput, query_strategies: list = ["bald", "mean_st", "max_entropy", "max_var"], 
-                n_instances: int = 1, random_tie_break: bool = False, dropout_layer_indexes: list = [], 
-                num_cycles : int = 50, sample_per_forward_pass: int = 1000,
-                logits_adaptor: Callable[[torch.tensor, modALinput], torch.tensor] = default_logits_adaptor,
-                **mc_dropout_kwargs) -> np.ndarray:
+
+def mc_dropout_multi(classifier: BaseEstimator, X: modALinput, query_strategies: list = ["bald", "mean_st", "max_entropy", "max_var"],
+                     n_instances: int = 1, random_tie_break: bool = False, dropout_layer_indexes: list = [],
+                     num_cycles: int = 50, sample_per_forward_pass: int = 1000,
+                     logits_adaptor: Callable[[
+                         torch.tensor, modALinput], torch.tensor] = default_logits_adaptor,
+                     **mc_dropout_kwargs) -> np.ndarray:
     """
     Multi metric dropout query strategy. Returns the specified metrics for given input data.
     Selection of query strategies are:
@@ -35,7 +38,8 @@ def mc_dropout_multi(classifier: BaseEstimator, X: modALinput, query_strategies:
     Function returns dictionary of metrics with their name as key.
     The indices of the n-best samples (n_instances) is not used in this function.
     """
-    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles, sample_per_forward_pass, logits_adaptor)
+    predictions = get_predictions(
+        classifier, X, dropout_layer_indexes, num_cycles, sample_per_forward_pass, logits_adaptor)
 
     metrics_dict = {}
     if "bald" in query_strategies:
@@ -49,11 +53,13 @@ def mc_dropout_multi(classifier: BaseEstimator, X: modALinput, query_strategies:
 
     return None, metrics_dict
 
+
 def mc_dropout_bald(classifier: BaseEstimator, X: modALinput, n_instances: int = 1,
-                random_tie_break: bool = False, dropout_layer_indexes: list = [], 
-                num_cycles : int = 50, sample_per_forward_pass: int = 1000, 
-                logits_adaptor: Callable[[torch.tensor, modALinput], torch.tensor] = default_logits_adaptor,
-                **mc_dropout_kwargs,) -> np.ndarray:
+                    random_tie_break: bool = False, dropout_layer_indexes: list = [],
+                    num_cycles: int = 50, sample_per_forward_pass: int = 1000,
+                    logits_adaptor: Callable[[
+                        torch.tensor, modALinput], torch.tensor] = default_logits_adaptor,
+                    **mc_dropout_kwargs,) -> np.ndarray:
     """
         Mc-Dropout bald query strategy. Returns the indexes of the instances with the largest BALD 
         (Bayesian Active Learning by Disagreement) score calculated through the dropout cycles
@@ -88,8 +94,9 @@ def mc_dropout_bald(classifier: BaseEstimator, X: modALinput, n_instances: int =
             The indices of the instances from X chosen to be labelled;
             The mc-dropout metric of the chosen instances; 
     """
-    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles, sample_per_forward_pass, logits_adaptor)
-    #calculate BALD (Bayesian active learning divergence))
+    predictions = get_predictions(
+        classifier, X, dropout_layer_indexes, num_cycles, sample_per_forward_pass, logits_adaptor)
+    # calculate BALD (Bayesian active learning divergence))
 
     bald_scores = _bald_divergence(predictions)
 
@@ -98,11 +105,13 @@ def mc_dropout_bald(classifier: BaseEstimator, X: modALinput, n_instances: int =
 
     return shuffled_argmax(bald_scores, n_instances=n_instances)
 
+
 def mc_dropout_mean_st(classifier: BaseEstimator, X: modALinput, n_instances: int = 1,
-                random_tie_break: bool = False, dropout_layer_indexes: list = [], 
-                num_cycles : int = 50, sample_per_forward_pass: int = 1000,
-                logits_adaptor: Callable[[torch.tensor, modALinput], torch.tensor] = default_logits_adaptor,
-                **mc_dropout_kwargs) -> np.ndarray:
+                       random_tie_break: bool = False, dropout_layer_indexes: list = [],
+                       num_cycles: int = 50, sample_per_forward_pass: int = 1000,
+                       logits_adaptor: Callable[[
+                           torch.tensor, modALinput], torch.tensor] = default_logits_adaptor,
+                       **mc_dropout_kwargs) -> np.ndarray:
     """
         Mc-Dropout mean standard deviation query strategy. Returns the indexes of the instances 
         with the largest mean of the per class calculated standard deviations over multiple dropout cycles
@@ -135,7 +144,8 @@ def mc_dropout_mean_st(classifier: BaseEstimator, X: modALinput, n_instances: in
     """
 
     # set dropout layers to train mode
-    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles, sample_per_forward_pass, logits_adaptor)
+    predictions = get_predictions(
+        classifier, X, dropout_layer_indexes, num_cycles, sample_per_forward_pass, logits_adaptor)
 
     mean_standard_deviations = _mean_standard_deviation(predictions)
 
@@ -144,11 +154,13 @@ def mc_dropout_mean_st(classifier: BaseEstimator, X: modALinput, n_instances: in
 
     return shuffled_argmax(mean_standard_deviations, n_instances=n_instances)
 
+
 def mc_dropout_max_entropy(classifier: BaseEstimator, X: modALinput, n_instances: int = 1,
-                random_tie_break: bool = False, dropout_layer_indexes: list = [], 
-                num_cycles : int = 50, sample_per_forward_pass: int = 1000,
-                logits_adaptor: Callable[[torch.tensor, modALinput], torch.tensor] = default_logits_adaptor,
-                **mc_dropout_kwargs) -> np.ndarray:
+                           random_tie_break: bool = False, dropout_layer_indexes: list = [],
+                           num_cycles: int = 50, sample_per_forward_pass: int = 1000,
+                           logits_adaptor: Callable[[
+                               torch.tensor, modALinput], torch.tensor] = default_logits_adaptor,
+                           **mc_dropout_kwargs) -> np.ndarray:
     """
         Mc-Dropout maximum entropy query strategy. Returns the indexes of the instances 
         with the largest entropy of the per class calculated entropies over multiple dropout cycles
@@ -179,9 +191,10 @@ def mc_dropout_max_entropy(classifier: BaseEstimator, X: modALinput, n_instances
             The indices of the instances from X chosen to be labelled;
             The mc-dropout metric of the chosen instances; 
     """
-    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles, sample_per_forward_pass, logits_adaptor)
+    predictions = get_predictions(
+        classifier, X, dropout_layer_indexes, num_cycles, sample_per_forward_pass, logits_adaptor)
 
-    #get entropy values for predictions
+    # get entropy values for predictions
     entropy = _entropy(predictions)
 
     if not random_tie_break:
@@ -189,11 +202,13 @@ def mc_dropout_max_entropy(classifier: BaseEstimator, X: modALinput, n_instances
 
     return shuffled_argmax(entropy, n_instances=n_instances)
 
+
 def mc_dropout_max_variationRatios(classifier: BaseEstimator, X: modALinput, n_instances: int = 1,
-                random_tie_break: bool = False, dropout_layer_indexes: list = [], 
-                num_cycles : int = 50, sample_per_forward_pass: int = 1000,
-                logits_adaptor: Callable[[torch.tensor, modALinput], torch.tensor] = default_logits_adaptor,
-                **mc_dropout_kwargs) -> np.ndarray:
+                                   random_tie_break: bool = False, dropout_layer_indexes: list = [],
+                                   num_cycles: int = 50, sample_per_forward_pass: int = 1000,
+                                   logits_adaptor: Callable[[
+                                       torch.tensor, modALinput], torch.tensor] = default_logits_adaptor,
+                                   **mc_dropout_kwargs) -> np.ndarray:
     """
         Mc-Dropout maximum variation ratios query strategy. Returns the indexes of the instances 
         with the largest variation ratios over multiple dropout cycles
@@ -224,9 +239,10 @@ def mc_dropout_max_variationRatios(classifier: BaseEstimator, X: modALinput, n_i
             The indices of the instances from X chosen to be labelled;
             The mc-dropout metric of the chosen instances; 
     """
-    predictions = get_predictions(classifier, X, dropout_layer_indexes, num_cycles, sample_per_forward_pass, logits_adaptor)
+    predictions = get_predictions(
+        classifier, X, dropout_layer_indexes, num_cycles, sample_per_forward_pass, logits_adaptor)
 
-    #get variation ratios values for predictions
+    # get variation ratios values for predictions
     variationRatios = _variation_ratios(predictions)
 
     if not random_tie_break:
@@ -234,9 +250,10 @@ def mc_dropout_max_variationRatios(classifier: BaseEstimator, X: modALinput, n_i
 
     return shuffled_argmax(variationRatios, n_instances=n_instances)
 
+
 def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_indexes: list,
-                num_predictions: int = 50, sample_per_forward_pass: int = 1000,
-                logits_adaptor: Callable[[torch.tensor, modALinput], torch.tensor] = default_logits_adaptor):
+                    num_predictions: int = 50, sample_per_forward_pass: int = 1000,
+                    logits_adaptor: Callable[[torch.tensor, modALinput], torch.tensor] = default_logits_adaptor):
     """
         Runs num_predictions times the prediction of the classifier on the input X 
         and puts the predictions in a list.
@@ -258,61 +275,61 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_inde
 
     predictions = []
     # set dropout layers to train mode
-    set_dropout_mode(classifier.estimator.module_, dropout_layer_indexes, train_mode=True)
+    set_dropout_mode(classifier.estimator.module_,
+                     dropout_layer_indexes, train_mode=True)
 
     split_args = []
 
-    number_of_samples = 0
-
-    if isinstance(X, Mapping): #check for dict
+    if isinstance(X, Mapping):  # check for dict
         for k, v in X.items():
-            number_of_samples = v.size(0)
 
             v.detach()
             split_v = torch.split(v, sample_per_forward_pass)
-            #create sub-dictionary split for each forward pass with same keys&values
+            # create sub-dictionary split for each forward pass with same keys&values
             for split_idx, split in enumerate(split_v):
-                if len(split_args)<=split_idx:
+                if len(split_args) <= split_idx:
                     split_args.append({})
                 split_args[split_idx][k] = split
-        
-    elif torch.is_tensor(X): #check for tensor
-        number_of_samples = X.size(0)
+
+    elif torch.is_tensor(X):  # check for tensor
         X.detach()
         split_args = torch.split(X, sample_per_forward_pass)
     else:
-        raise RuntimeError("Error in model data type, only dict or tensors supported")
-
+        raise RuntimeError(
+            "Error in model data type, only dict or tensors supported")
 
     for i in range(num_predictions):
 
         probas = []
 
-        for index, samples in enumerate(split_args):
-            #call Skorch infer function to perform model forward pass
-            #In comparison to: predict(), predict_proba() the infer() 
-            # does not change train/eval mode of other layers 
-            with torch.no_grad(): 
+        for samples in split_args:
+            # call Skorch infer function to perform model forward pass
+            # In comparison to: predict(), predict_proba() the infer()
+            # does not change train/eval mode of other layers
+            with torch.no_grad():
                 logits = classifier.estimator.infer(samples)
                 prediction = logits_adaptor(logits, samples)
                 mask = ~prediction.isnan()
                 prediction[mask] = prediction[mask].softmax(-1)
                 probas.append(prediction)
-        
+
         probas = torch.cat(probas)
         predictions.append(to_numpy(probas))
 
     # set dropout layers to eval
-    set_dropout_mode(classifier.estimator.module_, dropout_layer_indexes, train_mode=False)
+    set_dropout_mode(classifier.estimator.module_,
+                     dropout_layer_indexes, train_mode=False)
 
     return predictions
 
-def entropy_sum(values: np.array, axis: int =-1):
-    #sum Scipy basic entropy function: entr()
+
+def entropy_sum(values: np.array, axis: int = -1):
+    # sum Scipy basic entropy function: entr()
     entropy = entr(values)
     return np.sum(entropy, where=~np.isnan(entropy), axis=axis)
 
-def _mean_standard_deviation(proba: list) -> np.ndarray: 
+
+def _mean_standard_deviation(proba: list) -> np.ndarray:
     """
         Calculates the mean of the per class calculated standard deviations.
 
@@ -327,14 +344,16 @@ def _mean_standard_deviation(proba: list) -> np.ndarray:
             Returns the mean standard deviation of the dropout cycles over all classes. 
     """
 
-    proba_stacked = np.stack(proba, axis=len(proba[0].shape)) 
+    proba_stacked = np.stack(proba, axis=len(proba[0].shape))
 
     standard_deviation_class_vise = np.std(proba_stacked, axis=-1)
-    mean_standard_deviation = np.mean(standard_deviation_class_vise, where=~np.isnan(standard_deviation_class_vise), axis=-1)
+    mean_standard_deviation = np.mean(standard_deviation_class_vise, where=~np.isnan(
+        standard_deviation_class_vise), axis=-1)
 
     return mean_standard_deviation
 
-def _entropy(proba: list) -> np.ndarray: 
+
+def _entropy(proba: list) -> np.ndarray:
     """
         Calculates the entropy per class over dropout cycles
 
@@ -349,14 +368,16 @@ def _entropy(proba: list) -> np.ndarray:
             Returns the entropy of the dropout cycles over all classes. 
     """
 
-    proba_stacked = np.stack(proba, axis=len(proba[0].shape)) 
+    proba_stacked = np.stack(proba, axis=len(proba[0].shape))
 
-    #calculate entropy per class and sum along dropout cycles
+    # calculate entropy per class and sum along dropout cycles
     entropy_classes = entropy_sum(proba_stacked, axis=-1)
-    entropy = np.mean(entropy_classes, where=~np.isnan(entropy_classes), axis=-1)
+    entropy = np.mean(entropy_classes, where=~
+                      np.isnan(entropy_classes), axis=-1)
     return entropy
 
-def _variation_ratios(proba: list) -> np.ndarray: 
+
+def _variation_ratios(proba: list) -> np.ndarray:
     """
         Calculates the variation ratios over dropout cycles
 
@@ -370,11 +391,12 @@ def _variation_ratios(proba: list) -> np.ndarray:
         Return: 
             Returns the variation ratios of the dropout cycles. 
     """
-    proba_stacked = np.stack(proba, axis=len(proba[0].shape)) 
+    proba_stacked = np.stack(proba, axis=len(proba[0].shape))
 
-    #Calculate the variation ratios over the mean of dropout cycles
+    # Calculate the variation ratios over the mean of dropout cycles
     valuesDCMean = np.mean(proba_stacked, axis=-1)
     return 1 - np.amax(valuesDCMean, initial=0, where=~np.isnan(valuesDCMean), axis=-1)
+
 
 def _bald_divergence(proba: list) -> np.ndarray:
     """
@@ -392,23 +414,23 @@ def _bald_divergence(proba: list) -> np.ndarray:
     """
     proba_stacked = np.stack(proba, axis=len(proba[0].shape))
 
-    #entropy along dropout cycles
+    # entropy along dropout cycles
     accumulated_entropy = entropy_sum(proba_stacked, axis=-1)
     f_x = accumulated_entropy/len(proba)
 
-    #score sums along dropout cycles 
+    # score sums along dropout cycles
     accumulated_score = np.sum(proba_stacked, axis=-1)
     average_score = accumulated_score/len(proba)
-    #expand dimension w/o data for entropy calculation
+    # expand dimension w/o data for entropy calculation
     average_score = np.expand_dims(average_score, axis=-1)
 
-    #entropy over average prediction score 
+    # entropy over average prediction score
     g_x = entropy_sum(average_score, axis=-1)
 
-    #entropy differences
+    # entropy differences
     diff = np.subtract(g_x, f_x)
 
-    #sum all dimensions of diff besides first dim (instances) 
+    # sum all dimensions of diff besides first dim (instances)
     shaped = np.reshape(diff, (diff.shape[0], -1))
 
     bald = np.sum(shaped, where=~np.isnan(shaped), axis=-1)
@@ -417,23 +439,30 @@ def _bald_divergence(proba: list) -> np.ndarray:
 
 def set_dropout_mode(model, dropout_layer_indexes: list, train_mode: bool):
     """ 
-        Function to enable the dropout layers by setting them to user specified mode (bool: train_mode)
+        Function to change the mode of the dropout layers (bool: train_mode -> train or evaluation)
+
+        Args: 
+            model: Pytorch model
+            dropout_layer_indexes: Indexes of the dropout layers which should be activated
+                Choose indices from : list(torch_model.modules())    
+            train_mode: boolean, true <=> train_mode, false <=> evaluation_mode 
     """
 
-    modules = list(model.modules()) # list of all modules in the network.
-    
-    if len(dropout_layer_indexes) != 0:  
-        for index in dropout_layer_indexes: 
+    modules = list(model.modules())  # list of all modules in the network.
+
+    if len(dropout_layer_indexes) != 0:
+        for index in dropout_layer_indexes:
             layer = modules[index]
-            if layer.__class__.__name__.startswith('Dropout'): 
+            if layer.__class__.__name__.startswith('Dropout'):
                 if True == train_mode:
                     layer.train()
                 elif False == train_mode:
                     layer.eval()
-            else: 
-                raise KeyError("The passed index: {} is not a Dropout layer".format(index))
+            else:
+                raise KeyError(
+                    "The passed index: {} is not a Dropout layer".format(index))
 
-    else: 
+    else:
         for module in modules:
             if module.__class__.__name__.startswith('Dropout'):
                 if True == train_mode:

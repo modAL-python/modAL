@@ -41,6 +41,7 @@ class BaseLearner(ABC, BaseEstimator):
         estimator: The estimator to be used in the active learning loop.
         query_strategy: Function providing the query strategy for the active learning loop.
     """
+
     def __init__(self,
                  estimator: BaseEstimator,
                  query_strategy: Callable,
@@ -54,7 +55,8 @@ class BaseLearner(ABC, BaseEstimator):
         self.query_strategy = query_strategy
         self.on_transformed = on_transformed
 
-        assert isinstance(force_all_finite, bool), 'force_all_finite must be a bool'
+        assert isinstance(force_all_finite,
+                          bool), 'force_all_finite must be a bool'
         self.force_all_finite = force_all_finite
 
     def transform_without_estimating(self, X: modALinput) -> Union[np.ndarray, sp.csr_matrix]:
@@ -86,7 +88,8 @@ class BaseLearner(ABC, BaseEstimator):
                 #       components but the final estimator, which is replaced by an empty (passthrough) component.
                 #       This prevents any special handling of the final transformation pipe, which is usually
                 #       expected to be an estimator.
-                transformation_pipe = pipe.__class__(steps=[*pipe.steps[:-1], ('passthrough', 'passthrough')])
+                transformation_pipe = pipe.__class__(
+                    steps=[*pipe.steps[:-1], ('passthrough', 'passthrough')])
                 Xt.append(transformation_pipe.transform(X))
 
         # in case no transformation pipelines are used by the estimator,
@@ -115,7 +118,8 @@ class BaseLearner(ABC, BaseEstimator):
         if not bootstrap:
             self.estimator.fit(X, y, **fit_kwargs)
         else:
-            bootstrap_idx = np.random.choice(range(X.shape[0]), X.shape[0], replace=True)
+            bootstrap_idx = np.random.choice(
+                range(X.shape[0]), X.shape[0], replace=True)
             self.estimator.fit(X[bootstrap_idx], y[bootstrap_idx])
 
         return self
@@ -150,12 +154,13 @@ class BaseLearner(ABC, BaseEstimator):
         """
         return self.estimator.predict_proba(X, **predict_proba_kwargs)
 
-    def query(self, X_pool, *query_args, **query_kwargs) -> Union[Tuple, modALinput]:
+    def query(self, X_pool, return_metrics: bool = False, *query_args, **query_kwargs) -> Union[Tuple, modALinput]:
         """
         Finds the n_instances most informative point in the data provided by calling the query_strategy function.
 
         Args:
             X_pool: Pool of unlabeled instances to retrieve most informative instances from
+            return_metrics: boolean to indicate, if the corresponding query metrics should be (not) returned
             *query_args: The arguments for the query strategy. For instance, in the case of
                 :func:`~modAL.uncertainty.uncertainty_sampling`, it is the pool of samples from which the query strategy
                 should choose instances to request labels.
@@ -165,16 +170,24 @@ class BaseLearner(ABC, BaseEstimator):
             Value of the query_strategy function. Should be the indices of the instances from the pool chosen to be
             labelled and the instances themselves. Can be different in other cases, for instance only the instance to be
             labelled upon query synthesis.
+            query_metrics: returns also the corresponding metrics, if return_metrics == True
         """
-        query_result, query_metrics = self.query_strategy(self, X_pool, *query_args, **query_kwargs)
 
-        if isinstance(query_result, tuple):
-            warnings.warn("Query strategies should no longer return the selected instances, "
-                          "this is now handled by the query method. "
-                          "Please return only the indices of the selected instances.", DeprecationWarning)
-            return query_result
+        try:
+            query_result, query_metrics = self.query_strategy(
+                self, X_pool, *query_args, **query_kwargs)
 
-        return query_result, retrieve_rows(X_pool, query_result), query_metrics
+        except TypeError:
+            query_metrics = None
+            query_result = self.query_strategy(
+                self, X_pool, *query_args, **query_kwargs)
+            warnings.warn(
+                "The selected query strategy doesn't support return_metrics")
+
+        if return_metrics:
+            return query_result, retrieve_rows(X_pool, query_result), query_metrics
+        else:
+            return query_result, retrieve_rows(X_pool, query_result)
 
     def score(self, X: modALinput, y: modALinput, **score_kwargs) -> Any:
         """
@@ -205,13 +218,13 @@ class BaseCommittee(ABC, BaseEstimator):
         on_transformed: Whether to transform samples with the pipeline defined by each learner's estimator
             when applying the query strategy.
     """
+
     def __init__(self, learner_list: List[BaseLearner], query_strategy: Callable, on_transformed: bool = False) -> None:
         assert type(learner_list) == list, 'learners must be supplied in a list'
 
         self.learner_list = learner_list
         self.query_strategy = query_strategy
         self.on_transformed = on_transformed
-
 
     def __iter__(self) -> Iterator[BaseLearner]:
         for learner in self.learner_list:
@@ -264,12 +277,13 @@ class BaseCommittee(ABC, BaseEstimator):
         """
         return data_hstack([learner.transform_without_estimating(X) for learner in self.learner_list])
 
-    def query(self, X_pool, *query_args, **query_kwargs) -> Union[Tuple, modALinput]:
+    def query(self, X_pool, return_metrics: bool = False, *query_args, **query_kwargs) -> Union[Tuple, modALinput]:
         """
         Finds the n_instances most informative point in the data provided by calling the query_strategy function.
 
         Args:
             X_pool: Pool of unlabeled instances to retrieve most informative instances from
+            return_metrics: boolean to indicate, if the corresponding query metrics should be (not) returned
             *query_args: The arguments for the query strategy. For instance, in the case of
                 :func:`~modAL.disagreement.max_disagreement_sampling`, it is the pool of samples from which the query.
                 strategy should choose instances to request labels.
@@ -279,16 +293,24 @@ class BaseCommittee(ABC, BaseEstimator):
             Return value of the query_strategy function. Should be the indices of the instances from the pool chosen to
             be labelled and the instances themselves. Can be different in other cases, for instance only the instance to
             be labelled upon query synthesis.
+            query_metrics: returns also the corresponding metrics, if return_metrics == True
         """
-        query_result, query_metrics = self.query_strategy(self, X_pool, *query_args, **query_kwargs)
 
-        if isinstance(query_result, tuple):
-            warnings.warn("Query strategies should no longer return the selected instances, "
-                          "this is now handled by the query method. "
-                          "Please return only the indices of the selected instances", DeprecationWarning)
-            return query_result
+        try:
+            query_result, query_metrics = self.query_strategy(
+                self, X_pool, *query_args, **query_kwargs)
 
-        return query_result, retrieve_rows(X_pool, query_result), query_metrics
+        except TypeError:
+            query_metrics = None
+            query_result = self.query_strategy(
+                self, X_pool, *query_args, **query_kwargs)
+            warnings.warn(
+                "The selected query strategy doesn't support return_metrics")
+
+        if return_metrics:
+            return query_result, retrieve_rows(X_pool, query_result), query_metrics
+        else:
+            return query_result, retrieve_rows(X_pool, query_result)
 
     def _set_classes(self):
         """
@@ -298,7 +320,8 @@ class BaseCommittee(ABC, BaseEstimator):
         # assemble the list of known classes from each learner
         try:
             # if estimators are fitted
-            known_classes = tuple(learner.estimator.classes_ for learner in self.learner_list)
+            known_classes = tuple(
+                learner.estimator.classes_ for learner in self.learner_list)
         except AttributeError:
             # handle unfitted estimators
             self.classes_ = None
@@ -311,7 +334,6 @@ class BaseCommittee(ABC, BaseEstimator):
         )
         self.n_classes_ = len(self.classes_)
 
-
         pass
 
     @abc.abstractmethod
@@ -321,4 +343,3 @@ class BaseCommittee(ABC, BaseEstimator):
     @abc.abstractmethod
     def vote_proba(self, X: modALinput, **predict_proba_kwargs) -> Any:
         pass
-

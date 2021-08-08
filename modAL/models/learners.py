@@ -83,7 +83,7 @@ class ActiveLearner(BaseLearner):
                  **fit_kwargs
                  ) -> None:
         super().__init__(estimator, query_strategy, on_transformed, **fit_kwargs)
-        
+
         self.X_training = X_training
         self.y_training = y_training
 
@@ -103,7 +103,7 @@ class ActiveLearner(BaseLearner):
             classifier has seen.
         """
         check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None,
-                force_all_finite=self.force_all_finite)
+                  force_all_finite=self.force_all_finite)
 
         if self.X_training is None:
             self.X_training = X
@@ -131,11 +131,13 @@ class ActiveLearner(BaseLearner):
             self.estimator.fit(self.X_training, self.y_training, **fit_kwargs)
         else:
             n_instances = self.X_training.shape[0]
-            bootstrap_idx = np.random.choice(range(n_instances), n_instances, replace=True)
-            self.estimator.fit(self.X_training[bootstrap_idx], self.y_training[bootstrap_idx], **fit_kwargs)
+            bootstrap_idx = np.random.choice(
+                range(n_instances), n_instances, replace=True)
+            self.estimator.fit(
+                self.X_training[bootstrap_idx], self.y_training[bootstrap_idx], **fit_kwargs)
 
-        return self    
-    
+        return self
+
     def fit(self, X: modALinput, y: modALinput, bootstrap: bool = False, **fit_kwargs) -> 'BaseLearner':
         """
         Interface for the fit method of the predictor. Fits the predictor to the supplied data, then stores it
@@ -154,9 +156,9 @@ class ActiveLearner(BaseLearner):
 
         Returns:
             self
-        """            
+        """
         check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None,
-                    force_all_finite=self.force_all_finite)
+                  force_all_finite=self.force_all_finite)
         self.X_training, self.y_training = X, y
         return self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
@@ -179,8 +181,9 @@ class ActiveLearner(BaseLearner):
             self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
         else:
             check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None,
-                force_all_finite=self.force_all_finite)
+                      force_all_finite=self.force_all_finite)
             self._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
+
 
 class DeepActiveLearner(BaseLearner):
     """
@@ -209,10 +212,10 @@ class DeepActiveLearner(BaseLearner):
                  on_transformed: bool = False,
                  **fit_kwargs
                  ) -> None:
-        #TODO: Check if given query strategy works for Deep Learning
+        # TODO: Check if given query strategy works for Deep Learning
         super().__init__(estimator, query_strategy, on_transformed, **fit_kwargs)
 
-        self.estimator.initialize() # does maybe just work with pytorch
+        self.estimator.initialize()
 
     def fit(self, X: modALinput, y: modALinput, bootstrap: bool = False, **fit_kwargs) -> 'BaseLearner':
         """
@@ -228,7 +231,7 @@ class DeepActiveLearner(BaseLearner):
 
         Returns:
             self
-        """            
+        """
         return self._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
 
     def teach(self, X: modALinput, y: modALinput, warm_start: bool = True, bootstrap: bool = False, **fit_kwargs) -> None:
@@ -245,15 +248,17 @@ class DeepActiveLearner(BaseLearner):
             **fit_kwargs: Keyword arguments to be passed to the fit method of the predictor.
         """
 
-        if warm_start: 
-            if not bootstrap: 
+        if warm_start:
+            if not bootstrap:
                 self.estimator.partial_fit(X, y, **fit_kwargs)
             else:
-                bootstrap_idx = np.random.choice(range(X.shape[0]), X.shape[0], replace=True)
-                self.estimator.partial_fit(X[bootstrap_idx], y[bootstrap_idx], **fit_kwargs)
-        else: 
+                bootstrap_idx = np.random.choice(
+                    range(X.shape[0]), X.shape[0], replace=True)
+                self.estimator.partial_fit(
+                    X[bootstrap_idx], y[bootstrap_idx], **fit_kwargs)
+        else:
             self._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
-    
+
     @property
     def num_epochs(self):
         """
@@ -268,11 +273,11 @@ class DeepActiveLearner(BaseLearner):
         can be changed at any time, even after the model was trained.
         """
         if isinstance(value, int):
-            if 0 < value <= 100: 
+            if 0 < value <= 100:
                 self.estimator.max_epochs = value
-            else: 
+            else:
                 raise ValueError("num_epochs must be in range 0 < x <= 100")
-        else: 
+        else:
             raise TypeError("num_epochs must be of type integer!")
 
     @property
@@ -289,11 +294,11 @@ class DeepActiveLearner(BaseLearner):
         can be changed at any time, even after the model was trained.
         """
         if isinstance(value, int):
-            if 0 < value: 
+            if 0 < value:
                 self.estimator.batch_size = value
-            else: 
+            else:
                 raise ValueError("batch size must be larger than 0")
-        else: 
+        else:
             raise TypeError("batch size must be of type integer!")
 
 
@@ -369,6 +374,7 @@ class BayesianOptimizer(ActiveLearner):
         ...         query_idx, query_inst = optimizer.query(X)
         ...         optimizer.teach(X[query_idx].reshape(1, -1), y[query_idx].reshape(1, -1))
     """
+
     def __init__(self,
                  estimator: BaseEstimator,
                  query_strategy: Callable = max_EI,
@@ -485,13 +491,14 @@ class Committee(BaseCommittee):
         ...     y=iris['target'][query_idx].reshape(1, )
         ... )
     """
+
     def __init__(self, learner_list: List[ActiveLearner], query_strategy: Callable = vote_entropy_sampling,
                  on_transformed: bool = False) -> None:
         super().__init__(learner_list, query_strategy, on_transformed)
         self._set_classes()
         # TODO: update training data when using fit() and teach() methods
         self.X_training = None
-    
+
     def _add_training_data(self, X: modALinput, y: modALinput) -> None:
         """
         Adds the new data and label to the known data for each learner, but does not retrain the model.
@@ -506,7 +513,7 @@ class Committee(BaseCommittee):
         """
         for learner in self.learner_list:
             learner._add_training_data(X, y)
-    
+
     def _fit_to_known(self, bootstrap: bool = False, **fit_kwargs) -> None:
         """
         Fits all learners to the training data and labels provided to it so far.
@@ -518,7 +525,7 @@ class Committee(BaseCommittee):
         """
         for learner in self.learner_list:
             learner._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
-    
+
     def fit(self, X: modALinput, y: modALinput, **fit_kwargs) -> None:
         """
         Fits every learner to a subset sampled with replacement from X. Calling this method makes the learner forget the
@@ -534,7 +541,7 @@ class Committee(BaseCommittee):
         """
         for learner in self.learner_list:
             learner.fit(X, y, **fit_kwargs)
-        
+
         self._set_classes()
 
     def rebag(self, **fit_kwargs) -> None:
@@ -658,7 +665,8 @@ class Committee(BaseCommittee):
             # probability prediction is straightforward
 
             for learner_idx, learner in enumerate(self.learner_list):
-                proba[:, learner_idx, :] = learner.predict_proba(X, **predict_proba_kwargs)
+                proba[:, learner_idx, :] = learner.predict_proba(
+                    X, **predict_proba_kwargs)
 
         else:
             for learner_idx, learner in enumerate(self.learner_list):
@@ -721,13 +729,14 @@ class DeepCommittee(BaseCommittee):
         ...     y=iris['target'][query_idx].reshape(1, )
         ... )
     """
+
     def __init__(self, learner_list: List[DeepActiveLearner], query_strategy: Callable = vote_entropy_sampling,
                  on_transformed: bool = False) -> None:
         super().__init__(learner_list, query_strategy, on_transformed)
         self._set_classes()
         # TODO: update training data when using fit() and teach() methods
         self.X_training = None
-    
+
     def fit(self, X: modALinput, y: modALinput, **fit_kwargs) -> None:
         """
         Fits every learner to a subset sampled with replacement from X. Calling this method makes the learner forget the
@@ -743,7 +752,7 @@ class DeepCommittee(BaseCommittee):
         """
         for learner in self.learner_list:
             learner.fit(X, y, **fit_kwargs)
-        
+
         self._set_classes()
 
     def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, **fit_kwargs) -> None:
@@ -851,7 +860,8 @@ class DeepCommittee(BaseCommittee):
             # probability prediction is straightforward
 
             for learner_idx, learner in enumerate(self.learner_list):
-                proba[:, learner_idx, :] = learner.predict_proba(X, **predict_proba_kwargs)
+                proba[:, learner_idx, :] = learner.predict_proba(
+                    X, **predict_proba_kwargs)
 
         else:
             for learner_idx, learner in enumerate(self.learner_list):
@@ -916,6 +926,7 @@ class CommitteeRegressor(BaseCommittee):
         ...     query_idx, query_instance = committee.query(X.reshape(-1, 1))
         ...     committee.teach(X[query_idx].reshape(-1, 1), y[query_idx].reshape(-1, 1))
     """
+
     def __init__(self, learner_list: List[ActiveLearner], query_strategy: Callable = max_std_sampling,
                  on_transformed: bool = False) -> None:
         super().__init__(learner_list, query_strategy, on_transformed)
@@ -951,6 +962,7 @@ class CommitteeRegressor(BaseCommittee):
         prediction = np.zeros(shape=(len(X), len(self.learner_list)))
 
         for learner_idx, learner in enumerate(self.learner_list):
-            prediction[:, learner_idx] = learner.predict(X, **predict_kwargs).reshape(-1, )
+            prediction[:, learner_idx] = learner.predict(
+                X, **predict_kwargs).reshape(-1, )
 
         return prediction
