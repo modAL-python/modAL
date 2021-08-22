@@ -27,7 +27,7 @@ def data_vstack(blocks: Sequence[modALinput]) -> modALinput:
         return np.concatenate(blocks)
     elif isinstance(blocks[0], list):
         return np.concatenate(blocks).tolist()
-    elif torch.is_tensor(blocks[0]): 
+    elif torch.is_tensor(blocks[0]):
         return torch.cat(blocks)
 
     raise TypeError('%s datatype is not supported' % type(blocks[0]))
@@ -51,23 +51,22 @@ def data_hstack(blocks: Sequence[modALinput]) -> modALinput:
         return np.hstack(blocks)
     elif isinstance(blocks[0], list):
         return np.hstack(blocks).tolist()
-    elif torch.is_tensor(blocks[0]): 
+    elif torch.is_tensor(blocks[0]):
         return torch.cat(blocks, dim=1)
 
     TypeError('%s datatype is not supported' % type(blocks[0]))
 
 
-def add_row(X:modALinput, row: modALinput):
+def add_row(X: modALinput, row: modALinput):
     """
     Returns X' =
 
     [X
 
-    row]
-    """
+    row]    """
     if isinstance(X, np.ndarray):
         return np.vstack((X, row))
-    elif torch.is_tensor(X): 
+    elif torch.is_tensor(X):
         return torch.cat((X, row))
     elif isinstance(X, list):
         return np.vstack((X, row)).tolist()
@@ -102,7 +101,7 @@ def retrieve_rows(X: modALinput,
         return X.iloc[I]
     elif isinstance(X, list):
         return np.array(X)[I].tolist()
-    elif isinstance(X, dict): 
+    elif isinstance(X, dict):
         X_return = {}
         for key, value in X.items():
             X_return[key] = retrieve_rows(value, I)
@@ -118,7 +117,6 @@ def retrieve_rows(X: modALinput,
 def drop_rows(X: modALinput,
               I: Union[int, List[int], np.ndarray]) -> Union[sp.csc_matrix, np.ndarray, pd.DataFrame]:
     """
-    TODO: Add pytorch support
     Returns X without the row(s) at index/indices I
     """
     if sp.issparse(X):
@@ -131,6 +129,9 @@ def drop_rows(X: modALinput,
         return np.delete(X, I, axis=0)
     elif isinstance(X, list):
         return np.delete(X, I, axis=0).tolist()
+    elif torch.is_tensor(X):
+        return X[[True if row not in I else False
+                  for row in range(X.size(0))]]
 
     raise TypeError('%s datatype is not supported' % type(X))
 
@@ -165,7 +166,7 @@ def data_shape(X: modALinput):
         return X.shape
     elif isinstance(X, list):
         return np.array(X).shape
-    elif torch.is_tensor(X): 
+    elif torch.is_tensor(X):
         return tuple(X.size())
 
     raise TypeError('%s datatype is not supported' % type(X))

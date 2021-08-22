@@ -177,7 +177,7 @@ class BaseLearner(ABC, BaseEstimator):
             query_result, query_metrics = self.query_strategy(
                 self, X_pool, *query_args, **query_kwargs)
 
-        except TypeError:
+        except ValueError:
             query_metrics = None
             query_result = self.query_strategy(
                 self, X_pool, *query_args, **query_kwargs)
@@ -247,19 +247,7 @@ class BaseCommittee(ABC, BaseEstimator):
             learner._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
 
     @abc.abstractmethod
-    def fit(self, X: modALinput, y: modALinput, **fit_kwargs) -> Any:
-        pass
-
-    @abc.abstractmethod
     def predict(self, X: modALinput) -> Any:
-        pass
-
-    @abc.abstractmethod
-    def predict_proba(self, X: modALinput, **predict_proba_kwargs) -> Any:
-        pass
-
-    @abc.abstractmethod
-    def score(self, X: modALinput, y: modALinput, sample_weight: List[float] = None) -> Any:
         pass
 
     @abc.abstractmethod
@@ -300,7 +288,7 @@ class BaseCommittee(ABC, BaseEstimator):
             query_result, query_metrics = self.query_strategy(
                 self, X_pool, *query_args, **query_kwargs)
 
-        except TypeError:
+        except ValueError:
             query_metrics = None
             query_result = self.query_strategy(
                 self, X_pool, *query_args, **query_kwargs)
@@ -340,6 +328,3 @@ class BaseCommittee(ABC, BaseEstimator):
     def vote(self, X: modALinput) -> Any:  # TODO: clarify typing
         pass
 
-    @abc.abstractmethod
-    def vote_proba(self, X: modALinput, **predict_proba_kwargs) -> Any:
-        pass
