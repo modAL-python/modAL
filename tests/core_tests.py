@@ -18,6 +18,7 @@ import modAL.disagreement
 import modAL.expected_error
 import modAL.multilabel
 import modAL.uncertainty
+import modAL.dropout
 
 from copy import deepcopy
 from itertools import chain, product
@@ -38,6 +39,8 @@ from scipy import sparse as sp
 
 import torch
 from torch import nn
+
+from skorch import NeuralNetClassifier
 
 Test = namedtuple('Test', ['input', 'output'])
 
@@ -718,18 +721,170 @@ class TestUncertainties(unittest.TestCase):
                         shuffled_query_idx, true_query_idx)
 
 
+# PyTorch model for test cases --> Do not change the layers
+class Torch_Model(nn.Module):
+    def __init__(self,):
+        super(Torch_Model, self).__init__()
+        self.convs = nn.Sequential(
+            nn.Conv2d(1, 32, 3),
+            nn.ReLU(),
+            nn.Conv2d(32, 64, 3),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
+            nn.Dropout(0.25)
+        )
+        self.fcs = nn.Sequential(
+            nn.Linear(12*12*64, 128),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(128, 10),
+        )
+
+    def forward(self, x):
+        return x
+
+
 class TestDropout(unittest.TestCase):
-    def test_mc_dropout_bald(self): pass
-    def test_mc_dropout_mean_st(self): pass
-    def test_mc_dropout_max_entropy(self): pass
-    def test_mc_dropout_max_variationRatios(self): pass
-    def test_get_predictions(self): pass
-    def test_set_dropout_mode(self): pass
+    def setUp(self):
+        self.skorch_classifier = NeuralNetClassifier(Torch_Model,
+                                                     criterion=torch.nn.CrossEntropyLoss,
+                                                     optimizer=torch.optim.Adam,
+                                                     train_split=None,
+                                                     verbose=1)
+
+    def test_mc_dropout_bald(self):
+        learner = modAL.models.learners.DeepActiveLearner(
+            estimator=self.skorch_classifier,
+            query_strategy=modAL.dropout.mc_dropout_bald,
+        )
+        for random_tie_break in [True, False]:
+            for num_cycles, sample_per_forward_pass in product(range(1, 5), range(1, 5)):
+                for n_samples, n_classes in product(range(1, 5), range(1, 5)):
+                    for n_instances in range(1, n_samples):
+                        X_pool = torch.randn(n_samples, n_classes)
+                        modAL.dropout.mc_dropout_bald(learner, X_pool, n_instances, random_tie_break, [],
+                                                      num_cycles, sample_per_forward_pass)
+
+    def test_mc_dropout_mean_st(self):
+        learner = modAL.models.learners.DeepActiveLearner(
+            estimator=self.skorch_classifier,
+            query_strategy=modAL.dropout.mc_dropout_mean_st,
+        )
+        for random_tie_break in [True, False]:
+            for num_cycles, sample_per_forward_pass in product(range(1, 5), range(1, 5)):
+                for n_samples, n_classes in product(range(1, 5), range(1, 5)):
+                    for n_instances in range(1, n_samples):
+                        X_pool = torch.randn(n_samples, n_classes)
+                        modAL.dropout.mc_dropout_mean_st(learner, X_pool, n_instances, random_tie_break, [],
+                                                         num_cycles, sample_per_forward_pass)
+
+    def test_mc_dropout_max_entropy(self):
+        learner = modAL.models.learners.DeepActiveLearner(
+            estimator=self.skorch_classifier,
+            query_strategy=modAL.dropout.mc_dropout_max_entropy,
+        )
+        for random_tie_break in [True, False]:
+            for num_cycles, sample_per_forward_pass in product(range(1, 5), range(1, 5)):
+                for n_samples, n_classes in product(range(1, 5), range(1, 5)):
+                    for n_instances in range(1, n_samples):
+                        X_pool = torch.randn(n_samples, n_classes)
+                        modAL.dropout.mc_dropout_max_entropy(learner, X_pool, n_instances, random_tie_break, [],
+                                                             num_cycles, sample_per_forward_pass)
+
+    def test_mc_dropout_max_variationRatios(self):
+        learner = modAL.models.learners.DeepActiveLearner(
+            estimator=self.skorch_classifier,
+            query_strategy=modAL.dropout.mc_dropout_max_variationRatios,
+        )
+        for random_tie_break in [True, False]:
+            for num_cycles, sample_per_forward_pass in product(range(1, 5), range(1, 5)):
+                for n_samples, n_classes in product(range(1, 5), range(1, 5)):
+                    for n_instances in range(1, n_samples):
+                        X_pool = torch.randn(n_samples, n_classes)
+                        modAL.dropout.mc_dropout_max_variationRatios(learner, X_pool, n_instances, random_tie_break, [],
+                                                                     num_cycles, sample_per_forward_pass)
+
+    def test_get_predictions(self):
+        X = torch.randn(100, 1)
+
+        learner = modAL.models.learners.DeepActiveLearner(
+            estimator=self.skorch_classifier,
+            query_strategy=mock.MockFunction(return_val=None),
+        )
+
+        # num predictions tests
+        for num_predictions in range(1, 20):
+            for samples_per_forward_pass in range(1, 10):
+
+                predictions = modAL.dropout.get_predictions(
+                    learner, X, dropout_layer_indexes=[],
+                    num_predictions=num_predictions,
+                    sample_per_forward_pass=samples_per_forward_pass)
+
+                self.assertEqual(len(predictions), num_predictions)
+
+        self.assertRaises(AssertionError, modAL.dropout.get_predictions,
+                          learner, X, dropout_layer_indexes=[],
+                          num_predictions=-1,
+                          sample_per_forward_pass=0)
+
+        self.assertRaises(AssertionError, modAL.dropout.get_predictions,
+                          learner, X, dropout_layer_indexes=[],
+                          num_predictions=10,
+                          sample_per_forward_pass=-5)
+
+        # logits adapter function test
+        for samples, classes, subclasses in product(range(1, 10),  range(1, 10),  range(1, 10)):
+            input_shape = (samples, classes, subclasses)
+            desired_shape = (input_shape[0], np.prod(input_shape[1:]))
+            X_adaption_needed = torch.randn(input_shape)
+
+            def logits_adaptor(input_tensor, data): return torch.flatten(
+                input_tensor, start_dim=1)
+
+            predictions = modAL.dropout.get_predictions(
+                learner, X_adaption_needed, dropout_layer_indexes=[],
+                num_predictions=num_predictions,
+                sample_per_forward_pass=samples_per_forward_pass,
+                logits_adaptor=logits_adaptor)
+
+            self.assertEqual(predictions[0].shape, desired_shape)
+
+    def test_set_dropout_mode(self):
+        # set dropmout mode for all dropout layers
+        for train_mode in [True, False]:
+            model = Torch_Model()
+            modules = list(model.modules())
+
+            for module in modules:
+                self.assertEqual(module.training, True)
+
+            modAL.dropout.set_dropout_mode(model, [], train_mode)
+
+            self.assertEqual(modules[7].training, train_mode)
+            self.assertEqual(modules[11].training, train_mode)
+
+        # set dropout mode only for special layers:
+        for train_mode in [True, False]:
+            model = Torch_Model()
+            modules = list(model.modules())
+            modAL.dropout.set_dropout_mode(model, [7], train_mode)
+            self.assertEqual(modules[7].training, train_mode)
+            self.assertEqual(modules[11].training, True)
+
+            modAL.dropout.set_dropout_mode(model, [], True)
+            modAL.dropout.set_dropout_mode(model, [11], train_mode)
+            self.assertEqual(modules[11].training, train_mode)
+            self.assertEqual(modules[7].training, True)
+
+            # No Dropout Layer
+            self.assertRaises(KeyError, modAL.dropout.set_dropout_mode,
+                              model, [5], train_mode)
 
 
 class TestDeepActiveLearner(unittest.TestCase):
     """
-        Tests for the base class methods of the BaseLearner (base.py) are provided in 
+        Tests for the base class methods of the BaseLearner (base.py) are provided in
         the TestActiveLearner.
     """
 
@@ -1533,18 +1688,6 @@ class TestExamples(unittest.TestCase):
         import example_tests.information_density
         import example_tests.bayesian_optimization
         import example_tests.ranked_batch_mode
-
-
-# Empty PyTorch model for test cases
-class Torch_Model(nn.Module):
-    def __init__(self,):
-        super(Torch_Model, self).__init__()
-        self.convs = nn.Sequential(
-            nn.Conv2d(1, 5, 3),
-        )
-
-    def forward(self, x):
-        return x
 
 
 if __name__ == '__main__':

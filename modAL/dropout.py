@@ -251,7 +251,7 @@ def mc_dropout_max_variationRatios(classifier: BaseEstimator, X: modALinput, n_i
     return shuffled_argmax(variationRatios, n_instances=n_instances)
 
 
-def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_indexes: list,
+def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_indexes: list = [],
                     num_predictions: int = 50, sample_per_forward_pass: int = 1000,
                     logits_adaptor: Callable[[torch.tensor, modALinput], torch.tensor] = default_logits_adaptor):
     """
@@ -272,6 +272,9 @@ def get_predictions(classifier: BaseEstimator, X: modALinput, dropout_layer_inde
         Return: 
             prediction: list with all predictions
     """
+
+    assert num_predictions > 0, 'num_predictions must be larger than zero'
+    assert sample_per_forward_pass > 0, 'sample_per_forward_pass must be larger than zero'
 
     predictions = []
     # set dropout layers to train mode
