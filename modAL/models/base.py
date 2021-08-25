@@ -250,10 +250,6 @@ class BaseCommittee(ABC, BaseEstimator):
     def predict(self, X: modALinput) -> Any:
         pass
 
-    @abc.abstractmethod
-    def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, **fit_kwargs) -> Any:
-        pass
-
     def transform_without_estimating(self, X: modALinput) -> Union[np.ndarray, sp.csr_matrix]:
         """
         Transforms the data as supplied to each learner's estimator and concatenates transformations.
