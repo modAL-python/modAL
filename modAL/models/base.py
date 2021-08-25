@@ -181,10 +181,11 @@ class BaseLearner(ABC, BaseEstimator):
             query_metrics = None
             query_result = self.query_strategy(
                 self, X_pool, *query_args, **query_kwargs)
-            warnings.warn(
-                "The selected query strategy doesn't support return_metrics")
 
         if return_metrics:
+            if query_metrics is None: 
+                warnings.warn(
+                "The selected query strategy doesn't support return_metrics")
             return query_result, retrieve_rows(X_pool, query_result), query_metrics
         else:
             return query_result, retrieve_rows(X_pool, query_result)
@@ -247,6 +248,10 @@ class BaseCommittee(ABC, BaseEstimator):
             learner._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
 
     @abc.abstractmethod
+    def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, **fit_kwargs) -> Any:
+        pass
+
+    @abc.abstractmethod
     def predict(self, X: modALinput) -> Any:
         pass
 
@@ -288,10 +293,11 @@ class BaseCommittee(ABC, BaseEstimator):
             query_metrics = None
             query_result = self.query_strategy(
                 self, X_pool, *query_args, **query_kwargs)
-            warnings.warn(
-                "The selected query strategy doesn't support return_metrics")
 
         if return_metrics:
+            if query_metrics is None: 
+                warnings.warn(
+                "The selected query strategy doesn't support return_metrics")
             return query_result, retrieve_rows(X_pool, query_result), query_metrics
         else:
             return query_result, retrieve_rows(X_pool, query_result)
