@@ -20,40 +20,6 @@ def default_logits_adaptor(input_tensor: torch.tensor, samples: modALinput):
     return input_tensor
 
 
-def mc_dropout_multi(classifier: BaseEstimator, X: modALinput, query_strategies: list = ["bald", "mean_st", "max_entropy", "max_var"],
-                     n_instances: int = 1, random_tie_break: bool = False, dropout_layer_indexes: list = [],
-                     num_cycles: int = 50, sample_per_forward_pass: int = 1000,
-                     logits_adaptor: Callable[[
-                         torch.tensor, modALinput], torch.tensor] = default_logits_adaptor,
-                     **mc_dropout_kwargs) -> np.ndarray:
-    """
-    Multi metric dropout query strategy. Returns the specified metrics for given input data.
-    Selection of query strategies are:
-        - bald: BALD query strategy
-        - mean_st: Mean Standard deviation
-        - max_entropy: maximum entropy
-        - max_var: maximum variation
-    By default all query strategies are selected
-
-    Function returns dictionary of metrics with their name as key.
-    The indices of the n-best samples (n_instances) is not used in this function.
-    """
-    predictions = get_predictions(
-        classifier, X, dropout_layer_indexes, num_cycles, sample_per_forward_pass, logits_adaptor)
-
-    metrics_dict = {}
-    if "bald" in query_strategies:
-        metrics_dict["bald"] = _bald_divergence(predictions)
-    if "mean_st" in query_strategies:
-        metrics_dict["mean_st"] = _mean_standard_deviation(predictions)
-    if "max_entropy" in query_strategies:
-        metrics_dict["max_entropy"] = _entropy(predictions)
-    if "max_var" in query_strategies:
-        metrics_dict["max_var"] = _variation_ratios(predictions)
-
-    return None, metrics_dict
-
-
 def mc_dropout_bald(classifier: BaseEstimator, X: modALinput, n_instances: int = 1,
                     random_tie_break: bool = False, dropout_layer_indexes: list = [],
                     num_cycles: int = 50, sample_per_forward_pass: int = 1000,
