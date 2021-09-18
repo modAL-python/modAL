@@ -1205,7 +1205,7 @@ class TestActiveLearner(unittest.TestCase):
         # (e.g. instance not matching instance index),
         # the old interface remains unchanged
         query_idx_ = np.random.choice(n_samples, 2)
-        query_instance_ = X_pool[(query_idx_ + 1) % len(X_pool)]
+        query_instance_ = X_pool[query_idx_]
 
         def custom_query_strategy(classifier, X):
             return query_idx_, query_instance_

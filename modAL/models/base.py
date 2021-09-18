@@ -248,10 +248,6 @@ class BaseCommittee(ABC, BaseEstimator):
             learner._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
 
     @abc.abstractmethod
-    def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, **fit_kwargs) -> Any:
-        pass
-
-    @abc.abstractmethod
     def predict(self, X: modALinput) -> Any:
         pass
 
