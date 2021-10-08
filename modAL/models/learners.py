@@ -219,8 +219,7 @@ class DeepActiveLearner(BaseLearner):
 
     def fit(self, X: modALinput, y: modALinput, bootstrap: bool = False, **fit_kwargs) -> 'BaseLearner':
         """
-        Interface for the fit method of the predictor. Fits the predictor to the supplied data, then stores it
-        internally for the active learning loop.
+        Interface for the fit method of the predictor. Fits the predictor to the supplied data.
 
         Args:
             X: The samples to be fitted.
@@ -236,7 +235,7 @@ class DeepActiveLearner(BaseLearner):
 
     def teach(self, X: modALinput, y: modALinput, warm_start: bool = True, bootstrap: bool = False, **fit_kwargs) -> None:
         """
-        Adds X and y to the known training data and retrains the predictor with the augmented dataset.
+        Trains the predictor with the passed data (warm_start decides if params are resetted or not). 
 
         Args:
             X: The new samples for which the labels are supplied by the expert.
@@ -734,8 +733,6 @@ class DeepCommittee(BaseCommittee):
                  on_transformed: bool = False) -> None:
         super().__init__(learner_list, query_strategy, on_transformed)
         self._set_classes()
-        # TODO: update training data when using fit() and teach() methods
-        self.X_training = None
 
     def fit(self, X: modALinput, y: modALinput, **fit_kwargs) -> None:
         """

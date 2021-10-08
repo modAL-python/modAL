@@ -330,3 +330,4 @@ class BaseCommittee(ABC, BaseEstimator):
     def vote(self, X: modALinput) -> Any:  # TODO: clarify typing
         pass
 
+    
