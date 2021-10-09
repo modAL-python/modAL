@@ -212,20 +212,20 @@ class BaseLearner(ABC, BaseEstimator):
 class BaseCommittee(ABC, BaseEstimator):
     """
     Base class for query-by-committee setup.
-
     Args:
         learner_list: List of ActiveLearner objects to form committee.
         query_strategy: Function to query labels.
         on_transformed: Whether to transform samples with the pipeline defined by each learner's estimator
             when applying the query strategy.
     """
-
     def __init__(self, learner_list: List[BaseLearner], query_strategy: Callable, on_transformed: bool = False) -> None:
         assert type(learner_list) == list, 'learners must be supplied in a list'
 
         self.learner_list = learner_list
         self.query_strategy = query_strategy
         self.on_transformed = on_transformed
+        # TODO: update training data when using fit() and teach() methods
+        self.X_training = None
 
     def __iter__(self) -> Iterator[BaseLearner]:
         for learner in self.learner_list:
@@ -234,10 +234,33 @@ class BaseCommittee(ABC, BaseEstimator):
     def __len__(self) -> int:
         return len(self.learner_list)
 
+    def _add_training_data(self, X: modALinput, y: modALinput) -> None:
+        """
+        Adds the new data and label to the known data for each learner, but does not retrain the model.
+        Args:
+            X: The new samples for which the labels are supplied by the expert.
+            y: Labels corresponding to the new instances in X.
+        Note:
+            If the learners have been fitted, the features in X have to agree with the training samples which the
+            classifier has seen.
+        """
+        for learner in self.learner_list:
+            learner._add_training_data(X, y)
+
+    def _fit_to_known(self, bootstrap: bool = False, **fit_kwargs) -> None:
+        """
+        Fits all learners to the training data and labels provided to it so far.
+        Args:
+            bootstrap: If True, each estimator is trained on a bootstrapped dataset. Useful when
+                using bagging to build the ensemble.
+            **fit_kwargs: Keyword arguments to be passed to the fit method of the predictor.
+        """
+        for learner in self.learner_list:
+            learner._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
+
     def _fit_on_new(self, X: modALinput, y: modALinput, bootstrap: bool = False, **fit_kwargs) -> None:
         """
         Fits all learners to the given data and labels.
-
         Args:
             X: The new samples for which the labels are supplied by the expert.
             y: Labels corresponding to the new instances in X.
@@ -247,16 +270,27 @@ class BaseCommittee(ABC, BaseEstimator):
         for learner in self.learner_list:
             learner._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
 
-    @abc.abstractmethod
-    def predict(self, X: modALinput) -> Any:
-        pass
+    def fit(self, X: modALinput, y: modALinput, **fit_kwargs) -> 'BaseCommittee':
+        """
+        Fits every learner to a subset sampled with replacement from X. Calling this method makes the learner forget the
+        data it has seen up until this point and replaces it with X! If you would like to perform bootstrapping on each
+        learner using the data it has seen, use the method .rebag()!
+        Calling this method makes the learner forget the data it has seen up until this point and replaces it with X!
+        Args:
+            X: The samples to be fitted on.
+            y: The corresponding labels.
+            **fit_kwargs: Keyword arguments to be passed to the fit method of the predictor.
+        """
+        for learner in self.learner_list:
+            learner.fit(X, y, **fit_kwargs)
+
+        return self
 
     def transform_without_estimating(self, X: modALinput) -> Union[np.ndarray, sp.csr_matrix]:
         """
         Transforms the data as supplied to each learner's estimator and concatenates transformations.
         Args:
             X: dataset to be transformed
-
         Returns:
             Transformed data set
         """
@@ -298,32 +332,38 @@ class BaseCommittee(ABC, BaseEstimator):
         else:
             return query_result, retrieve_rows(X_pool, query_result)
 
-    def _set_classes(self):
+    def rebag(self, **fit_kwargs) -> None:
         """
-        Checks the known class labels by each learner, merges the labels and returns a mapping which maps the learner's
-        classes to the complete label list.
+        Refits every learner with a dataset bootstrapped from its training instances. Contrary to .bag(), it bootstraps
+        the training data for each learner based on its own examples.
+        Todo:
+            Where is .bag()?
+        Args:
+            **fit_kwargs: Keyword arguments to be passed to the fit method of the predictor.
         """
-        # assemble the list of known classes from each learner
-        try:
-            # if estimators are fitted
-            known_classes = tuple(
-                learner.estimator.classes_ for learner in self.learner_list)
-        except AttributeError:
-            # handle unfitted estimators
-            self.classes_ = None
-            self.n_classes_ = 0
-            return
+        self._fit_to_known(bootstrap=True, **fit_kwargs)
 
-        self.classes_ = np.unique(
-            np.concatenate(known_classes, axis=0),
-            axis=0
-        )
-        self.n_classes_ = len(self.classes_)
+    def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, only_new: bool = False, **fit_kwargs) -> None:
+        """
+        Adds X and y to the known training data for each learner and retrains learners with the augmented dataset.
+        Args:
+            X: The new samples for which the labels are supplied by the expert.
+            y: Labels corresponding to the new instances in X.
+            bootstrap: If True, trains each learner on a bootstrapped set. Useful when building the ensemble by bagging.
+            only_new: If True, the model is retrained using only X and y, ignoring the previously provided examples.
+            **fit_kwargs: Keyword arguments to be passed to the fit method of the predictor.
+        """
+        self._add_training_data(X, y)
+        if not only_new:
+            self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
+        else:
+            self._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
 
+    @abc.abstractmethod
+    def predict(self, X: modALinput) -> Any:
         pass
 
     @abc.abstractmethod
     def vote(self, X: modALinput) -> Any:  # TODO: clarify typing
         pass
 
-    
