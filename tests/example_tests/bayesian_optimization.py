@@ -1,10 +1,11 @@
-import numpy as np
 from functools import partial
+
+import numpy as np
+from modAL.acquisition import (max_EI, max_PI, max_UCB, optimizer_EI,
+                               optimizer_PI, optimizer_UCB)
+from modAL.models import BayesianOptimizer
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import Matern
-from modAL.models import BayesianOptimizer
-from modAL.acquisition import optimizer_PI, optimizer_EI, optimizer_UCB, max_PI, max_EI, max_UCB
-
 
 # generating the data
 X = np.linspace(0, 20, 1000).reshape(-1, 1)

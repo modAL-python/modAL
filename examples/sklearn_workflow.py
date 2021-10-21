@@ -1,6 +1,6 @@
 from modAL.models import ActiveLearner
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.datasets import load_iris
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score
 
 X_train, y_train = load_iris().data, load_iris().target

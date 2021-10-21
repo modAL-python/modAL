@@ -1,10 +1,9 @@
 import numpy as np
-from sklearn.base import BaseEstimator
-
-from modAL.models import ActiveLearner
-from modAL.uncertainty import margin_sampling, entropy_sampling
 from modAL.batch import uncertainty_batch_sampling
 from modAL.expected_error import expected_error_reduction
+from modAL.models import ActiveLearner
+from modAL.uncertainty import entropy_sampling, margin_sampling
+from sklearn.base import BaseEstimator
 
 
 class MockClassifier(BaseEstimator):

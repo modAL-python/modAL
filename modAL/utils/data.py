@@ -1,10 +1,9 @@
-from typing import Union, List, Sequence
+from typing import List, Sequence, Union
 
 import numpy as np
-import torch
 import pandas as pd
 import scipy.sparse as sp
-
+import torch
 
 modALinput = Union[sp.csr_matrix, pd.DataFrame, np.ndarray, list]
 

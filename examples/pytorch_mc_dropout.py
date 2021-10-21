@@ -2,21 +2,17 @@
 In this file the basic ModAL PyTorch DeepActiveLearner workflow is explained 
 through an example on the MNIST dataset and the MC-Dropout-Bald query strategy.
 """
-import sys
-import os
-import torch
-from torch import nn
-from skorch import NeuralNetClassifier
-
-from modAL.models import DeepActiveLearner
-
-# import of query strategies
-from modAL.dropout import mc_dropout_bald, mc_dropout_mean_st
-
 import numpy as np
+import torch
+# import of query strategies
+from modAL.dropout import mc_dropout_bald
+from modAL.models import DeepActiveLearner
+from skorch import NeuralNetClassifier
+from torch import nn
 from torch.utils.data import DataLoader
-from torchvision.transforms import ToTensor
 from torchvision.datasets import MNIST
+from torchvision.transforms import ToTensor
+
 
 # Standard Pytorch Model (Visit the PyTorch documentation for more details)
 class Torch_Model(nn.Module):

@@ -1,16 +1,15 @@
 """
 Acquisition functions for Bayesian optimization.
 """
-from typing import Tuple
 
 import numpy as np
-from scipy.stats import norm
 from scipy.special import ndtr
+from scipy.stats import norm
 from sklearn.exceptions import NotFittedError
 
-from modAL.utils.selection import multi_argmax
-from modAL.utils.data import modALinput
 from modAL.models.base import BaseLearner
+from modAL.utils.data import modALinput
+from modAL.utils.selection import multi_argmax
 
 
 def PI(mean, std, max_val, tradeoff):

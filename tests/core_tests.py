@@ -1,46 +1,42 @@
 import random
 import unittest
-import numpy as np
-import pandas as pd
-
-import mock
+from collections import namedtuple
+from copy import deepcopy
+from itertools import chain, product
 from unittest.mock import MagicMock
 
-import modAL.models.base
-import modAL.models.learners
-import modAL.utils.selection
-import modAL.utils.validation
-import modAL.utils.combination
 import modAL.acquisition
 import modAL.batch
 import modAL.density
 import modAL.disagreement
+import modAL.dropout
 import modAL.expected_error
+import modAL.models.base
+import modAL.models.learners
 import modAL.multilabel
 import modAL.uncertainty
-import modAL.dropout
-
-from copy import deepcopy
-from itertools import chain, product
-from collections import namedtuple
-
+import modAL.utils.combination
+import modAL.utils.selection
+import modAL.utils.validation
+import numpy as np
+import pandas as pd
+import torch
+from scipy import sparse as sp
+from scipy.special import ndtr
+from scipy.stats import entropy, norm
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.exceptions import NotFittedError
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.metrics import confusion_matrix
-from sklearn.svm import SVC
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import FunctionTransformer
-from sklearn.feature_extraction.text import CountVectorizer
-from scipy.stats import entropy, norm
-from scipy.special import ndtr
-from scipy import sparse as sp
-
-import torch
+from sklearn.svm import SVC
+from skorch import NeuralNetClassifier
 from torch import nn
 
-from skorch import NeuralNetClassifier
+import mock
 
 Test = namedtuple('Test', ['input', 'output'])
 
@@ -1675,19 +1671,19 @@ class TestMultilabel(unittest.TestCase):
 class TestExamples(unittest.TestCase):
 
     def test_examples(self):
-        import example_tests.multidimensional_data
         import example_tests.active_regression
         import example_tests.bagging
+        import example_tests.bayesian_optimization
+        import example_tests.custom_query_strategies
         import example_tests.ensemble
         import example_tests.ensemble_regression
+        import example_tests.information_density
+        import example_tests.multidimensional_data
         import example_tests.pool_based_sampling
         import example_tests.query_by_committee
+        import example_tests.ranked_batch_mode
         import example_tests.shape_learning
         import example_tests.stream_based_sampling
-        import example_tests.custom_query_strategies
-        import example_tests.information_density
-        import example_tests.bayesian_optimization
-        import example_tests.ranked_batch_mode
 
 
 if __name__ == '__main__':

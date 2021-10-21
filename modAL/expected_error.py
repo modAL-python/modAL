@@ -5,14 +5,14 @@ Expected error reduction framework for active learning.
 from typing import Tuple
 
 import numpy as np
-
 from sklearn.base import clone
 from sklearn.exceptions import NotFittedError
 
 from modAL.models import ActiveLearner
-from modAL.utils.data import modALinput, data_vstack, enumerate_data, drop_rows, data_shape, add_row
-from modAL.utils.selection import multi_argmax, multi_argmin, shuffled_argmax, shuffled_argmin
-from modAL.uncertainty import _proba_uncertainty, _proba_entropy
+from modAL.uncertainty import _proba_entropy, _proba_uncertainty
+from modAL.utils.data import (add_row, data_shape, data_vstack, drop_rows,
+                              enumerate_data, modALinput)
+from modAL.utils.selection import multi_argmin, shuffled_argmin
 
 
 def expected_error_reduction(learner: ActiveLearner, X: modALinput, loss: str = 'binary',

@@ -1,13 +1,12 @@
-import numpy as np
+from typing import Optional
 
-from sklearn.base import BaseEstimator
+import numpy as np
 from sklearn.multiclass import OneVsRestClassifier
 
 from modAL.models import ActiveLearner
 from modAL.utils.data import modALinput
-from modAL.utils.selection import multi_argmax, multi_argmin, shuffled_argmax, shuffled_argmin
-from typing import Tuple, Optional
-from itertools import combinations
+from modAL.utils.selection import (multi_argmax, multi_argmin, shuffled_argmax,
+                                   shuffled_argmin)
 
 
 def _SVM_loss(multiclass_classifier: ActiveLearner,

@@ -1,20 +1,15 @@
+from typing import Any, Callable, List, Optional, Tuple
+
 import numpy as np
-
-from typing import Callable, Optional, Tuple, List, Any
-
+from modAL.acquisition import max_EI
+from modAL.disagreement import max_std_sampling, vote_entropy_sampling
+from modAL.models.base import BaseCommittee, BaseLearner
+from modAL.uncertainty import uncertainty_sampling
+from modAL.utils.data import data_vstack, modALinput, retrieve_rows
+from modAL.utils.validation import check_class_labels, check_class_proba
 from sklearn.base import BaseEstimator
 from sklearn.metrics import accuracy_score
-
 from sklearn.utils import check_X_y
-from modAL.models.base import BaseLearner, BaseCommittee
-from modAL.utils.validation import check_class_labels, check_class_proba
-from modAL.utils.data import modALinput, retrieve_rows, data_vstack
-from modAL.uncertainty import uncertainty_sampling
-from modAL.disagreement import vote_entropy_sampling, max_std_sampling
-from modAL.acquisition import max_EI
-
-from skorch.utils import to_numpy
-
 
 """
 Classes for active learning algorithms
@@ -272,10 +267,10 @@ class DeepActiveLearner(BaseLearner):
         can be changed at any time, even after the model was trained.
         """
         if isinstance(value, int):
-            if 0 < value <= 100:
+            if 0 < value:
                 self.estimator.max_epochs = value
             else:
-                raise ValueError("num_epochs must be in range 0 < x <= 100")
+                raise ValueError("num_epochs must be larger than zero")
         else:
             raise TypeError("num_epochs must be of type integer!")
 

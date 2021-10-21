@@ -4,16 +4,14 @@ The example uses Skorch, a scikit learn wrapper of Pytorch.
 For more info, see https://skorch.readthedocs.io/en/stable/
 """
 
-import torch
 import numpy as np
-
+import torch
+from modAL.models import ActiveLearner
+from skorch import NeuralNetClassifier
 from torch import nn
 from torch.utils.data import DataLoader
-from torchvision.transforms import ToTensor
 from torchvision.datasets import MNIST
-from skorch import NeuralNetClassifier
-
-from modAL.models import ActiveLearner
+from torchvision.transforms import ToTensor
 
 
 # build class for the skorch API

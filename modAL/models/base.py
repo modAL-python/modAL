@@ -6,16 +6,14 @@ Base classes for active learning algorithms
 import abc
 import sys
 import warnings
-from typing import Union, Callable, Optional, Tuple, List, Iterator, Any
+from typing import Any, Callable, Iterator, List, Tuple, Union
 
 import numpy as np
+import scipy.sparse as sp
+from modAL.utils.data import data_hstack, modALinput, retrieve_rows
 from sklearn.base import BaseEstimator
 from sklearn.ensemble._base import _BaseHeterogeneousEnsemble
 from sklearn.pipeline import Pipeline
-
-import scipy.sparse as sp
-
-from modAL.utils.data import data_hstack, modALinput, retrieve_rows
 
 if sys.version_info >= (3, 4):
     ABC = abc.ABC
@@ -177,7 +175,7 @@ class BaseLearner(ABC, BaseEstimator):
             query_result, query_metrics = self.query_strategy(
                 self, X_pool, *query_args, **query_kwargs)
 
-        except ValueError:
+        except:
             query_metrics = None
             query_result = self.query_strategy(
                 self, X_pool, *query_args, **query_kwargs)
@@ -319,7 +317,7 @@ class BaseCommittee(ABC, BaseEstimator):
             query_result, query_metrics = self.query_strategy(
                 self, X_pool, *query_args, **query_kwargs)
 
-        except ValueError:
+        except:
             query_metrics = None
             query_result = self.query_strategy(
                 self, X_pool, *query_args, **query_kwargs)

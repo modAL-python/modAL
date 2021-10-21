@@ -1,8 +1,8 @@
 from typing import Sequence
 
 import numpy as np
-from sklearn.exceptions import NotFittedError
 from sklearn.base import BaseEstimator
+from sklearn.exceptions import NotFittedError
 
 
 def check_class_labels(*args: BaseEstimator) -> bool:

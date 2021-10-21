@@ -1,9 +1,8 @@
 import numpy as np
+from modAL.acquisition import max_EI
+from modAL.models import BayesianOptimizer
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import Matern
-from modAL.models import BayesianOptimizer
-from modAL.acquisition import max_EI
-
 
 # generating the data
 x1, x2 = np.linspace(0, 10, 11).reshape(-1, 1), np.linspace(0, 10, 11).reshape(-1, 1)

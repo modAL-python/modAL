@@ -1,9 +1,7 @@
-import numpy as np
 import matplotlib.pyplot as plt
-
+import numpy as np
 from modAL.models import ActiveLearner
 from modAL.multilabel import *
-
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import SVC
 

@@ -1,8 +1,9 @@
-import numpy as np
 from itertools import product
+
+import numpy as np
 from matplotlib import pyplot as plt
-from sklearn.ensemble import RandomForestClassifier
 from modAL.models import ActiveLearner, Committee
+from sklearn.ensemble import RandomForestClassifier
 
 # creating the dataset
 im_width = 500

@@ -1,15 +1,15 @@
 """
 Uncertainty measures and uncertainty based sampling strategies for the active learning models.
 """
-from typing import Tuple
 
 import numpy as np
 from scipy.stats import entropy
-from sklearn.exceptions import NotFittedError
 from sklearn.base import BaseEstimator
+from sklearn.exceptions import NotFittedError
 
 from modAL.utils.data import modALinput
-from modAL.utils.selection import multi_argmax, multi_argmin, shuffled_argmax, shuffled_argmin
+from modAL.utils.selection import (multi_argmax, multi_argmin, shuffled_argmax,
+                                   shuffled_argmin)
 
 
 def _proba_uncertainty(proba: np.ndarray) -> np.ndarray:
