@@ -3,7 +3,6 @@ from typing import List, Sequence, Union
 import numpy as np
 import pandas as pd
 import scipy.sparse as sp
-import torch
 
 modALinput = Union[sp.csr_matrix, pd.DataFrame, np.ndarray, list]
 
@@ -26,8 +25,6 @@ def data_vstack(blocks: Sequence[modALinput]) -> modALinput:
         return np.concatenate(blocks)
     elif isinstance(blocks[0], list):
         return np.concatenate(blocks).tolist()
-    elif torch.is_tensor(blocks[0]):
-        return torch.cat(blocks)
 
     raise TypeError('%s datatype is not supported' % type(blocks[0]))
 
@@ -50,8 +47,6 @@ def data_hstack(blocks: Sequence[modALinput]) -> modALinput:
         return np.hstack(blocks)
     elif isinstance(blocks[0], list):
         return np.hstack(blocks).tolist()
-    elif torch.is_tensor(blocks[0]):
-        return torch.cat(blocks, dim=1)
 
     TypeError('%s datatype is not supported' % type(blocks[0]))
 
@@ -65,8 +60,6 @@ def add_row(X: modALinput, row: modALinput):
     row]    """
     if isinstance(X, np.ndarray):
         return np.vstack((X, row))
-    elif torch.is_tensor(X):
-        return torch.cat((X, row))
     elif isinstance(X, list):
         return np.vstack((X, row)).tolist()
 
@@ -107,8 +100,6 @@ def retrieve_rows(X: modALinput,
         return X_return
     elif isinstance(X, np.ndarray):
         return X[I]
-    elif torch.is_tensor(X):
-        return X[I]
 
     raise TypeError('%s datatype is not supported' % type(X))
 
@@ -128,9 +119,6 @@ def drop_rows(X: modALinput,
         return np.delete(X, I, axis=0)
     elif isinstance(X, list):
         return np.delete(X, I, axis=0).tolist()
-    elif torch.is_tensor(X):
-        return X[[True if row not in I else False
-                  for row in range(X.size(0))]]
 
     raise TypeError('%s datatype is not supported' % type(X))
 
@@ -149,8 +137,8 @@ def enumerate_data(X: modALinput):
         return enumerate(X.tocsr())
     elif isinstance(X, pd.DataFrame):
         return X.iterrows()
-    elif isinstance(X, np.ndarray) or isinstance(X, list) or torch.is_tensor(X):
-        # numpy arrays, torch tensors and lists can readily be enumerated
+    elif isinstance(X, np.ndarray) or isinstance(X, list):
+        # numpy arrays and lists can readily be enumerated
         return enumerate(X)
 
     raise TypeError('%s datatype is not supported' % type(X))
@@ -165,7 +153,5 @@ def data_shape(X: modALinput):
         return X.shape
     elif isinstance(X, list):
         return np.array(X).shape
-    elif torch.is_tensor(X):
-        return tuple(X.size())
 
     raise TypeError('%s datatype is not supported' % type(X))

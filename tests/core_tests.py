@@ -181,12 +181,6 @@ class TestUtils(unittest.TestCase):
                 self.assertEqual((modAL.utils.data.data_vstack(
                     (a, b)) != sp.vstack((a, b))).sum(), 0)
 
-            # pytorch tensors
-            a, b = torch.randn(n_samples, n_features), torch.randn(
-                n_samples, n_features)
-            self.assertTrue(
-                torch.equal(modAL.utils.data.data_vstack((a, b)), torch.cat((a, b))))
-
             # lists
             a, b = np.random.rand(n_samples, n_features).tolist(), np.random.rand(
                 n_samples, n_features).tolist()
