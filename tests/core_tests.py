@@ -189,6 +189,13 @@ class TestUtils(unittest.TestCase):
                 np.concatenate((a, b))
             )
 
+            # torch.Tensors
+            a, b = torch.ones(2, 2), torch.ones(2, 2)
+            torch.testing.assert_allclose(
+                modAL.utils.data.data_vstack((a, b)),
+                torch.cat((a, b))
+            )
+
         # not supported formats
         self.assertRaises(TypeError, modAL.utils.data.data_vstack, (1, 1))
 
