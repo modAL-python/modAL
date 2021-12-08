@@ -39,6 +39,12 @@ U_x = np.delete(U_x, ind, axis=0)
 U_y = np.delete(U_y, ind, axis=0)
 
 
+def assign_pseudo_labels(active_learner, X, confidence_idx):
+    conf_samples = X[confidence_idx]
+    labels = active_learner.predict(conf_samples)
+    return labels
+
+
 def max_entropy(active_learner, X, K=16, N=16):
 
     class_prob = active_learner.predict_proba(X)
@@ -67,7 +73,15 @@ for index in range(N_QUERIES):
 
     query_idx, query_instance = active_learner.query(U_x, K_MAX_ENTROPY, N_MIN_ENTROPY)
 
-    active_learner.teach(U_x[query_idx], U_y[query_idx])
+    uncertain_idx = query_idx[:K_MAX_ENTROPY]
+    confidence_idx = query_idx[K_MAX_ENTROPY:]
+
+    conf_labels = assign_pseudo_labels(active_learner, U_x, confidence_idx)
+
+    L_x = U_x[query_idx]
+    L_y = np.concatenate((U_y[uncertain_idx], conf_labels), axis=0)
+
+    active_learner.teach(L_x, L_y)
 
     U_x = np.delete(U_x, query_idx, axis=0)
     U_y = np.delete(U_y, query_idx, axis=0)
