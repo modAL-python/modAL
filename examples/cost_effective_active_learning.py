@@ -2,7 +2,7 @@
 This is a modified implementation of the algorithm Cost Effective Active Learning
 (Pl. refer - https://arxiv.org/abs/1701.03551). This version not only picks up the 
 top K uncertain samples but also picks up the top N highly confident samples that
-may represent information and diversity. It is better than the original implementation
+may represent information and diversity. It is different than the original implementation
 as it does not involve tuning the confidence threshold parameter for every dataset.
 """
 
@@ -50,6 +50,15 @@ def max_entropy(active_learner, X, K=16, N=16):
     class_prob = active_learner.predict_proba(X)
     entropy = entr(class_prob).sum(axis=1)
     uncertain_idx = np.argpartition(entropy, -K)[-K:]
+
+    """
+    Original Implementation -- Pick most confident samples with
+    entropy less than a threshold. Threshold is decayed in every
+    iteration.
+
+    Different than original -- Pick top n most confident samples.
+    """
+ 
     confidence_idx = np.argpartition(entropy, N)[:N]
 
     return np.concatenate((uncertain_idx, confidence_idx), axis=0)
