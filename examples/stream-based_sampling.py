@@ -2,11 +2,11 @@
 In this example the use of ActiveLearner is demonstrated in a stream-based sampling setting.
 """
 
-import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.ensemble import RandomForestClassifier
+import numpy as np
 from modAL.models import ActiveLearner
 from modAL.uncertainty import classifier_uncertainty
+from sklearn.ensemble import RandomForestClassifier
 
 # creating the image
 im_width = 500

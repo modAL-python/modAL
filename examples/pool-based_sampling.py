@@ -4,12 +4,12 @@ For more information on the iris dataset, see https://en.wikipedia.org/wiki/Iris
 For its scikit-learn interface, see http://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_iris.html
 """
 
-import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.decomposition import PCA
-from sklearn.datasets import load_iris
-from sklearn.neighbors import KNeighborsClassifier
+import numpy as np
 from modAL.models import ActiveLearner
+from sklearn.datasets import load_iris
+from sklearn.decomposition import PCA
+from sklearn.neighbors import KNeighborsClassifier
 
 # loading the iris dataset
 iris = load_iris()

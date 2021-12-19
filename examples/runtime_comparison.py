@@ -1,24 +1,19 @@
-import numpy as np
-
 from time import time
 
-from sklearn.datasets import load_iris
-
+import numpy as np
 from acton.acton import main as acton_main
-
-from alp.active_learning.active_learning import ActiveLearner as ActiveLearnerALP
-
+from alp.active_learning.active_learning import \
+    ActiveLearner as ActiveLearnerALP
 from libact.base.dataset import Dataset
 from libact.labelers import IdealLabeler
-from libact.query_strategies import UncertaintySampling, QueryByCommittee
+from libact.models.logistic_regression import \
+    LogisticRegression as LogisticRegressionLibact
+from libact.query_strategies import QueryByCommittee, UncertaintySampling
 from libact.query_strategies.multiclass.expected_error_reduction import EER
-from libact.models.logistic_regression import LogisticRegression as LogisticRegressionLibact
-
-from modAL.models import ActiveLearner, Committee
 from modAL.expected_error import expected_error_reduction
-
+from modAL.models import ActiveLearner, Committee
+from sklearn.datasets import load_iris
 from sklearn.linear_model import LogisticRegression
-
 
 runtime = {}
 

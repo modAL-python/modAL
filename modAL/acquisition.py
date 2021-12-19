@@ -1,16 +1,15 @@
 """
 Acquisition functions for Bayesian optimization.
 """
-from typing import Tuple
 
 import numpy as np
-from scipy.stats import norm
 from scipy.special import ndtr
+from scipy.stats import norm
 from sklearn.exceptions import NotFittedError
 
-from modAL.utils.selection import multi_argmax
-from modAL.utils.data import modALinput
 from modAL.models.base import BaseLearner
+from modAL.utils.data import modALinput
+from modAL.utils.selection import multi_argmax
 
 
 def PI(mean, std, max_val, tradeoff):
@@ -115,7 +114,9 @@ def max_PI(optimizer: BaseLearner, X: modALinput, tradeoff: float = 0,
         n_instances: Number of samples to be queried.
 
     Returns:
-        The indices of the instances from X chosen to be labelled; the instances from X chosen to be labelled.
+        The indices of the instances from X chosen to be labelled.
+        The pi metric of the chosen instances.
+
     """
     pi = optimizer_PI(optimizer, X, tradeoff=tradeoff)
     return multi_argmax(pi, n_instances=n_instances)
@@ -133,7 +134,9 @@ def max_EI(optimizer: BaseLearner, X: modALinput, tradeoff: float = 0,
         n_instances: Number of samples to be queried.
 
     Returns:
-        The indices of the instances from X chosen to be labelled; the instances from X chosen to be labelled.
+        The indices of the instances from X chosen to be labelled. 
+        The ei metric of the chosen instances.
+
     """
     ei = optimizer_EI(optimizer, X, tradeoff=tradeoff)
     return multi_argmax(ei, n_instances=n_instances)
@@ -151,7 +154,9 @@ def max_UCB(optimizer: BaseLearner, X: modALinput, beta: float = 1,
         n_instances: Number of samples to be queried.
 
     Returns:
-        The indices of the instances from X chosen to be labelled; the instances from X chosen to be labelled.
+        The indices of the instances from X chosen to be labelled. 
+        The ucb metric of the chosen instances.
+
     """
     ucb = optimizer_UCB(optimizer, X, beta=beta)
     return multi_argmax(ucb, n_instances=n_instances)

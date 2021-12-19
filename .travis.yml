@@ -22,7 +22,7 @@ after_success:
 matrix:
   include:
     install:
-      - pip install numpy==1.13 scikit-learn==0.18 scipy==0.18
+      - pip install numpy==1.20 scikit-learn==0.18 scipy==0.18 torch==1.8.1
       - pip install codecov
       - pip install coverage
       - pip install .

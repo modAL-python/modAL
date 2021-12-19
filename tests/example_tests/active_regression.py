@@ -3,10 +3,10 @@ Active regression example with Gaussian processes.
 """
 
 import numpy as np
-from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import WhiteKernel, RBF
-from modAL.models import ActiveLearner
 from modAL.disagreement import max_std_sampling
+from modAL.models import ActiveLearner
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF, WhiteKernel
 
 np.random.seed(0)
 

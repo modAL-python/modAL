@@ -5,14 +5,14 @@ Expected error reduction framework for active learning.
 from typing import Tuple
 
 import numpy as np
-
 from sklearn.base import clone
 from sklearn.exceptions import NotFittedError
 
 from modAL.models import ActiveLearner
-from modAL.utils.data import modALinput, data_vstack, enumerate_data, drop_rows, data_shape, add_row
-from modAL.utils.selection import multi_argmax, shuffled_argmax
-from modAL.uncertainty import _proba_uncertainty, _proba_entropy
+from modAL.uncertainty import _proba_entropy, _proba_uncertainty
+from modAL.utils.data import (add_row, data_shape, data_vstack, drop_rows,
+                              enumerate_data, modALinput)
+from modAL.utils.selection import multi_argmin, shuffled_argmin
 
 
 def expected_error_reduction(learner: ActiveLearner, X: modALinput, loss: str = 'binary',
@@ -39,6 +39,7 @@ def expected_error_reduction(learner: ActiveLearner, X: modALinput, loss: str = 
 
     Returns:
         The indices of the instances from X chosen to be labelled.
+        The expected error metric of the chosen instances; 
     """
 
     assert 0.0 <= p_subsample <= 1.0, 'p_subsample subsampling keep ratio must be between 0.0 and 1.0'
@@ -77,6 +78,6 @@ def expected_error_reduction(learner: ActiveLearner, X: modALinput, loss: str = 
             expected_error[x_idx] = np.inf
 
     if not random_tie_break:
-        return multi_argmax(-expected_error, n_instances)
+        return multi_argmin(expected_error, n_instances)
 
-    return shuffled_argmax(-expected_error, n_instances)
+    return shuffled_argmin(expected_error, n_instances)

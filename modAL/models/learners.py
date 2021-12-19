@@ -1,16 +1,15 @@
+from typing import Any, Callable, List, Optional, Tuple
+
 import numpy as np
-
-from typing import Callable, Optional, Tuple, List, Any
-
+from modAL.acquisition import max_EI
+from modAL.disagreement import max_std_sampling, vote_entropy_sampling
+from modAL.models.base import BaseCommittee, BaseLearner
+from modAL.uncertainty import uncertainty_sampling
+from modAL.utils.data import data_vstack, modALinput, retrieve_rows
+from modAL.utils.validation import check_class_labels, check_class_proba
 from sklearn.base import BaseEstimator
 from sklearn.metrics import accuracy_score
-
-from modAL.models.base import BaseLearner, BaseCommittee
-from modAL.utils.validation import check_class_labels, check_class_proba
-from modAL.utils.data import modALinput, retrieve_rows
-from modAL.uncertainty import uncertainty_sampling
-from modAL.disagreement import vote_entropy_sampling, max_std_sampling
-from modAL.acquisition import max_EI
+from sklearn.utils import check_X_y
 
 """
 Classes for active learning algorithms
@@ -20,7 +19,7 @@ Classes for active learning algorithms
 
 class ActiveLearner(BaseLearner):
     """
-    This class is an abstract model of a general active learning algorithm.
+    This class is an model of a general classic (machine learning) active learning algorithm.
 
     Args:
         estimator: The estimator to be used in the active learning loop.
@@ -78,8 +77,85 @@ class ActiveLearner(BaseLearner):
                  on_transformed: bool = False,
                  **fit_kwargs
                  ) -> None:
-        super().__init__(estimator, query_strategy,
-                         X_training, y_training, bootstrap_init, on_transformed, **fit_kwargs)
+        super().__init__(estimator, query_strategy, on_transformed, **fit_kwargs)
+
+        self.X_training = X_training
+        self.y_training = y_training
+
+        if X_training is not None:
+            self._fit_to_known(bootstrap=bootstrap_init, **fit_kwargs)
+
+    def _add_training_data(self, X: modALinput, y: modALinput) -> None:
+        """
+        Adds the new data and label to the known data, but does not retrain the model.
+
+        Args:
+            X: The new samples for which the labels are supplied by the expert.
+            y: Labels corresponding to the new instances in X.
+
+        Note:
+            If the classifier has been fitted, the features in X have to agree with the training samples which the
+            classifier has seen.
+        """
+        check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None,
+                  force_all_finite=self.force_all_finite)
+
+        if self.X_training is None:
+            self.X_training = X
+            self.y_training = y
+        else:
+            try:
+                self.X_training = data_vstack((self.X_training, X))
+                self.y_training = data_vstack((self.y_training, y))
+            except ValueError:
+                raise ValueError('the dimensions of the new training data and label must'
+                                 'agree with the training data and labels provided so far')
+
+    def _fit_to_known(self, bootstrap: bool = False, **fit_kwargs) -> 'BaseLearner':
+        """
+        Fits self.estimator to the training data and labels provided to it so far.
+
+        Args:
+            bootstrap: If True, the method trains the model on a set bootstrapped from the known training instances.
+            **fit_kwargs: Keyword arguments to be passed to the fit method of the predictor.
+
+        Returns:
+            self
+        """
+        if not bootstrap:
+            self.estimator.fit(self.X_training, self.y_training, **fit_kwargs)
+        else:
+            n_instances = self.X_training.shape[0]
+            bootstrap_idx = np.random.choice(
+                range(n_instances), n_instances, replace=True)
+            self.estimator.fit(
+                self.X_training[bootstrap_idx], self.y_training[bootstrap_idx], **fit_kwargs)
+
+        return self
+
+    def fit(self, X: modALinput, y: modALinput, bootstrap: bool = False, **fit_kwargs) -> 'BaseLearner':
+        """
+        Interface for the fit method of the predictor. Fits the predictor to the supplied data, then stores it
+        internally for the active learning loop.
+
+        Args:
+            X: The samples to be fitted.
+            y: The corresponding labels.
+            bootstrap: If true, trains the estimator on a set bootstrapped from X.
+                Useful for building Committee models with bagging.
+            **fit_kwargs: Keyword arguments to be passed to the fit method of the predictor.
+
+        Note:
+            When using scikit-learn estimators, calling this method will make the ActiveLearner forget all training data
+            it has seen!
+
+        Returns:
+            self
+        """
+        check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None,
+                  force_all_finite=self.force_all_finite)
+        self.X_training, self.y_training = X, y
+        return self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
     def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, only_new: bool = False, **fit_kwargs) -> None:
         """
@@ -95,11 +171,129 @@ class ActiveLearner(BaseLearner):
                 tensorflow or keras).
             **fit_kwargs: Keyword arguments to be passed to the fit method of the predictor.
         """
-        self._add_training_data(X, y)
         if not only_new:
+            self._add_training_data(X, y)
             self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
         else:
+            check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None,
+                      force_all_finite=self.force_all_finite)
             self._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
+
+
+class DeepActiveLearner(BaseLearner):
+    """
+    This class is an model of a general deep active learning algorithm.
+    Differences to the classical ActiveLearner are:
+        - Data is no member variable of the DeepActiveLearner class
+        - Misses the initial add/train data methods, therefore always trains on new data
+        - Uses different interfaces to sklearn in some functions
+
+    Args:
+        estimator: The estimator to be used in the active learning loop.
+        query_strategy: Function providing the query strategy for the active learning loop,
+            for instance, modAL.uncertainty.uncertainty_sampling.
+        on_transformed: Whether to transform samples with the pipeline defined by the estimator
+            when applying the query strategy.
+        **fit_kwargs: keyword arguments.
+
+    Attributes:
+        estimator: The estimator to be used in the active learning loop.
+        query_strategy: Function providing the query strategy for the active learning loop.
+    """
+
+    def __init__(self,
+                 estimator: BaseEstimator,
+                 query_strategy: Callable = uncertainty_sampling,
+                 on_transformed: bool = False,
+                 **fit_kwargs
+                 ) -> None:
+        # TODO: Check if given query strategy works for Deep Learning
+        super().__init__(estimator, query_strategy, on_transformed, **fit_kwargs)
+
+        self.estimator.initialize()
+
+    def fit(self, X: modALinput, y: modALinput, bootstrap: bool = False, **fit_kwargs) -> 'BaseLearner':
+        """
+        Interface for the fit method of the predictor. Fits the predictor to the supplied data.
+
+        Args:
+            X: The samples to be fitted.
+            y: The corresponding labels.
+            bootstrap: If true, trains the estimator on a set bootstrapped from X.
+                Useful for building Committee models with bagging.
+            **fit_kwargs: Keyword arguments to be passed to the fit method of the predictor.
+
+        Returns:
+            self
+        """
+        return self._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
+
+    def teach(self, X: modALinput, y: modALinput, warm_start: bool = True, bootstrap: bool = False, **fit_kwargs) -> None:
+        """
+        Trains the predictor with the passed data (warm_start decides if params are resetted or not). 
+
+        Args:
+            X: The new samples for which the labels are supplied by the expert.
+            y: Labels corresponding to the new instances in X.
+            warm_start: If False, the model parameters are resetted and the training starts from zero, 
+                otherwise the pre trained model is kept and further trained.
+            bootstrap: If True, training is done on a bootstrapped dataset. Useful for building Committee models
+                with bagging.
+            **fit_kwargs: Keyword arguments to be passed to the fit method of the predictor.
+        """
+
+        if warm_start:
+            if not bootstrap:
+                self.estimator.partial_fit(X, y, **fit_kwargs)
+            else:
+                bootstrap_idx = np.random.choice(
+                    range(X.shape[0]), X.shape[0], replace=True)
+                self.estimator.partial_fit(
+                    X[bootstrap_idx], y[bootstrap_idx], **fit_kwargs)
+        else:
+            self._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
+
+    @property
+    def num_epochs(self):
+        """
+        Returns the number of epochs of a single fit cycle.
+        """
+        return self.estimator.max_epochs
+
+    @num_epochs.setter
+    def num_epochs(self, value):
+        """
+        Sets the number of epochs of a single fit cycle. The number of epochs 
+        can be changed at any time, even after the model was trained.
+        """
+        if isinstance(value, int):
+            if 0 < value:
+                self.estimator.max_epochs = value
+            else:
+                raise ValueError("num_epochs must be larger than zero")
+        else:
+            raise TypeError("num_epochs must be of type integer!")
+
+    @property
+    def batch_size(self):
+        """
+        Returns the batch size of a single forward pass.
+        """
+        return self.estimator.batch_size
+
+    @batch_size.setter
+    def batch_size(self, value):
+        """
+        Sets the batch size of a single forward pass. The batch size 
+        can be changed at any time, even after the model was trained.
+        """
+        if isinstance(value, int):
+            if 0 < value:
+                self.estimator.batch_size = value
+            else:
+                raise ValueError("batch size must be larger than 0")
+        else:
+            raise TypeError("batch size must be of type integer!")
 
 
 """
@@ -108,7 +302,7 @@ Classes for Bayesian optimization
 """
 
 
-class BayesianOptimizer(BaseLearner):
+class BayesianOptimizer(ActiveLearner):
     """
     This class is an abstract model of a Bayesian optimizer algorithm.
 
@@ -174,6 +368,7 @@ class BayesianOptimizer(BaseLearner):
         ...         query_idx, query_inst = optimizer.query(X)
         ...         optimizer.teach(X[query_idx].reshape(1, -1), y[query_idx].reshape(1, -1))
     """
+
     def __init__(self,
                  estimator: BaseEstimator,
                  query_strategy: Callable = max_EI,
@@ -243,20 +438,16 @@ Classes for committee based algorithms
 class Committee(BaseCommittee):
     """
     This class is an abstract model of a committee-based active learning algorithm.
-
     Args:
         learner_list: A list of ActiveLearners forming the Committee.
         query_strategy: Query strategy function. Committee supports disagreement-based query strategies from
             :mod:`modAL.disagreement`, but uncertainty-based ones from :mod:`modAL.uncertainty` are also supported.
         on_transformed: Whether to transform samples with the pipeline defined by each learner's estimator
             when applying the query strategy.
-
     Attributes:
         classes_: Class labels known by the Committee.
         n_classes_: Number of classes known by the Committee.
-
     Examples:
-
         >>> from sklearn.datasets import load_iris
         >>> from sklearn.neighbors import KNeighborsClassifier
         >>> from sklearn.ensemble import RandomForestClassifier
@@ -324,9 +515,7 @@ class Committee(BaseCommittee):
         Fits every learner to a subset sampled with replacement from X. Calling this method makes the learner forget the
         data it has seen up until this point and replaces it with X! If you would like to perform bootstrapping on each
         learner using the data it has seen, use the method .rebag()!
-
         Calling this method makes the learner forget the data it has seen up until this point and replaces it with X!
-
         Args:
             X: The samples to be fitted on.
             y: The corresponding labels.
@@ -338,7 +527,6 @@ class Committee(BaseCommittee):
     def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, only_new: bool = False, **fit_kwargs) -> None:
         """
         Adds X and y to the known training data for each learner and retrains learners with the augmented dataset.
-
         Args:
             X: The new samples for which the labels are supplied by the expert.
             y: Labels corresponding to the new instances in X.
@@ -352,11 +540,9 @@ class Committee(BaseCommittee):
     def predict(self, X: modALinput, **predict_proba_kwargs) -> Any:
         """
         Predicts the class of the samples by picking the consensus prediction.
-
         Args:
             X: The samples to be predicted.
             **predict_proba_kwargs: Keyword arguments to be passed to the :meth:`predict_proba` of the Committee.
-
         Returns:
             The predicted class labels for X.
         """
@@ -370,11 +556,9 @@ class Committee(BaseCommittee):
     def predict_proba(self, X: modALinput, **predict_proba_kwargs) -> Any:
         """
         Consensus probabilities of the Committee.
-
         Args:
             X: The samples for which the class probabilities are to be predicted.
             **predict_proba_kwargs: Keyword arguments to be passed to the :meth:`predict_proba` of the Committee.
-
         Returns:
             Class probabilities for X.
         """
@@ -383,15 +567,12 @@ class Committee(BaseCommittee):
     def score(self, X: modALinput, y: modALinput, sample_weight: List[float] = None) -> Any:
         """
         Returns the mean accuracy on the given test data and labels.
-
         Todo:
             Why accuracy?
-
         Args:
             X: The samples to score.
             y: Ground truth labels corresponding to X.
             sample_weight: Sample weights.
-
         Returns:
             Mean accuracy of the classifiers.
         """
@@ -401,11 +582,9 @@ class Committee(BaseCommittee):
     def vote(self, X: modALinput, **predict_kwargs) -> Any:
         """
         Predicts the labels for the supplied data for each learner in the Committee.
-
         Args:
             X: The samples to cast votes.
             **predict_kwargs: Keyword arguments to be passed to the :meth:`predict` of the learners.
-
         Returns:
             The predicted class for each learner in the Committee and each sample in X.
         """
@@ -419,11 +598,9 @@ class Committee(BaseCommittee):
     def vote_proba(self, X: modALinput, **predict_proba_kwargs) -> Any:
         """
         Predicts the probabilities of the classes for each sample and each learner.
-
         Args:
             X: The samples for which class probabilities are to be calculated.
             **predict_proba_kwargs: Keyword arguments for the :meth:`predict_proba` of the learners.
-
         Returns:
             Probabilities of each class for each learner and each instance.
         """
@@ -455,15 +632,12 @@ class Committee(BaseCommittee):
 class CommitteeRegressor(BaseCommittee):
     """
     This class is an abstract model of a committee-based active learning regression.
-
     Args:
         learner_list: A list of ActiveLearners forming the CommitteeRegressor.
         query_strategy: Query strategy function.
         on_transformed: Whether to transform samples with the pipeline defined by each learner's estimator
             when applying the query strategy.
-
     Examples:
-
         >>> import numpy as np
         >>> import matplotlib.pyplot as plt
         >>> from sklearn.gaussian_process import GaussianProcessRegressor
@@ -511,11 +685,9 @@ class CommitteeRegressor(BaseCommittee):
     def predict(self, X: modALinput, return_std: bool = False, **predict_kwargs) -> Any:
         """
         Predicts the values of the samples by averaging the prediction of each regressor.
-
         Args:
             X: The samples to be predicted.
             **predict_kwargs: Keyword arguments to be passed to the :meth:`vote` method of the CommitteeRegressor.
-
         Returns:
             The predicted class labels for X.
         """
@@ -528,11 +700,9 @@ class CommitteeRegressor(BaseCommittee):
     def vote(self, X: modALinput, **predict_kwargs):
         """
         Predicts the values for the supplied data for each regressor in the CommitteeRegressor.
-
         Args:
             X: The samples to cast votes.
             **predict_kwargs: Keyword arguments to be passed to :meth:`predict` of the learners.
-
         Returns:
             The predicted value for each regressor in the CommitteeRegressor and each sample in X.
         """

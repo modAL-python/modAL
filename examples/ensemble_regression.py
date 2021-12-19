@@ -1,9 +1,9 @@
-import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import WhiteKernel, RBF
-from modAL.models import ActiveLearner, CommitteeRegressor
+import numpy as np
 from modAL.disagreement import max_std_sampling
+from modAL.models import ActiveLearner, CommitteeRegressor
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF, WhiteKernel
 
 # generating the data
 X = np.concatenate((np.random.rand(100)-1, np.random.rand(100)))

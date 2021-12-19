@@ -1,9 +1,8 @@
 from typing import Callable, Optional, Sequence, Tuple
 
 import numpy as np
-from sklearn.base import BaseEstimator
-
 from modAL.utils.data import modALinput
+from sklearn.base import BaseEstimator
 
 
 def make_linear_combination(*functions: Callable, weights: Optional[Sequence] = None) -> Callable:

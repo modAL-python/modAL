@@ -5,9 +5,9 @@ For its scikit-learn interface, see http://scikit-learn.org/stable/modules/gener
 """
 
 import numpy as np
+from modAL.models import ActiveLearner
 from sklearn.datasets import load_iris
 from sklearn.neighbors import KNeighborsClassifier
-from modAL.models import ActiveLearner
 
 np.random.seed(0)
 

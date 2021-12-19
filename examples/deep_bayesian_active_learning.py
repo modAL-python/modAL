@@ -2,11 +2,13 @@ import keras
 import numpy as np
 from keras import backend as K
 from keras.datasets import mnist
+from keras.layers import (Activation, Conv2D, Dense, Dropout, Flatten,
+                          MaxPooling2D)
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Activation, Flatten, Conv2D, MaxPooling2D
 from keras.regularizers import l2
 from keras.wrappers.scikit_learn import KerasClassifier
 from modAL.models import ActiveLearner
+
 
 def create_keras_model():
     model = Sequential()

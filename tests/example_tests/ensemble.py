@@ -1,7 +1,8 @@
-import numpy as np
 from itertools import product
-from sklearn.ensemble import RandomForestClassifier
+
+import numpy as np
 from modAL.models import ActiveLearner, Committee
+from sklearn.ensemble import RandomForestClassifier
 
 np.random.seed(0)
 
