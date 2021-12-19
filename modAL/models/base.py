@@ -152,7 +152,7 @@ class BaseLearner(ABC, BaseEstimator):
         """
         return self.estimator.predict_proba(X, **predict_proba_kwargs)
 
-    def query(self, X_pool, return_metrics: bool = False, *query_args, **query_kwargs) -> Union[Tuple, modALinput]:
+    def query(self, X_pool, *query_args, return_metrics: bool = False, **query_kwargs) -> Union[Tuple, modALinput]:
         """
         Finds the n_instances most informative point in the data provided by calling the query_strategy function.
 
