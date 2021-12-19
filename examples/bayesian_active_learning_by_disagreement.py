@@ -1,3 +1,8 @@
+"""
+This is a original implementation of the algorithm Bayesian Active Learning by Disagreements.
+(Pl. refer - https://arxiv.org/abs/1112.5745). It calculates the disagreement between an ensemble
+of classifiers and a single classifier using monte carlo estimates.
+"""
 from tensorflow.keras.models import Sequential, Model
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dense, Flatten, Dropout
 from tensorflow.keras.optimizers import Adam
