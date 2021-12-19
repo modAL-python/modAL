@@ -6,11 +6,12 @@ from typing import Callable, Optional, Tuple, Union
 
 import numpy as np
 import scipy.sparse as sp
-from sklearn.metrics.pairwise import pairwise_distances, pairwise_distances_argmin_min
+from sklearn.metrics.pairwise import (pairwise_distances,
+                                      pairwise_distances_argmin_min)
 
-from modAL.utils.data import data_vstack, modALinput, data_shape
 from modAL.models.base import BaseCommittee, BaseLearner
 from modAL.uncertainty import classifier_uncertainty
+from modAL.utils.data import data_shape, data_vstack, modALinput
 
 
 def select_cold_start_instance(X: modALinput,
@@ -139,6 +140,8 @@ def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
 
     Returns:
         The indices of the top n_instances ranked unlabelled samples.
+        The uncertainty scores of the chosen instances. 
+
     """
     # Make a local copy of our classifier's training data.
     # Define our record container and record the best cold start instance in the case of cold start.
@@ -160,7 +163,7 @@ def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
     ceiling = np.minimum(unlabeled.shape[0], n_instances) - len(instance_index_ranking)
 
     # mask for unlabeled initialized as transparent
-    mask = np.ones(unlabeled.shape[0], np.bool)
+    mask = np.ones(unlabeled.shape[0], bool)
 
     for _ in range(ceiling):
 
@@ -178,7 +181,7 @@ def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
         instance_index_ranking.append(instance_index)
 
     # Return numpy array, not a list.
-    return np.array(instance_index_ranking)
+    return np.array(instance_index_ranking), uncertainty_scores[np.array(instance_index_ranking)]
 
 
 def uncertainty_batch_sampling(classifier: Union[BaseLearner, BaseCommittee],
@@ -210,7 +213,10 @@ def uncertainty_batch_sampling(classifier: Union[BaseLearner, BaseCommittee],
         **uncertainty_measure_kwargs: Keyword arguments to be passed for the :meth:`predict_proba` of the classifier.
 
     Returns:
-        Indices of the instances from `X` chosen to be labelled; records from `X` chosen to be labelled.
+        Indices of the instances from `X` chosen to be labelled
+        Records from `X` chosen to be labelled.
+        The uncertainty scores of the chosen instances. 
+
     """
     uncertainty = classifier_uncertainty(classifier, X, **uncertainty_measure_kwargs)
     return ranked_batch(classifier, unlabeled=X, uncertainty_scores=uncertainty,

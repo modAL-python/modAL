@@ -1,8 +1,6 @@
 import numpy as np
-
 from modAL.models import ActiveLearner
 from modAL.multilabel import SVM_binary_minimum
-
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import LinearSVC
 

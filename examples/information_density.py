@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-
 from modAL.density import information_density
 from sklearn.datasets import make_blobs
 

@@ -1,6 +1,7 @@
-from .learners import ActiveLearner, BayesianOptimizer, Committee, CommitteeRegressor
+from .learners import (ActiveLearner, BayesianOptimizer, Committee,
+                       CommitteeRegressor, DeepActiveLearner)
 
 __all__ = [
-    'ActiveLearner', 'BayesianOptimizer',
+    'ActiveLearner', 'DeepActiveLearner', 'BayesianOptimizer', 
     'Committee', 'CommitteeRegressor'
 ]

@@ -2,11 +2,12 @@
 This example shows how to build models with bagging using the Committee model.
 """
 
-import numpy as np
 from itertools import product
+
+import numpy as np
 from matplotlib import pyplot as plt
-from sklearn.neighbors import KNeighborsClassifier
 from modAL.models import ActiveLearner, Committee
+from sklearn.neighbors import KNeighborsClassifier
 
 # creating the dataset
 im_width = 500

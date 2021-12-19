@@ -1,11 +1,11 @@
+from functools import partial
+
 import numpy as np
+from modAL.batch import uncertainty_batch_sampling
+from modAL.models import ActiveLearner
 from sklearn.datasets import load_iris
 from sklearn.decomposition import PCA
 from sklearn.neighbors import KNeighborsClassifier
-from functools import partial
-
-from modAL.batch import uncertainty_batch_sampling
-from modAL.models import ActiveLearner
 
 # Set our RNG for reproducibility.
 RANDOM_STATE_SEED = 123

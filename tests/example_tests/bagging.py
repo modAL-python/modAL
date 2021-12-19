@@ -2,10 +2,11 @@
 This example shows how to build models with bagging using the Committee model.
 """
 
-import numpy as np
 from itertools import product
-from sklearn.neighbors import KNeighborsClassifier
+
+import numpy as np
 from modAL.models import ActiveLearner, Committee
+from sklearn.neighbors import KNeighborsClassifier
 
 np.random.seed(0)
 

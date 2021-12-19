@@ -6,8 +6,8 @@ The example uses the scikit-learn wrappers of Keras. For more info, see https://
 import keras
 import numpy as np
 from keras.datasets import mnist
+from keras.layers import Conv2D, Dense, Dropout, Flatten, MaxPooling2D
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D
 from keras.wrappers.scikit_learn import KerasClassifier
 from modAL.models import ActiveLearner
 

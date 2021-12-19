@@ -3,9 +3,9 @@ In this example the use of ActiveLearner is demonstrated in a pool-based samplin
 """
 
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
 from modAL.models import ActiveLearner
 from modAL.uncertainty import classifier_uncertainty
+from sklearn.ensemble import RandomForestClassifier
 
 np.random.seed(0)
 

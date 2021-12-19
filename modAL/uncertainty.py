@@ -1,15 +1,15 @@
 """
 Uncertainty measures and uncertainty based sampling strategies for the active learning models.
 """
-from typing import Tuple
 
 import numpy as np
 from scipy.stats import entropy
-from sklearn.exceptions import NotFittedError
 from sklearn.base import BaseEstimator
+from sklearn.exceptions import NotFittedError
 
 from modAL.utils.data import modALinput
-from modAL.utils.selection import multi_argmax, shuffled_argmax
+from modAL.utils.selection import (multi_argmax, multi_argmin, shuffled_argmax,
+                                   shuffled_argmin)
 
 
 def _proba_uncertainty(proba: np.ndarray) -> np.ndarray:
@@ -146,8 +146,8 @@ def uncertainty_sampling(classifier: BaseEstimator, X: modALinput,
             measure function.
 
     Returns:
-        The indices of the instances from X chosen to be labelled;
-        the instances from X chosen to be labelled.
+        The indices of the instances from X chosen to be labelled.
+        The uncertainty metric of the chosen instances. 
     """
     uncertainty = classifier_uncertainty(classifier, X, **uncertainty_measure_kwargs)
 
@@ -172,15 +172,15 @@ def margin_sampling(classifier: BaseEstimator, X: modALinput,
         **uncertainty_measure_kwargs: Keyword arguments to be passed for the uncertainty
             measure function.
     Returns:
-        The indices of the instances from X chosen to be labelled;
-        the instances from X chosen to be labelled.
+        The indices of the instances from X chosen to be labelled.
+        The margin metric of the chosen instances.
     """
     margin = classifier_margin(classifier, X, **uncertainty_measure_kwargs)
 
     if not random_tie_break:
-        return multi_argmax(-margin, n_instances=n_instances)
+        return multi_argmin(margin, n_instances=n_instances)
 
-    return shuffled_argmax(-margin, n_instances=n_instances)
+    return shuffled_argmin(margin, n_instances=n_instances)
 
 
 def entropy_sampling(classifier: BaseEstimator, X: modALinput,
@@ -200,8 +200,8 @@ def entropy_sampling(classifier: BaseEstimator, X: modALinput,
             measure function.
 
     Returns:
-        The indices of the instances from X chosen to be labelled;
-        the instances from X chosen to be labelled.
+        The indices of the instances from X chosen to be labelled.
+        The entropy metric of the chosen instances.
     """
     entropy = classifier_entropy(classifier, X, **uncertainty_measure_kwargs)
 

@@ -25,17 +25,15 @@ In this example, we will construct a custom query function by combining classifi
 and classifier margin.
 """
 
-import numpy as np
 import matplotlib.pyplot as plt
-
+import numpy as np
+from modAL.models import ActiveLearner
+from modAL.uncertainty import classifier_margin, classifier_uncertainty
 from modAL.utils.combination import make_linear_combination, make_product
 from modAL.utils.selection import multi_argmax
-from modAL.uncertainty import classifier_uncertainty, classifier_margin
-from modAL.models import ActiveLearner
 from sklearn.datasets import make_blobs
 from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.gaussian_process.kernels import RBF
-
 
 # generating the data
 centers = np.asarray([[-2, 3], [0.5, 5], [1, 1.5]])

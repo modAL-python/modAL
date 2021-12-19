@@ -1,8 +1,9 @@
-import numpy as np
 from copy import deepcopy
+
+import numpy as np
+from modAL.models import ActiveLearner, Committee
 from sklearn.datasets import load_iris
 from sklearn.ensemble import RandomForestClassifier
-from modAL.models import ActiveLearner, Committee
 
 np.random.seed(0)
 

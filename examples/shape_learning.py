@@ -5,11 +5,12 @@ In this example, we will demonstrate the use of ActiveLearner with
 the scikit-learn implementation of the kNN classifier algorithm.
 """
 
-import numpy as np
-import matplotlib.pyplot as plt
 from copy import deepcopy
-from sklearn.ensemble import RandomForestClassifier
+
+import matplotlib.pyplot as plt
+import numpy as np
 from modAL.models import ActiveLearner
+from sklearn.ensemble import RandomForestClassifier
 
 # creating the image
 im_width = 500
