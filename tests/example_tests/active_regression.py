@@ -27,7 +27,7 @@ kernel = RBF(length_scale=1.0, length_scale_bounds=(1e-2, 1e3)) \
 regressor = ActiveLearner(
     estimator=GaussianProcessRegressor(kernel=kernel),
     query_strategy=max_std_sampling,
-    X_training=X_initial.reshape(-1, 1), y_training=y_initial.reshape(-1, 1)
+    X_training=X_initial.reshape(-1, 1), y_training=y_initial.reshape(-1, 1),
 )
 
 # active learning

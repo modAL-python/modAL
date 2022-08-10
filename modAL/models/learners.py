@@ -5,7 +5,18 @@ from typing import Callable, Optional, Tuple, List, Any
 from sklearn.base import BaseEstimator
 from sklearn.metrics import accuracy_score
 
-from modAL.models.base import BaseLearner, BaseCommittee
+from modAL.models.base import (
+    BaseLearner,
+    BaseCommittee,
+    FitFunction,
+    PredictFunction,
+    PredictProbaFunction,
+    ScoreFunction,
+    SKLearnFitFunction,
+    SKLearnPredictFunction,
+    SKLearnPredictProbaFunction,
+    SKLearnScoreFunction
+)
 from modAL.utils.validation import check_class_labels, check_class_proba
 from modAL.utils.data import modALinput, retrieve_rows
 from modAL.uncertainty import uncertainty_sampling
@@ -69,6 +80,11 @@ class ActiveLearner(BaseLearner):
         ... )
     """
 
+    fit_func: FitFunction = SKLearnFitFunction()
+    predict_func: PredictFunction = SKLearnPredictFunction()
+    predict_proba_func: PredictProbaFunction = SKLearnPredictProbaFunction()
+    score_func: ScoreFunction = SKLearnScoreFunction()
+
     def __init__(self,
                  estimator: BaseEstimator,
                  query_strategy: Callable = uncertainty_sampling,
@@ -76,10 +92,17 @@ class ActiveLearner(BaseLearner):
                  y_training: Optional[modALinput] = None,
                  bootstrap_init: bool = False,
                  on_transformed: bool = False,
+                 force_all_finite: bool = True,
+                 fit_func: FitFunction = SKLearnFitFunction(),
+                 predict_func: PredictFunction = SKLearnPredictFunction(),
+                 predict_proba_func: PredictProbaFunction = SKLearnPredictProbaFunction(),
+                 score_func: ScoreFunction = SKLearnScoreFunction(),
                  **fit_kwargs
                  ) -> None:
         super().__init__(estimator, query_strategy,
-                         X_training, y_training, bootstrap_init, on_transformed, **fit_kwargs)
+                         X_training, y_training, bootstrap_init, on_transformed, force_all_finite,
+                         fit_func, predict_func, predict_proba_func, score_func,
+                         **fit_kwargs)
 
     def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, only_new: bool = False, **fit_kwargs) -> None:
         """
@@ -174,6 +197,12 @@ class BayesianOptimizer(BaseLearner):
         ...         query_idx, query_inst = optimizer.query(X)
         ...         optimizer.teach(X[query_idx].reshape(1, -1), y[query_idx].reshape(1, -1))
     """
+
+    fit_func: FitFunction = SKLearnFitFunction()
+    predict_func: PredictFunction = SKLearnPredictFunction()
+    predict_proba_func: PredictProbaFunction = SKLearnPredictProbaFunction()
+    score_func: ScoreFunction = SKLearnScoreFunction()
+
     def __init__(self,
                  estimator: BaseEstimator,
                  query_strategy: Callable = max_EI,
@@ -181,6 +210,10 @@ class BayesianOptimizer(BaseLearner):
                  y_training: Optional[modALinput] = None,
                  bootstrap_init: bool = False,
                  on_transformed: bool = False,
+                 fit_func: FitFunction = SKLearnFitFunction(),
+                 predict_func: PredictFunction = SKLearnPredictFunction(),
+                 predict_proba_func: PredictProbaFunction = SKLearnPredictProbaFunction(),
+                 score_func: ScoreFunction = SKLearnScoreFunction(),
                  **fit_kwargs) -> None:
         super(BayesianOptimizer, self).__init__(estimator, query_strategy,
                                                 X_training, y_training, bootstrap_init, on_transformed, **fit_kwargs)

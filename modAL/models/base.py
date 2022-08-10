@@ -6,7 +6,7 @@ Base classes for active learning algorithms
 import abc
 import sys
 import warnings
-from typing import Union, Callable, Optional, Tuple, List, Iterator, Any
+from typing import Union, Callable, Optional, Tuple, List, Iterator, Any, Protocol, TypeVar
 
 import numpy as np
 from sklearn.base import BaseEstimator
@@ -22,6 +22,48 @@ if sys.version_info >= (3, 4):
     ABC = abc.ABC
 else:
     ABC = abc.ABCMeta('ABC', (), {})
+
+GenericEstimator = TypeVar('GenericEstimator')
+
+
+class FitFunction(Protocol):
+    def __call__(self, estimator: GenericEstimator, X, y, **kwargs) -> GenericEstimator:
+        raise NotImplementedError
+
+
+class PredictFunction(Protocol):
+    def __call__(self, estimator: GenericEstimator, X, **kwargs) -> np.array:
+        raise NotImplementedError
+
+
+class PredictProbaFunction(Protocol):
+    def __call__(self, estimator: GenericEstimator, X, **kwargs) -> np.array:
+        raise NotImplementedError
+
+
+class ScoreFunction(Protocol):
+    def __call__(self, estimator: GenericEstimator, X, y, **kwargs) -> Any:
+        raise NotImplementedError
+
+
+class SKLearnFitFunction(FitFunction):
+    def __call__(self, estimator: BaseEstimator, X, y, **kwargs) -> BaseEstimator:
+        return estimator.fit(X=X, y=y, **kwargs)
+
+
+class SKLearnPredictFunction(PredictFunction):
+    def __call__(self, estimator: BaseEstimator, X, **kwargs) -> np.array:
+        return estimator.predict(X=X, **kwargs)
+
+
+class SKLearnPredictProbaFunction(PredictFunction):
+    def __call__(self, estimator: BaseEstimator, X, **kwargs) -> np.array:
+        return estimator.predict_proba(X=X, **kwargs)
+
+
+class SKLearnScoreFunction(ScoreFunction):
+    def __call__(self, estimator: BaseEstimator, X, y, **kwargs) -> Any:
+        return estimator.score(X=X, y=y, **kwargs)
 
 
 class BaseLearner(ABC, BaseEstimator):
@@ -49,6 +91,7 @@ class BaseLearner(ABC, BaseEstimator):
             which the model has been trained on.
         y_training: The labels corresponding to X_training.
     """
+
     def __init__(self,
                  estimator: BaseEstimator,
                  query_strategy: Callable,
@@ -57,6 +100,10 @@ class BaseLearner(ABC, BaseEstimator):
                  bootstrap_init: bool = False,
                  on_transformed: bool = False,
                  force_all_finite: bool = True,
+                 fit_func: FitFunction = SKLearnFitFunction(),
+                 predict_func: PredictFunction = SKLearnPredictFunction(),
+                 predict_proba_func: PredictProbaFunction = SKLearnPredictProbaFunction(),
+                 score_func: ScoreFunction = SKLearnScoreFunction(),
                  **fit_kwargs
                  ) -> None:
         assert callable(query_strategy), 'query_strategy must be callable'
@@ -72,6 +119,11 @@ class BaseLearner(ABC, BaseEstimator):
 
         assert isinstance(force_all_finite, bool), 'force_all_finite must be a bool'
         self.force_all_finite = force_all_finite
+
+        self.fit_func = fit_func
+        self.predict_func = predict_func
+        self.predict_proba_func = predict_proba_func
+        self.score_func = score_func
 
     def _add_training_data(self, X: modALinput, y: modALinput) -> None:
         """
@@ -152,11 +204,14 @@ class BaseLearner(ABC, BaseEstimator):
             self
         """
         if not bootstrap:
-            self.estimator.fit(self.X_training, self.y_training, **fit_kwargs)
+            self.fit_func(estimator=self.estimator, X=self.X_training, y=self.y_training, **fit_kwargs)
         else:
             n_instances = self.X_training.shape[0]
             bootstrap_idx = np.random.choice(range(n_instances), n_instances, replace=True)
-            self.estimator.fit(self.X_training[bootstrap_idx], self.y_training[bootstrap_idx], **fit_kwargs)
+            self.fit_func(estimator=self.estimator,
+                          X=self.X_training[bootstrap_idx],
+                          y=self.y_training[bootstrap_idx],
+                          **fit_kwargs)
 
         return self
 
@@ -177,10 +232,12 @@ class BaseLearner(ABC, BaseEstimator):
                   force_all_finite=self.force_all_finite)
 
         if not bootstrap:
-            self.estimator.fit(X, y, **fit_kwargs)
+            self.fit_func(estimator=self.estimator, X=X, y=y, **fit_kwargs)
         else:
             bootstrap_idx = np.random.choice(range(X.shape[0]), X.shape[0], replace=True)
-            self.estimator.fit(X[bootstrap_idx], y[bootstrap_idx])
+            self.fit_func(estimator=self.estimator,
+                          X=X[bootstrap_idx],
+                          y=y[bootstrap_idx])
 
         return self
 
@@ -219,7 +276,7 @@ class BaseLearner(ABC, BaseEstimator):
         Returns:
             Estimator predictions for X.
         """
-        return self.estimator.predict(X, **predict_kwargs)
+        return self.predict_func(estimator=self.estimator, X=X, **predict_kwargs)
 
     def predict_proba(self, X: modALinput, **predict_proba_kwargs) -> Any:
         """
@@ -232,7 +289,7 @@ class BaseLearner(ABC, BaseEstimator):
         Returns:
             Class probabilities for X.
         """
-        return self.estimator.predict_proba(X, **predict_proba_kwargs)
+        return self.predict_proba_func(estimator=self.estimator, X=X, **predict_proba_kwargs)
 
     def query(self, X_pool, *query_args, **query_kwargs) -> Union[Tuple, modALinput]:
         """
@@ -272,7 +329,7 @@ class BaseLearner(ABC, BaseEstimator):
         Returns:
             The score of the predictor.
         """
-        return self.estimator.score(X, y, **score_kwargs)
+        return self.score_func(X=X, y=y, **score_kwargs)
 
     @abc.abstractmethod
     def teach(self, *args, **kwargs) -> None:
@@ -289,6 +346,7 @@ class BaseCommittee(ABC, BaseEstimator):
         on_transformed: Whether to transform samples with the pipeline defined by each learner's estimator
             when applying the query strategy.
     """
+
     def __init__(self, learner_list: List[BaseLearner], query_strategy: Callable, on_transformed: bool = False) -> None:
         assert type(learner_list) == list, 'learners must be supplied in a list'
 
@@ -413,7 +471,8 @@ class BaseCommittee(ABC, BaseEstimator):
         """
         self._fit_to_known(bootstrap=True, **fit_kwargs)
 
-    def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, only_new: bool = False, **fit_kwargs) -> None:
+    def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, only_new: bool = False,
+              **fit_kwargs) -> None:
         """
         Adds X and y to the known training data for each learner and retrains learners with the augmented dataset.
 
