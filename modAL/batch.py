@@ -160,7 +160,7 @@ def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
     ceiling = np.minimum(unlabeled.shape[0], n_instances) - len(instance_index_ranking)
 
     # mask for unlabeled initialized as transparent
-    mask = np.ones(unlabeled.shape[0], np.bool)
+    mask = np.ones(unlabeled.shape[0], bool)
 
     for _ in range(ceiling):
 
