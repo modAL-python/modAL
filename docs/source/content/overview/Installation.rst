@@ -11,7 +11,7 @@ You can install modAL directly with pip:
 
 ::
 
-    pip install modAL
+    pip install modAL-python
 
 Alternatively, you can install modAL directly from source:
 

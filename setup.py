@@ -1,8 +1,8 @@
 from setuptools import find_packages, setup
 
 setup(
-    name='modAL',
-    version='0.4.1',
+    name='modAL-python',
+    version='0.4.2',
     author='Tivadar Danka',
     author_email='85a5187a@opayq.com',
     description='A modular active learning framework for Python3',
