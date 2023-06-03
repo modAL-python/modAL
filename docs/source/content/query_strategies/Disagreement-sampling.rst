@@ -32,7 +32,7 @@ Each instance has a corresponding probability distribution to it: the distributi
     >>> p_vote
     ... [[0.6666, 0.3333, 0.0   ]
     ...  [0.0   , 0.6666, 0.3333]
-    ...  [0.3333, 0,3333, 0,3333]
+    ...  [0.3333, 0.3333, 0.3333]
     ...  [0.0   , 0.0   , 1.0   ]
     ...  [0.0   , 0.3333, 0.6666]]
 
