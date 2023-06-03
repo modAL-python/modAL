@@ -16,7 +16,7 @@ Measuring disagreement
 
 With an ensemble of regressors like in the CommitteeRegressor model, a measure of disagreement can be the standard deviation of predictions, which provides a simple way to query for labels. This is not the case in general: for ordinary regressors, it is difficult to come up with viable query strategies because they don't always provide a way to measure uncertainty. (One notable exception is the Gaussian process regressor.)
 
-This is demonstrated in `this example <../examples/Ensemble-regression.html>`__, where two regressors are trained on distinct subsets of the same dataset. In the figure below, the regressors are shown along with the mean predictions and the standard deviation.
+This is demonstrated in `this example <../examples/ensemble-regression.html>`__, where two regressors are trained on distinct subsets of the same dataset. In the figure below, the regressors are shown along with the mean predictions and the standard deviation.
 
 .. image:: img/er-initial.png
    :align: center
