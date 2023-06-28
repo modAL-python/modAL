@@ -16,7 +16,7 @@ from modAL.utils.selection import multi_argmin, shuffled_argmin
 
 
 def expected_error_reduction(learner: ActiveLearner, X: modALinput, loss: str = 'binary',
-                             p_subsample: np.float = 1.0, n_instances: int = 1,
+                             p_subsample: float = 1.0, n_instances: int = 1,
                              random_tie_break: bool = False) -> np.ndarray:
     """
     Expected error reduction query strategy.
