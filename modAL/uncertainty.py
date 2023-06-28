@@ -76,7 +76,7 @@ def classifier_uncertainty(classifier: BaseEstimator, X: modALinput, **predict_p
     try:
         classwise_uncertainty = classifier.predict_proba(X, **predict_proba_kwargs)
     except NotFittedError:
-        return np.ones(shape=(X.shape[0], ))
+        return np.ones(shape=(X.shape[0],))
 
     # for each point, select the maximum uncertainty
     uncertainty = 1 - np.max(classwise_uncertainty, axis=1)
@@ -99,7 +99,7 @@ def classifier_margin(classifier: BaseEstimator, X: modALinput, **predict_proba_
     try:
         classwise_uncertainty = classifier.predict_proba(X, **predict_proba_kwargs)
     except NotFittedError:
-        return np.zeros(shape=(X.shape[0], ))
+        return np.zeros(shape=(X.shape[0],))
 
     if classwise_uncertainty.shape[1] == 1:
         return np.zeros(shape=(classwise_uncertainty.shape[0],))
@@ -125,7 +125,7 @@ def classifier_entropy(classifier: BaseEstimator, X: modALinput, **predict_proba
     try:
         classwise_uncertainty = classifier.predict_proba(X, **predict_proba_kwargs)
     except NotFittedError:
-        return np.zeros(shape=(X.shape[0], ))
+        return np.zeros(shape=(X.shape[0],))
 
     return np.transpose(entropy(np.transpose(classwise_uncertainty)))
 

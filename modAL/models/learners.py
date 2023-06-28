@@ -157,7 +157,8 @@ class ActiveLearner(BaseLearner):
         self.X_training, self.y_training = X, y
         return self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
 
-    def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, only_new: bool = False, **fit_kwargs) -> None:
+    def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, only_new: bool = False,
+              **fit_kwargs) -> None:
         """
         Adds X and y to the known training data and retrains the predictor with the augmented dataset.
 
@@ -228,7 +229,8 @@ class DeepActiveLearner(BaseLearner):
         """
         return self._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
 
-    def teach(self, X: modALinput, y: modALinput, warm_start: bool = True, bootstrap: bool = False, **fit_kwargs) -> None:
+    def teach(self, X: modALinput, y: modALinput, warm_start: bool = True, bootstrap: bool = False,
+              **fit_kwargs) -> None:
         """
         Trains the predictor with the passed data (warm_start decides if params are resetted or not). 
 
@@ -404,7 +406,8 @@ class BayesianOptimizer(ActiveLearner):
         """
         return self.X_max, self.y_max
 
-    def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, only_new: bool = False, **fit_kwargs) -> None:
+    def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, only_new: bool = False,
+              **fit_kwargs) -> None:
         """
         Adds X and y to the known training data and retrains the predictor with the augmented dataset. This method also
         keeps track of the maximum value encountered in the training data.
@@ -481,6 +484,7 @@ class Committee(BaseCommittee):
         ...     y=iris['target'][query_idx].reshape(1, )
         ... )
     """
+
     def __init__(self, learner_list: List[ActiveLearner], query_strategy: Callable = vote_entropy_sampling,
                  on_transformed: bool = False) -> None:
         super().__init__(learner_list, query_strategy, on_transformed)
@@ -524,7 +528,8 @@ class Committee(BaseCommittee):
         super().fit(X, y, **fit_kwargs)
         self._set_classes()
 
-    def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, only_new: bool = False, **fit_kwargs) -> None:
+    def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, only_new: bool = False,
+              **fit_kwargs) -> None:
         """
         Adds X and y to the known training data for each learner and retrains learners with the augmented dataset.
         Args:
@@ -678,6 +683,7 @@ class CommitteeRegressor(BaseCommittee):
         ...     query_idx, query_instance = committee.query(X.reshape(-1, 1))
         ...     committee.teach(X[query_idx].reshape(-1, 1), y[query_idx].reshape(-1, 1))
     """
+
     def __init__(self, learner_list: List[ActiveLearner], query_strategy: Callable = max_std_sampling,
                  on_transformed: bool = False) -> None:
         super().__init__(learner_list, query_strategy, on_transformed)

@@ -21,7 +21,7 @@ def mc_dropout_bald(classifier: BaseEstimator, X: modALinput, n_instances: int =
                     num_cycles: int = 50, sample_per_forward_pass: int = 1000,
                     logits_adaptor: Callable[[
                         torch.tensor, modALinput], torch.tensor] = default_logits_adaptor,
-                    **mc_dropout_kwargs,) -> np.ndarray:
+                    **mc_dropout_kwargs, ) -> np.ndarray:
     """
         Mc-Dropout bald query strategy. Returns the indexes of the instances with the largest BALD 
         (Bayesian Active Learning by Disagreement) score calculated through the dropout cycles
@@ -337,8 +337,7 @@ def _entropy(proba: list) -> np.ndarray:
 
     # calculate entropy per class and sum along dropout cycles
     entropy_classes = entropy_sum(proba_stacked, axis=-1)
-    entropy = np.mean(entropy_classes, where=~
-                      np.isnan(entropy_classes), axis=-1)
+    entropy = np.mean(entropy_classes, where=~np.isnan(entropy_classes), axis=-1)
     return entropy
 
 
@@ -381,11 +380,11 @@ def _bald_divergence(proba: list) -> np.ndarray:
 
     # entropy along dropout cycles
     accumulated_entropy = entropy_sum(proba_stacked, axis=-1)
-    f_x = accumulated_entropy/len(proba)
+    f_x = accumulated_entropy / len(proba)
 
     # score sums along dropout cycles
     accumulated_score = np.sum(proba_stacked, axis=-1)
-    average_score = accumulated_score/len(proba)
+    average_score = accumulated_score / len(proba)
     # expand dimension w/o data for entropy calculation
     average_score = np.expand_dims(average_score, axis=-1)
 
@@ -419,9 +418,9 @@ def set_dropout_mode(model, dropout_layer_indexes: list, train_mode: bool):
         for index in dropout_layer_indexes:
             layer = modules[index]
             if layer.__class__.__name__.startswith('Dropout'):
-                if True == train_mode:
+                if train_mode:
                     layer.train()
-                elif False == train_mode:
+                else:
                     layer.eval()
             else:
                 raise KeyError(
@@ -430,7 +429,7 @@ def set_dropout_mode(model, dropout_layer_indexes: list, train_mode: bool):
     else:
         for module in modules:
             if module.__class__.__name__.startswith('Dropout'):
-                if True == train_mode:
+                if train_mode:
                     module.train()
-                elif False == train_mode:
+                else:
                     module.eval()

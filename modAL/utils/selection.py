@@ -25,8 +25,7 @@ def shuffled_argmax(values: np.ndarray, n_instances: int = 1) -> np.ndarray:
 
     # getting the n_instances best instance
     # since mergesort is used, the shuffled order is preserved
-    sorted_query_idx = np.argsort(shuffled_values, kind='mergesort')[
-        len(shuffled_values)-n_instances:]
+    sorted_query_idx = np.argsort(shuffled_values, kind='mergesort')[len(shuffled_values) - n_instances:]
 
     # inverting the shuffle
     query_idx = shuffled_idx[sorted_query_idx]
@@ -64,7 +63,7 @@ def multi_argmax(values: np.ndarray, n_instances: int = 1) -> np.ndarray:
     """
     assert n_instances <= values.shape[0], 'n_instances must be less or equal than the size of utility'
 
-    max_idx = np.argpartition(-values, n_instances-1, axis=0)[:n_instances]
+    max_idx = np.argpartition(-values, n_instances - 1, axis=0)[:n_instances]
 
     return max_idx, values[max_idx]
 
@@ -99,5 +98,5 @@ def weighted_random(weights: np.ndarray, n_instances: int = 1) -> np.ndarray:
     assert weight_sum > 0, 'the sum of weights must be larger than zero'
 
     random_idx = np.random.choice(
-        range(len(weights)), size=n_instances, p=weights/weight_sum, replace=False)
+        range(len(weights)), size=n_instances, p=weights / weight_sum, replace=False)
     return random_idx

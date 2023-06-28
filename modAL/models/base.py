@@ -171,19 +171,17 @@ class BaseLearner(ABC, BaseEstimator):
             query_metrics: returns also the corresponding metrics, if return_metrics == True
         """
 
-        try:
-            query_result, query_metrics = self.query_strategy(
-                self, X_pool, *query_args, **query_kwargs)
-
-        except:
+        _query_strategy_result = self.query_strategy(
+            self, X_pool, *query_args, **query_kwargs)
+        if isinstance(_query_strategy_result, tuple) and len(_query_strategy_result) == 2:
+            query_result, query_metrics = _query_strategy_result
+        else:
+            query_result = _query_strategy_result
             query_metrics = None
-            query_result = self.query_strategy(
-                self, X_pool, *query_args, **query_kwargs)
 
         if return_metrics:
-            if query_metrics is None: 
-                warnings.warn(
-                "The selected query strategy doesn't support return_metrics")
+            if query_metrics is None:
+                warnings.warn("The selected query strategy doesn't support return_metrics")
             return query_result, retrieve_rows(X_pool, query_result), query_metrics
         else:
             return query_result, retrieve_rows(X_pool, query_result)
@@ -216,6 +214,7 @@ class BaseCommittee(ABC, BaseEstimator):
         on_transformed: Whether to transform samples with the pipeline defined by each learner's estimator
             when applying the query strategy.
     """
+
     def __init__(self, learner_list: List[BaseLearner], query_strategy: Callable, on_transformed: bool = False) -> None:
         assert type(learner_list) == list, 'learners must be supplied in a list'
 
@@ -313,19 +312,18 @@ class BaseCommittee(ABC, BaseEstimator):
             query_metrics: returns also the corresponding metrics, if return_metrics == True
         """
 
-        try:
-            query_result, query_metrics = self.query_strategy(
-                self, X_pool, *query_args, **query_kwargs)
-
-        except:
+        _query_strategy_result = self.query_strategy(
+            self, X_pool, *query_args, **query_kwargs)
+        if isinstance(_query_strategy_result, tuple) and len(_query_strategy_result) == 2:
+            query_result, query_metrics = _query_strategy_result
+        else:
+            query_result = _query_strategy_result
             query_metrics = None
-            query_result = self.query_strategy(
-                self, X_pool, *query_args, **query_kwargs)
 
         if return_metrics:
-            if query_metrics is None: 
+            if query_metrics is None:
                 warnings.warn(
-                "The selected query strategy doesn't support return_metrics")
+                    "The selected query strategy doesn't support return_metrics")
             return query_result, retrieve_rows(X_pool, query_result), query_metrics
         else:
             return query_result, retrieve_rows(X_pool, query_result)
@@ -341,7 +339,8 @@ class BaseCommittee(ABC, BaseEstimator):
         """
         self._fit_to_known(bootstrap=True, **fit_kwargs)
 
-    def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, only_new: bool = False, **fit_kwargs) -> None:
+    def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, only_new: bool = False,
+              **fit_kwargs) -> None:
         """
         Adds X and y to the known training data for each learner and retrains learners with the augmented dataset.
         Args:
@@ -364,4 +363,3 @@ class BaseCommittee(ABC, BaseEstimator):
     @abc.abstractmethod
     def vote(self, X: modALinput) -> Any:  # TODO: clarify typing
         pass
-

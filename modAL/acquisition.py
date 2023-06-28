@@ -13,16 +13,16 @@ from modAL.utils.selection import multi_argmax
 
 
 def PI(mean, std, max_val, tradeoff):
-    return ndtr((mean - max_val - tradeoff)/std)
+    return ndtr((mean - max_val - tradeoff) / std)
 
 
 def EI(mean, std, max_val, tradeoff):
     z = (mean - max_val - tradeoff) / std
-    return (mean - max_val - tradeoff)*ndtr(z) + std*norm.pdf(z)
+    return (mean - max_val - tradeoff) * ndtr(z) + std * norm.pdf(z)
 
 
 def UCB(mean, std, beta):
-    return mean + beta*std
+    return mean + beta * std
 
 
 """

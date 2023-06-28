@@ -25,12 +25,12 @@ def _SVM_loss(multiclass_classifier: ActiveLearner,
         np.ndarray of shape (n_instances, ), losses for the instances in X.
 
     """
-    predictions = 2*multiclass_classifier.predict(X)-1
+    predictions = 2 * multiclass_classifier.predict(X) - 1
     n_classes = len(multiclass_classifier.classes_)
 
     if most_certain_classes is None:
-        cls_mtx = 2*np.eye(n_classes, n_classes) - 1
-        loss_mtx = np.maximum(1-np.dot(predictions, cls_mtx), 0)
+        cls_mtx = 2 * np.eye(n_classes, n_classes) - 1
+        loss_mtx = np.maximum(1 - np.dot(predictions, cls_mtx), 0)
         return loss_mtx.mean(axis=1)
     else:
         cls_mtx = -np.ones(shape=(len(X), n_classes))
@@ -74,7 +74,6 @@ def SVM_binary_minimum(classifier: ActiveLearner, X_pool: modALinput,
 
 def max_loss(classifier: OneVsRestClassifier, X_pool: modALinput,
              n_instances: int = 1, random_tie_break: bool = False) -> np.ndarray:
-
     """
     Max Loss query strategy for SVM multilabel classification.
 
@@ -217,13 +216,12 @@ def max_score(classifier: OneVsRestClassifier, X_pool: modALinput,
 
     Returns:
         The index of the instance from X_pool chosen to be labelled.
-        The classwise maximum metric of the chosen instances. 
-
+        The classwise maximum metric of the chosen instances.
     """
 
     classwise_confidence = classifier.predict_proba(X_pool)
     classwise_predictions = classifier.predict(X_pool)
-    classwise_scores = classwise_confidence*(classwise_predictions - 1/2)
+    classwise_scores = classwise_confidence * (classwise_predictions - 1 / 2)
     classwise_max = np.max(classwise_scores, axis=1)
 
     if not random_tie_break:
@@ -255,7 +253,7 @@ def avg_score(classifier: OneVsRestClassifier, X_pool: modALinput,
 
     classwise_confidence = classifier.predict_proba(X_pool)
     classwise_predictions = classifier.predict(X_pool)
-    classwise_scores = classwise_confidence*(classwise_predictions-1/2)
+    classwise_scores = classwise_confidence * (classwise_predictions - 1 / 2)
     classwise_mean = np.mean(classwise_scores, axis=1)
 
     if not random_tie_break:

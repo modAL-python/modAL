@@ -21,7 +21,7 @@ def check_class_labels(*args: BaseEstimator) -> bool:
         raise NotFittedError('Not all estimators are fitted. Fit all estimators before using this method.')
 
     for classifier_idx in range(len(args) - 1):
-        if not np.array_equal(classes_[classifier_idx], classes_[classifier_idx+1]):
+        if not np.array_equal(classes_[classifier_idx], classes_[classifier_idx + 1]):
             return False
 
     return True
