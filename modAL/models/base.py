@@ -171,14 +171,13 @@ class BaseLearner(ABC, BaseEstimator):
             query_metrics: returns also the corresponding metrics, if return_metrics == True
         """
 
-        try:
-            query_result, query_metrics = self.query_strategy(
-                self, X_pool, *query_args, **query_kwargs)
-
-        except:
+        _query_strategy_result = self.query_strategy(
+            self, X_pool, *query_args, **query_kwargs)
+        if isinstance(_query_strategy_result, tuple) and len(_query_strategy_result) == 2:
+            query_result, query_metrics = _query_strategy_result
+        else:
+            query_result = _query_strategy_result
             query_metrics = None
-            query_result = self.query_strategy(
-                self, X_pool, *query_args, **query_kwargs)
 
         if return_metrics:
             if query_metrics is None: 
@@ -313,14 +312,13 @@ class BaseCommittee(ABC, BaseEstimator):
             query_metrics: returns also the corresponding metrics, if return_metrics == True
         """
 
-        try:
-            query_result, query_metrics = self.query_strategy(
-                self, X_pool, *query_args, **query_kwargs)
-
-        except:
+        _query_strategy_result = self.query_strategy(
+            self, X_pool, *query_args, **query_kwargs)
+        if isinstance(_query_strategy_result, tuple) and len(_query_strategy_result) == 2:
+            query_result, query_metrics = _query_strategy_result
+        else:
+            query_result = _query_strategy_result
             query_metrics = None
-            query_result = self.query_strategy(
-                self, X_pool, *query_args, **query_kwargs)
 
         if return_metrics:
             if query_metrics is None: 

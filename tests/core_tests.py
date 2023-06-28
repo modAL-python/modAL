@@ -115,11 +115,8 @@ class TestUtils(unittest.TestCase):
                     else:
                         true_result = n_functions*np.ones(shape=(n_samples, 1))
 
-                    try:
-                        np.testing.assert_almost_equal(
-                            linear_combination(X_in), true_result)
-                    except:
-                        linear_combination(X_in)
+                    np.testing.assert_almost_equal(
+                        linear_combination(X_in), true_result)
 
     def test_product(self):
         for n_dim in range(1, 5):
@@ -476,15 +473,11 @@ class TestDisagreements(unittest.TestCase):
 
                     true_KL_disagreement = np.zeros(shape=(n_samples, ))
 
-                    try:
-                        np.testing.assert_array_almost_equal(
-                            true_KL_disagreement,
-                            modAL.disagreement.KL_max_disagreement(
-                                committee, np.random.rand(n_samples, 1))
-                        )
-                    except:
+                    np.testing.assert_array_almost_equal(
+                        true_KL_disagreement,
                         modAL.disagreement.KL_max_disagreement(
                             committee, np.random.rand(n_samples, 1))
+                    )
 
                     # 2. unfitted committee
                     committee = mock.MockCommittee(fitted=False)
