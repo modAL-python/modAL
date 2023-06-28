@@ -39,7 +39,7 @@ def vote_entropy(committee: BaseCommittee, X: modALinput, **predict_proba_kwargs
         vote_counter = Counter(vote)
 
         for class_idx, class_label in enumerate(committee.classes_):
-            p_vote[vote_idx, class_idx] = vote_counter[class_label]/n_learners
+            p_vote[vote_idx, class_idx] = vote_counter[class_label] / n_learners
 
     entr = entropy(p_vote, axis=1)
     return entr
@@ -184,7 +184,7 @@ def max_disagreement_sampling(committee: BaseCommittee, X: modALinput,
 
 
 def max_std_sampling(regressor: BaseEstimator, X: modALinput,
-                     n_instances: int = 1,  random_tie_break=False,
+                     n_instances: int = 1, random_tie_break=False,
                      **predict_kwargs) -> np.ndarray:
     """
     Regressor standard deviation sampling strategy.

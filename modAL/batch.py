@@ -158,7 +158,7 @@ def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
             classifier.X_training
         ) if classifier.on_transformed else classifier.X_training[:]
         instance_index_ranking = []
-    
+
     # The maximum number of records to sample.
     ceiling = np.minimum(unlabeled.shape[0], n_instances) - len(instance_index_ranking)
 
@@ -166,7 +166,6 @@ def ranked_batch(classifier: Union[BaseLearner, BaseCommittee],
     mask = np.ones(unlabeled.shape[0], bool)
 
     for _ in range(ceiling):
-
         # Receive the instance and corresponding index from our unlabeled copy that scores highest.
         instance_index, instance, mask = select_instance(X_training=labeled, X_pool=unlabeled,
                                                          X_uncertainty=uncertainty_scores, mask=mask,
@@ -220,5 +219,4 @@ def uncertainty_batch_sampling(classifier: Union[BaseLearner, BaseCommittee],
     """
     uncertainty = classifier_uncertainty(classifier, X, **uncertainty_measure_kwargs)
     return ranked_batch(classifier, unlabeled=X, uncertainty_scores=uncertainty,
-                                 n_instances=n_instances, metric=metric, n_jobs=n_jobs)
-
+                        n_instances=n_instances, metric=metric, n_jobs=n_jobs)

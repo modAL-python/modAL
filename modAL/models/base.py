@@ -180,9 +180,8 @@ class BaseLearner(ABC, BaseEstimator):
             query_metrics = None
 
         if return_metrics:
-            if query_metrics is None: 
-                warnings.warn(
-                "The selected query strategy doesn't support return_metrics")
+            if query_metrics is None:
+                warnings.warn("The selected query strategy doesn't support return_metrics")
             return query_result, retrieve_rows(X_pool, query_result), query_metrics
         else:
             return query_result, retrieve_rows(X_pool, query_result)
@@ -215,6 +214,7 @@ class BaseCommittee(ABC, BaseEstimator):
         on_transformed: Whether to transform samples with the pipeline defined by each learner's estimator
             when applying the query strategy.
     """
+
     def __init__(self, learner_list: List[BaseLearner], query_strategy: Callable, on_transformed: bool = False) -> None:
         assert type(learner_list) == list, 'learners must be supplied in a list'
 
@@ -321,9 +321,9 @@ class BaseCommittee(ABC, BaseEstimator):
             query_metrics = None
 
         if return_metrics:
-            if query_metrics is None: 
+            if query_metrics is None:
                 warnings.warn(
-                "The selected query strategy doesn't support return_metrics")
+                    "The selected query strategy doesn't support return_metrics")
             return query_result, retrieve_rows(X_pool, query_result), query_metrics
         else:
             return query_result, retrieve_rows(X_pool, query_result)
@@ -339,7 +339,8 @@ class BaseCommittee(ABC, BaseEstimator):
         """
         self._fit_to_known(bootstrap=True, **fit_kwargs)
 
-    def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, only_new: bool = False, **fit_kwargs) -> None:
+    def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, only_new: bool = False,
+              **fit_kwargs) -> None:
         """
         Adds X and y to the known training data for each learner and retrains learners with the augmented dataset.
         Args:
@@ -362,4 +363,3 @@ class BaseCommittee(ABC, BaseEstimator):
     @abc.abstractmethod
     def vote(self, X: modALinput) -> Any:  # TODO: clarify typing
         pass
-

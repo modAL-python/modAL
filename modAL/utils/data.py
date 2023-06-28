@@ -103,7 +103,7 @@ def add_row(X: modALinput, row: modALinput):
 
 
 def retrieve_rows(
-    X: modALinput, I: Union[int, List[int], np.ndarray]
+    X: modALinput, I: Union[int, List[int], np.ndarray]  # noqa: E741
 ) -> Union[sp.csc_matrix, np.ndarray, pd.DataFrame]:
     """
     Returns the rows I from the data set X
@@ -141,7 +141,7 @@ def retrieve_rows(
 
 
 def drop_rows(
-    X: modALinput, I: Union[int, List[int], np.ndarray]
+    X: modALinput, I: Union[int, List[int], np.ndarray]  # noqa: E741
 ) -> Union[sp.csc_matrix, np.ndarray, pd.DataFrame]:
     """
     Returns X without the row(s) at index/indices I

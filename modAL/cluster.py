@@ -4,8 +4,6 @@ Cluster-based active learning algorithms
 ========================================
 """
 
-from sklearn.cluster.hierarchical import AgglomerativeClustering
-
 
 class HierarchicalClustering:
     def __init__(self):

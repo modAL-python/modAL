@@ -2,8 +2,6 @@
 Expected error reduction framework for active learning.
 """
 
-from typing import Tuple
-
 import numpy as np
 from sklearn.base import clone
 from sklearn.exceptions import NotFittedError
@@ -63,16 +61,16 @@ def expected_error_reduction(learner: ActiveLearner, X: modALinput, loss: str = 
             # estimate the expected error
             for y_idx, y in enumerate(possible_labels):
                 X_new = add_row(learner.X_training, x)
-                y_new = data_vstack((learner.y_training, np.array(y).reshape(1,)))
+                y_new = data_vstack((learner.y_training, np.array(y).reshape(1, )))
 
                 cloned_estimator.fit(X_new, y_new)
                 refitted_proba = cloned_estimator.predict_proba(X_reduced)
-                if loss is 'binary':
+                if loss == 'binary':
                     nloss = _proba_uncertainty(refitted_proba)
-                elif loss is 'log':
+                elif loss == 'log':
                     nloss = _proba_entropy(refitted_proba)
 
-                expected_error[x_idx] += np.sum(nloss)*X_proba[x_idx, y_idx]
+                expected_error[x_idx] += np.sum(nloss) * X_proba[x_idx, y_idx]
 
         else:
             expected_error[x_idx] = np.inf
