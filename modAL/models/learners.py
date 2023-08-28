@@ -29,6 +29,7 @@ class ActiveLearner(BaseLearner):
         y_training: Initial training labels corresponding to initial training samples.
         bootstrap_init: If initial training data is available, bootstrapping can be done during the first training.
             Useful when building Committee models with bagging.
+        stratify: If True, samples are bootstrapped in stratified fashion. Is significat only if bootstrap parameter is True. 
         on_transformed: Whether to transform samples with the pipeline defined by the estimator
             when applying the query strategy.
         **fit_kwargs: keyword arguments.
@@ -74,6 +75,7 @@ class ActiveLearner(BaseLearner):
                  X_training: Optional[modALinput] = None,
                  y_training: Optional[modALinput] = None,
                  bootstrap_init: bool = False,
+                 stratify: bool = False,
                  on_transformed: bool = False,
                  **fit_kwargs
                  ) -> None:
@@ -83,7 +85,7 @@ class ActiveLearner(BaseLearner):
         self.y_training = y_training
 
         if X_training is not None:
-            self._fit_to_known(bootstrap=bootstrap_init, **fit_kwargs)
+            self._fit_to_known(bootstrap=bootstrap_init, stratify=stratify, **fit_kwargs)
 
     def _add_training_data(self, X: modALinput, y: modALinput) -> None:
         """
@@ -111,12 +113,13 @@ class ActiveLearner(BaseLearner):
                 raise ValueError('the dimensions of the new training data and label must'
                                  'agree with the training data and labels provided so far')
 
-    def _fit_to_known(self, bootstrap: bool = False, **fit_kwargs) -> 'BaseLearner':
+    def _fit_to_known(self, bootstrap: bool = False, stratify:bool = False, **fit_kwargs) -> 'BaseLearner':
         """
         Fits self.estimator to the training data and labels provided to it so far.
 
         Args:
             bootstrap: If True, the method trains the model on a set bootstrapped from the known training instances.
+            stratify: If True, samples are bootstrapped in stratified fashion. Is significat only if bootstrap parameter is True. 
             **fit_kwargs: Keyword arguments to be passed to the fit method of the predictor.
 
         Returns:
@@ -125,15 +128,37 @@ class ActiveLearner(BaseLearner):
         if not bootstrap:
             self.estimator.fit(self.X_training, self.y_training, **fit_kwargs)
         else:
-            n_instances = self.X_training.shape[0]
-            bootstrap_idx = np.random.choice(
-                range(n_instances), n_instances, replace=True)
-            self.estimator.fit(
-                self.X_training[bootstrap_idx], self.y_training[bootstrap_idx], **fit_kwargs)
+            if not stratify:
+                n_instances = self.X_training.shape[0]
+                bootstrap_idx = np.random.choice(
+                    range(n_instances), n_instances, replace=True)
+                self.estimator.fit(
+                    self.X_training[bootstrap_idx], self.y_training[bootstrap_idx], **fit_kwargs)
+            else:
+                classes, y_indices = np.unique(self.y_training, return_inverse=True)
+                n_classes = classes.shape[0]
+
+                class_counts = np.bincount(y_indices)
+
+                # Find the sorted list of instances for each class:
+                # (np.unique above performs a sort, so code is O(n logn) already)
+                class_indices = np.split(
+                    np.argsort(y_indices, kind="mergesort"), np.cumsum(class_counts)[:-1]
+                )
+
+                indices = []
+
+                for i in range(n_classes):
+                    indices_i = np.random.choice(class_indices[i], class_counts[i], replace=True)
+                    indices.extend(indices_i)
+
+                indices = np.random.permutation(indices)
+
+                self.estimator.fit(self.X_training[indices], self.y_training[indices], **fit_kwargs)
 
         return self
 
-    def fit(self, X: modALinput, y: modALinput, bootstrap: bool = False, **fit_kwargs) -> 'BaseLearner':
+    def fit(self, X: modALinput, y: modALinput, bootstrap: bool = False, stratify: bool = False, **fit_kwargs) -> 'BaseLearner':
         """
         Interface for the fit method of the predictor. Fits the predictor to the supplied data, then stores it
         internally for the active learning loop.
@@ -143,6 +168,7 @@ class ActiveLearner(BaseLearner):
             y: The corresponding labels.
             bootstrap: If true, trains the estimator on a set bootstrapped from X.
                 Useful for building Committee models with bagging.
+            stratify: If True, samples are bootstrapped in stratified fashion. Is significat only if bootstrap parameter is True. 
             **fit_kwargs: Keyword arguments to be passed to the fit method of the predictor.
 
         Note:
@@ -155,9 +181,9 @@ class ActiveLearner(BaseLearner):
         check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None,
                   force_all_finite=self.force_all_finite)
         self.X_training, self.y_training = X, y
-        return self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
+        return self._fit_to_known(bootstrap=bootstrap, stratify=stratify, **fit_kwargs)
 
-    def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, only_new: bool = False, **fit_kwargs) -> None:
+    def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, stratify: bool = False, only_new: bool = False, **fit_kwargs) -> None:
         """
         Adds X and y to the known training data and retrains the predictor with the augmented dataset.
 
@@ -166,6 +192,7 @@ class ActiveLearner(BaseLearner):
             y: Labels corresponding to the new instances in X.
             bootstrap: If True, training is done on a bootstrapped dataset. Useful for building Committee models
                 with bagging.
+            stratify: If True, samples are bootstrapped in stratified fashion. Is significat only if bootstrap parameter is True. 
             only_new: If True, the model is retrained using only X and y, ignoring the previously provided examples.
                 Useful when working with models where the .fit() method doesn't retrain the model from scratch (e. g. in
                 tensorflow or keras).
@@ -173,11 +200,11 @@ class ActiveLearner(BaseLearner):
         """
         if not only_new:
             self._add_training_data(X, y)
-            self._fit_to_known(bootstrap=bootstrap, **fit_kwargs)
+            self._fit_to_known(bootstrap=bootstrap, stratify=stratify, **fit_kwargs)
         else:
             check_X_y(X, y, accept_sparse=True, ensure_2d=False, allow_nd=True, multi_output=True, dtype=None,
                       force_all_finite=self.force_all_finite)
-            self._fit_on_new(X, y, bootstrap=bootstrap, **fit_kwargs)
+            self._fit_on_new(X, y, bootstrap=bootstrap, stratify=stratify, **fit_kwargs)
 
 
 class DeepActiveLearner(BaseLearner):
@@ -524,17 +551,18 @@ class Committee(BaseCommittee):
         super().fit(X, y, **fit_kwargs)
         self._set_classes()
 
-    def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, only_new: bool = False, **fit_kwargs) -> None:
+    def teach(self, X: modALinput, y: modALinput, bootstrap: bool = False, stratify: bool = False, only_new: bool = False, **fit_kwargs) -> None:
         """
         Adds X and y to the known training data for each learner and retrains learners with the augmented dataset.
         Args:
             X: The new samples for which the labels are supplied by the expert.
             y: Labels corresponding to the new instances in X.
             bootstrap: If True, trains each learner on a bootstrapped set. Useful when building the ensemble by bagging.
+            stratify: If True, samples are bootstrapped in stratified fashion. Is significat only if bootstrap parameter is True. 
             only_new: If True, the model is retrained using only X and y, ignoring the previously provided examples.
             **fit_kwargs: Keyword arguments to be passed to the fit method of the predictor.
         """
-        super().teach(X, y, bootstrap=bootstrap, only_new=only_new, **fit_kwargs)
+        super().teach(X, y, bootstrap=bootstrap, stratify=stratify, only_new=only_new, **fit_kwargs)
         self._set_classes()
 
     def predict(self, X: modALinput, **predict_proba_kwargs) -> Any:
